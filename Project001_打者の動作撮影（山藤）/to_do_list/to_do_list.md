@@ -42,12 +42,16 @@
 
 - [ ] **【Step 8: 未着手】時間同期精度の向上**: 先日の文献調査（ソフトウェア同期）を参考に、オーディオ同期を用いた概算同期に加えて、視覚的同期点（フラッシュ等）を用いた目視チューニングや、DTW・Pose2Simを利用したデータ波形/サブフレーム同期を検証する `[作成者: student]`
 - [ ] YOLOv8（Step2〜4）で既に行っているバット・打者検出パイプラインに対して、バット特有の残像（モーションブラー）への耐性をさらに上げるためのTrackNetなどの応用可否を検討する `[作成者: AI]`
+- [ ] **MATLAB学習 (Step 2以降)**: `Matlab_Learning/` にて、ステップに沿ってベクトル・行列の作成、データの計算、プロットの基本を習得する。 `[作成者: student]` `[追加日: 2026-04-16]`
 - [ ] Pose2Simパイプライン全体でのマーカーレス精度評価ロジックを読み解く `[作成者: AI]`
 
 #### 📑 必読の先行研究 (Required Reading)
 
 `previous_research` 内での調査に基づき、本プロジェクトの実装や精度評価において特に重要となる原著論文の読解タスクです。
 
+- [ ] 【打撃バイオメカニクスの金字塔】Hitting a baseball: A biomechanical description (Welch et al., 1995) `[作成者: AI]` `[追加日: 2026-04-16]`
+- [ ] 【スキルレベルによる動作比較】Differences in the kinematics of the baseball swing... (Inkster et al., 2011) `[作成者: AI]` `[追加日: 2026-04-16]`
+- [ ] 【包括的解析の辞書】The Biomechanics of the Baseball Swing (Fortenbaugh, 2011) `[作成者: AI]` `[追加日: 2026-04-16]`
 - [ ] 【超広角カメラの歪み補正】Calibration of Fisheye Lenses for 3D Reconstruction (Scaramuzza et al., 2006) `[作成者: AI]`
 - [ ] 【システム同期と統合の教科書】Pose2Sim: An End-to-End Workflow for 3D Markerless Sports Kinematics (Pagnon et al., 2021) `[作成者: AI]`
 - [ ] 【マーカレス精度の評価軸】Evaluation of 3D Markerless Motion Capture Accuracy Using OpenPose... (Nakano et al., 2020) `[作成者: AI]`
