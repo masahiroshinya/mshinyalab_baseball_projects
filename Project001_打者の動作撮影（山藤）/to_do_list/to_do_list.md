@@ -36,7 +36,7 @@
 
 ### ✅ 最近完了したタスク
 
-- [x] **【Step 8: 完了 2026-04-15】ソフト1 映像同期**: LED輝度変化のクロスコリレーションで映像間フレームオフセットを計算し、同期クリップを生成するスクリプトを Google Colab で実装・動作確認完了 `[作成者: student]`
+- [X] **【Step 8: 完了 2026-04-15】ソフト1 映像同期**: LED輝度変化のクロスコリレーションで映像間フレームオフセットを計算し、同期クリップを生成するスクリプトを Google Colab で実装・動作確認完了 `[作成者: student]`
 
 ### 📅 後日行うこと (Backlog / Future Tasks)
 
@@ -49,7 +49,7 @@
 
 `previous_research` 内での調査に基づき、本プロジェクトの実装や精度評価において特に重要となる原著論文の読解タスクです。
 
-- [ ] 【打撃バイオメカニクスの金字塔】Hitting a baseball: A biomechanical description (Welch et al., 1995) `[作成者: AI]` `[追加日: 2026-04-16]`
+- [X] 【打撃バイオメカニクスの金字塔】Hitting a baseball: A biomechanical description (Welch et al., 1995) `[作成者: AI]` `[追加日: 2026-04-16]`
 - [ ] 【スキルレベルによる動作比較】Differences in the kinematics of the baseball swing... (Inkster et al., 2011) `[作成者: AI]` `[追加日: 2026-04-16]`
 - [ ] 【包括的解析の辞書】The Biomechanics of the Baseball Swing (Fortenbaugh, 2011) `[作成者: AI]` `[追加日: 2026-04-16]`
 - [ ] 【超広角カメラの歪み補正】Calibration of Fisheye Lenses for 3D Reconstruction (Scaramuzza et al., 2006) `[作成者: AI]`
