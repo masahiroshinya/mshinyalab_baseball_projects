@@ -6,9 +6,6 @@
 ---
 
 **【1. Qualisys での計測】**
-- [ ] 1.1. Qualisys のrigid body機能を用いた、バットの位置計測
-- [ ] 1.2. Qualisys のAIMを用いた人体動作計測
-- [ ] 1.3. Quaisys を用いた床反力計測
 - [ ] 1.4. AIMとrigid body の両方を用いて、バットスイング計測（GRF＋人体動作＋バット）
 
 **【2. MATLAB data acquisition toolbox を用いた電圧出力】**

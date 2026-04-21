@@ -1,10 +1,11 @@
-% 2026-0420_02_practice_Qualysis_synchronization.m
-% QTM外部トリガ送信の練習スクリプト（関数分離・複数回テスト版）
+% 2026-0421_01_practice_AIM_capture.m
+% AIM人体動作計測の練習スクリプト（カウントダウン付きトリガ送信版）
 % sendQTMTrigger.m と同じフォルダに置いて使用すること
 
 %% 1. パラメータ設定
 nTrials = 3;          % テストするトライアル数
 trialInterval = 5;    % トライアル間の待機時間（秒）
+countdownSec = 5;     % トリガ送信前のカウントダウン秒数（移動時間）
 
 %% 2. DAQデバイスのセットアップ
 disp('DAQデバイスのセットアップを開始します...');
@@ -35,6 +36,14 @@ for trial = 1:nTrials
         disp('次のトライアルの準備：QTMで再度 Capture → Start を操作してください。');
         input('準備できたら Enter キーを押してください...', 's');
     end
+
+    % カウントダウン（Enter後に計測ポジションへ移動する時間を確保）
+    fprintf('%d秒後にトリガを送信します。計測ポジションに移動してください。\n', countdownSec);
+    for t = countdownSec:-1:1
+        fprintf('  %d...\n', t);
+        pause(1);
+    end
+    disp('トリガ送信！');
 
     % トリガ送信（関数呼び出し）
     sendQTMTrigger(dq);
