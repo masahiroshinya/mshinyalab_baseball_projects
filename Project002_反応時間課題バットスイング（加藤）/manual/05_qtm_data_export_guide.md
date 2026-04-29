@@ -1,6 +1,6 @@
 # QTM データ保存・エクスポートガイド
 
-**作成日**: 2026-04-29  
+**作成日**: 2026-04-29
 **作成者**: mshinyalab (AI支援)
 
 ---
@@ -18,6 +18,7 @@ D:\MShinyaLab\Documents\QuslisysProjects\
 ```
 
 ### 保存先の確認方法
+
 - **File → Open Project Folder** を選択するとWindowsエクスプローラーでプロジェクトフォルダが開く
 
 ---
@@ -40,12 +41,12 @@ QTMにはキャプチャフォルダを個別指定する設定がない。日�
 
 新しいプロジェクトには前回の設定が引き継がれないため、以下を再設定する。
 
-| 設定項目 | 手順 |
-|---|---|
-| 剛体定義の読み込み | Project Options → 6DOF Tracking → **Load Bodies** → 前回保存したXMLファイルを選択 |
+| 設定項目                | 手順                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| 剛体定義の読み込み      | Project Options → 6DOF Tracking →**Load Bodies** → 前回保存したXMLファイルを選択   |
 | Calculate 6DOF の有効化 | Project Options → Processing → Real time / Capture actions の `Calculate 6DOF` を両方ON |
-| Capture time の設定 | Project Options → Processing → Capture time を90秒以上に設定 |
-| Export to MATLAB file | Project Options → Processing → Capture actions の `Export to MATLAB file` をON |
+| Capture time の設定     | Project Options → Processing → Capture time を90秒以上に設定                              |
+| Export to MATLAB file   | Project Options → Processing → Capture actions の `Export to MATLAB file` をON          |
 
 設定後 **Apply → OK → File → Save Project** で保存する。
 
@@ -80,15 +81,16 @@ Project Optionsでエクスポートを自動化しておく。
 4. エクスポートしたい `.qtm` ファイルを **Ctrlキーを押しながら複数選択** する
 5. **開く(O)** を押す
 6. バッチ処理が実行され、各 `.qtm` ファイルと同じフォルダに `.mat` ファイルが生成される
+7. 作成したMATLABファイルは、手作業でShinyaLabディスク内の「62.Kato」フォルダへ移行
 
 > **注意**: Batch Processのファイル選択時、現在開いているプロジェクトフォルダとは別のフォルダにファイルがある場合、手動でナビゲートして目的のフォルダを開く必要がある。
 
 ### トラブルシューティング
 
-| 症状 | 対処法 |
-|---|---|
+| 症状                                               | 対処法                                                                                                                                             |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ファイル選択ダイアログで目的のフォルダが空に見える | 別のフォルダにファイルが保存されている可能性がある。**File → Open Project Folder** でプロジェクトフォルダを確認してから改めてナビゲートする |
-| Batch Processでファイルが開けない | 対象ファイルが別のプロジェクトに属している場合に発生することがある。対象プロジェクトを先に開いてから実行する（未解決・調査中）|
+| Batch Processでファイルが開けない                  | 対象ファイルが別のプロジェクトに属している場合に発生することがある。対象プロジェクトを先に開いてから実行する（未解決・調査中）                     |
 
 ---
 
@@ -100,11 +102,11 @@ Project Optionsでエクスポートを自動化しておく。
 load('2026-0429_simple_reaction_test.mat');
 ```
 
-| 変数名 | 内容 |
-|---|---|
-| `Trajectories` | マーカーの3D座標データ（ラベル付き） |
-| `RigidBodies` | 剛体の6DOFデータ（位置・姿勢） |
-| `FrameRate` | キャプチャのフレームレート（Hz） |
-| `Analog` | アナログ入力データ（DAQからの電圧信号など） |
+| 変数名           | 内容                                        |
+| ---------------- | ------------------------------------------- |
+| `Trajectories` | マーカーの3D座標データ（ラベル付き）        |
+| `RigidBodies`  | 剛体の6DOFデータ（位置・姿勢）              |
+| `FrameRate`    | キャプチャのフレームレート（Hz）            |
+| `Analog`       | アナログ入力データ（DAQからの電圧信号など） |
 
 > `Analog` チャンネルにはao0からのLED信号（イベントマーカー）が含まれるため、刺激タイミングと動作データの対応付けが可能。
