@@ -52,10 +52,10 @@ try
 for iTrial = 1:nTrial
     
     % 何かのキーを押すまで待機
-    msg = sprintf('%d試行目: %s  Foreperiod=%.1fs  何かのキーを押してください', ...
-    iTrial, Protocol.CueText{iTrial}, Protocol.Foreperiod(iTrial)) ;
-    disp(msg)   
-    pause       
+    msg = sprintf('%d試行目: %s  Foreperiod=%.1fs', ...
+        iTrial, Protocol.CueText{iTrial}, Protocol.Foreperiod(iTrial)) ;
+    disp(msg)
+
 
     if Protocol.Foreperiod(iTrial) <= ready_signal_duration
         error('試行%d: Foreperiod（%.1fs）はready_signal_duration（%.1fs）より大きくする必要があります。', ...
@@ -95,9 +95,17 @@ for iTrial = 1:nTrial
     % バッファへの書き込みと出力の実行 ===
     preload(dq, waveform);
     start(dq, 'Finite');
+    waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
+                        Protocol.Foreperiod(iTrial) + gonogo_signal_duration + off_duration;
+    pause(waveform_duration + 4);   % 波形出力完了 + 試行間インターバル [秒]
+    stop(dq);                       % DAQ状態をリセット
+
 
 
 end
+
+
+
 
 catch ME
 write(dq,[0,0]);
