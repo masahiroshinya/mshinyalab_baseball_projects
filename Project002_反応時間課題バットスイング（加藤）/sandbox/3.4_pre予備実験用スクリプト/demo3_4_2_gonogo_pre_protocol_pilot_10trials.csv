@@ -1,11 +1,11 @@
 TrialNum,Foreperiod,CueText
 1,2.0,go
 2,1.5,go
-3,2.5,nogo
-4,1.0,go
+3,3.0,nogo
+4,2.5,go
 5,2.0,nogo
 6,1.5,go
-7,2.5,go
-8,1.0,nogo
+7,3.0,go
+8,2.5,nogo
 9,2.0,go
 10,1.5,go

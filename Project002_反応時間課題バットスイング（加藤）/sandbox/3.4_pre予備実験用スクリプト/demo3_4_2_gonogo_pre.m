@@ -46,13 +46,21 @@ dq.Rate = sample_rate;
 addoutput(dq, "Dev1", {'ao0', 'ao1'}, "Voltage") ;
 
 
+try
 for iTrial = 1:nTrial
     
     % 何かのキーを押すまで待機
-    msg = [sprintf('%d試行目: ', iTrial), Protocol.CueText{iTrial}, '  何かのキーを押してください'] ;
-    disp(msg)
-    pause
-    
+    msg = sprintf('%d試行目: %s  Foreperiod=%.1fs  何かのキーを押してください', ...
+        iTrial, Protocol.CueText{iTrial}, Protocol.Foreperiod(iTrial)) ;
+    disp(msg)    
+    pause       
+
+    if Protocol.Foreperiod(iTrial) <= ready_signal_duration
+        error('試行%d: Foreperiod（%.1fs）はready_signal_duration（%.1fs）より大きくする必要があります。', ...
+            iTrial, Protocol.Foreperiod(iTrial), ready_signal_duration) ;
+    end
+
+
     %
     switch Protocol.CueText{iTrial}
         case 'go'
@@ -89,4 +97,9 @@ for iTrial = 1:nTrial
     start(dq, 'Finite');
 
 
+end
+
+catch ME
+write(dq,[0,0]);
+rethrow(ME);
 end
