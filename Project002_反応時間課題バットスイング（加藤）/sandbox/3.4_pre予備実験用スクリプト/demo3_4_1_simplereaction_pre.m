@@ -1,4 +1,4 @@
- 
+
 clear;
 clc;
 close all;
@@ -50,7 +50,7 @@ addoutput(dq, "Dev1", {'ao0', 'ao1'}, "Voltage") ;
 
 try
 for iTrial = 1:nTrial
-    
+
     % 何かのキーを押すまで待機
     msg = sprintf('%d試行目: %s  Foreperiod=%.1fs', ...
         iTrial, Protocol.CueText{iTrial}, Protocol.Foreperiod(iTrial)) ;
@@ -64,8 +64,8 @@ for iTrial = 1:nTrial
 
 
 
-    
-   
+
+
     voltage_ao1 = voltage_go ;   % 単純選択反応は常に緑LED
 
 
@@ -105,7 +105,7 @@ for iTrial = 1:nTrial
     start(dq, 'Finite');
     waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
                         Protocol.Foreperiod(iTrial) + gonogo_signal_duration + off_duration;
-    pause(waveform_duration);   % 波形出力完了 + 試行間インターバル [秒]
+    pause(waveform_duration);   % 波形出力完了まで待機
     stop(dq);                       % DAQ状態をリセット
 
 

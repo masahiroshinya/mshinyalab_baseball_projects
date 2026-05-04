@@ -48,12 +48,12 @@ addoutput(dq, "Dev1", {'ao0', 'ao1'}, "Voltage") ;
 
 try
 for iTrial = 1:nTrial
-    
+
     % 何かのキーを押すまで待機
     msg = sprintf('%d試行目: %s  Foreperiod=%.1fs', ...
         iTrial, Protocol.CueText{iTrial}, Protocol.Foreperiod(iTrial)) ;
     disp(msg)
-    
+
 
     if Protocol.Foreperiod(iTrial) <= ready_signal_duration
         error('試行%d: Foreperiod（%.1fs）はready_signal_duration（%.1fs）より大きくする必要があります。', ...
@@ -93,7 +93,7 @@ for iTrial = 1:nTrial
 
 
     % バッファへの書き込みと出力の実行 ===
-     % Qualisys capture準備 + 待機姿勢への移行
+    % Qualisys capture準備 + 待機姿勢への移行
     input(sprintf('[試行 %d/%d] Qualisysをcapture待機状態にし、準備ができたらEnterを押してください...', iTrial, nTrial));
     for iCount = 4:-1:1
         fprintf('  %d 秒後に開始...\n', iCount);
@@ -105,7 +105,7 @@ for iTrial = 1:nTrial
     start(dq, 'Finite');
     waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
                         Protocol.Foreperiod(iTrial) + gonogo_signal_duration + off_duration;
-    pause(waveform_duration);   % 波形出力完了 + 試行間インターバル [秒]
+    pause(waveform_duration);   % 波形出力完了まで待機
     stop(dq);                       % DAQ状態をリセット
 
 end
