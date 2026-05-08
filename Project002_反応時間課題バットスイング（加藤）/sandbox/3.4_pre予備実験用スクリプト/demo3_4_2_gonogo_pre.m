@@ -9,19 +9,20 @@ close all;
 
 % === ステップ1: 波形ベクトルの作成と確認 ===
 % パラメータ：　全試行共通
-sample_rate  = 1000;    % サンプリングレート [Hz]
+sample_rate  = 1000;
 voltage_off = 0 ;
 voltage_trigOn = 5.0 ;
 voltage_ready = -5.0 ;
 voltage_go = 5.0 ;
 voltage_nogo = -5.0 ;
 
-ini_duration = 0.1;     % 最初の消灯時間 [秒]
+ini_duration = 0.1;
 trig_signal_duration = 0.1 ;
 trig_to_ready_interval = 1.0 ;
 ready_signal_duration = 0.5 ;
 gonogo_signal_duration = 0.5 ;
 off_duration = 0.1 ;
+swing_max_duration = 5.0 ;
 
 %% プロトコール
 % パラメータ：　試行ごとに異なる
@@ -61,7 +62,6 @@ for iTrial = 1:nTrial
     end
 
 
-    %
     switch Protocol.CueText{iTrial}
         case 'go'
             voltage_ao1 = voltage_go ;
@@ -106,7 +106,12 @@ for iTrial = 1:nTrial
     waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
                         Protocol.Foreperiod(iTrial) + gonogo_signal_duration + off_duration;
     pause(waveform_duration);   % 波形出力完了まで待機
-    stop(dq);                       % DAQ状態をリセット
+    stop(dq);                   % DAQ状態をリセット
+
+    % スイング完了前に次のEnterが押されるのを防ぐ
+    fprintf('  スイング完了待機中 (%.0f秒)...\n', swing_max_duration);
+    pause(swing_max_duration);
+    fprintf('  → 次の試行に進んでください\n');
 
 end
 

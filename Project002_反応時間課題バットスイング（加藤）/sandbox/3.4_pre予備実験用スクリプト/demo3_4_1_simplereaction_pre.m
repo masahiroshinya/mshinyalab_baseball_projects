@@ -24,6 +24,7 @@ trig_to_ready_interval = 1.0 ;
 ready_signal_duration = 0.5 ;
 gonogo_signal_duration = 0.5 ;
 off_duration = 0.1 ;
+swing_max_duration = 5.0 ;  % go cue反応後からスイング終了までの最大時間 [秒]
 
 %% プロトコール
 % パラメータ：　試行ごとに異なる
@@ -61,8 +62,6 @@ for iTrial = 1:nTrial
         error('試行%d: Foreperiod（%.1fs）はready_signal_duration（%.1fs）より大きくする必要があります。', ...
             iTrial, Protocol.Foreperiod(iTrial), ready_signal_duration) ;
     end
-
-
 
 
 
@@ -106,9 +105,12 @@ for iTrial = 1:nTrial
     waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
                         Protocol.Foreperiod(iTrial) + gonogo_signal_duration + off_duration;
     pause(waveform_duration);   % 波形出力完了まで待機
-    stop(dq);                       % DAQ状態をリセット
+    stop(dq);                   % DAQ状態をリセット
 
-
+    % スイング完了前に次のEnterが押されるのを防ぐ
+    fprintf('  スイング完了待機中 (%.0f秒)...\n', swing_max_duration);
+    pause(swing_max_duration);
+    fprintf('  → 次の試行に進んでください\n');
 
 end
 
