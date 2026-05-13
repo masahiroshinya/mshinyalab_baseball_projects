@@ -198,6 +198,67 @@ NI DAQ (ao2) --[5V パルス]--> QTM の Trig in (Trigger Port)
 
 ---
 
+## トラブルシューティング
+
+### 【6DOF / 剛体】剛体を登録したのに新規キャプチャで認識されない
+
+**発生日**: 2026-04-29  
+**作業者**: mshinyalab
+
+#### 症状
+Project Options → 6DOF Tracking に剛体が登録されているにもかかわらず、新規キャプチャ後に剛体が認識・表示されない。
+
+#### 原因
+Project Options → **Processing** の **「Calculate 6DOF」が無効**になっていた。  
+この設定が OFF の場合、剛体定義が存在しても QTM は 6DOF 計算を実行しない。
+
+#### 確認箇所
+Project Options → Processing を開き、以下の2箇所を確認する。
+
+| 設定列 | 項目 | 正しい状態 |
+|--------|------|-----------|
+| Real time actions | Calculate 6DOF | **☑ ON** |
+| Capture actions | Calculate 6DOF | **☑ ON** |
+
+#### 解決手順
+1. メニュー → **Project → Project Options → Processing** を開く
+2. **Real time actions** の `Calculate 6DOF` にチェックを入れる
+3. **Capture actions** の `Calculate 6DOF` にチェックを入れる
+4. **Apply → OK** で保存する
+5. プレビューを再開し、3Dビューで剛体（座標軸）が表示されることを確認する
+
+#### 補足：Real time actionsだけONにしても解決しない場合
+**Real time actions** の `Calculate 6DOF` のみONで **Capture actions** がOFFの場合、プレビュー中はリアルタイムで剛体が見えても、キャプチャ後の処理では6DOFが計算されず剛体が認識されない。**必ず両方をONにすること。**
+
+---
+
+### 【6DOF / 剛体】剛体定義の保存が反映されない（設定がリセットされる）
+
+**発生日**: 2026-04-29  
+**作業者**: mshinyalab
+
+#### 症状
+Project Options で剛体を登録・変更し Apply → OK および File → Save Project をしても、次回起動時や新規キャプチャ時に剛体定義が消えている。
+
+#### 原因
+Project Options の保存（File → Save Project）だけでは剛体のマーカー座標定義は保存されない。剛体定義は**別途 XML ファイルとして「Save Bodies」で保存する必要がある**。
+
+#### 解決手順
+1. Project Options → **Processing → 6DOF Tracking** を開く
+2. 剛体が一覧に表示されていることを確認する
+3. 右側の **「Save Bodies」** ボタンをクリックする
+4. ファイル名（例：`bat_rigid_body`）を入力して **保存(S)** を押す
+   - 保存先はQTMプロジェクトフォルダのままでOK
+   - ファイルの種類は XML files (*.xml)
+5. Project Options に戻り **Apply → OK**
+6. メニュー → **File → Save Project**
+
+#### 注意
+- Save Bodies でファイル名を空欄のまま保存しようとするとエラーになる。必ずファイル名を入力すること。
+- Save Bodies → Apply/OK → File → Save Project の順番を守ること。
+
+---
+
 ## 参考：QTMドキュメントの主要ページ一覧
 
 | ページ名 | URL |
