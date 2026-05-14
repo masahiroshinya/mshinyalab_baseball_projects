@@ -14,6 +14,8 @@ for iSubject = subjects
     
     dataFilePath = sprintf('x3_DataChecked/Data%02d', iSubject) ;
     load(dataFilePath)
+    nTrial = size(DataArray, 1) ;
+
     
     for iCondition = 1:nCondition
         
