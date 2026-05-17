@@ -104,6 +104,9 @@ all_corners1, all_ids1 = [], []
 all_corners2, all_ids2 = [], []
 image_size = None
 
+# OpenCV 4.7以降用の ChArUco 検出器
+charuco_detector = cv2.aruco.CharucoDetector(board)
+
 # コーナー検出
 for p1, p2 in zip(img_paths1, img_paths2):
     img1 = cv2.imread(p1)
@@ -116,16 +119,9 @@ for p1, p2 in zip(img_paths1, img_paths2):
         image_size = (gray1.shape[1], gray1.shape[0])
     
     # Cam1 検出
-    corners1, ids1, _ = cv2.aruco.detectMarkers(gray1, dictionary)
-    charuco_corners1, charuco_ids1 = None, None
-    if ids1 is not None and len(ids1) > 0:
-        _, charuco_corners1, charuco_ids1 = cv2.aruco.interpolateCornersCharuco(corners1, ids1, gray1, board)
-
+    charuco_corners1, charuco_ids1, _, _ = charuco_detector.detectBoard(gray1)
     # Cam2 検出
-    corners2, ids2, _ = cv2.aruco.detectMarkers(gray2, dictionary)
-    charuco_corners2, charuco_ids2 = None, None
-    if ids2 is not None and len(ids2) > 0:
-        _, charuco_corners2, charuco_ids2 = cv2.aruco.interpolateCornersCharuco(corners2, ids2, gray2, board)
+    charuco_corners2, charuco_ids2, _, _ = charuco_detector.detectBoard(gray2)
 
     # 両カメラで6点以上検出されていればペアとして採用
     if (charuco_corners1 is not None and len(charuco_corners1) >= 6 and 
@@ -137,47 +133,50 @@ for p1, p2 in zip(img_paths1, img_paths2):
 
 print(f"有効キャリブレーションペア数: {len(all_corners1)}")
 
-# 単体キャリブレーション
-ret1, mtx1, dist1, rvecs1, tvecs1 = cv2.aruco.calibrateCameraCharuco(
-    all_corners1, all_ids1, board, image_size, None, None)
-ret2, mtx2, dist2, rvecs2, tvecs2 = cv2.aruco.calibrateCameraCharuco(
-    all_corners2, all_ids2, board, image_size, None, None)
+# ボードの全3Dコーナー座標を取得 (OpenCV バージョンによる差違吸収)
+if hasattr(board, 'chessboardCorners'):
+    board_corners = board.chessboardCorners
+else:
+    board_corners = board.getChessboardCorners()
+
+# 単体キャリブレーション用の共通関数
+def calibrate_single_camera(corners_list, ids_list, img_size):
+    all_obj_pts = []
+    all_img_pts = []
+    for corners, ids in zip(corners_list, ids_list):
+        obj_pts = np.array([board_corners[idx[0]] for idx in ids], dtype=np.float32).reshape(-1, 1, 3)
+        all_obj_pts.append(obj_pts)
+        all_img_pts.append(corners)
+    # OSMO Action等の広角レンズ向けに CALIB_RATIONAL_MODEL を適用
+    return cv2.calibrateCamera(all_obj_pts, all_img_pts, img_size, None, None, flags=cv2.CALIB_RATIONAL_MODEL)
+
+# 単体キャリブレーション実行
+ret1, mtx1, dist1, rvecs1, tvecs1 = calibrate_single_camera(all_corners1, all_ids1, image_size)
+ret2, mtx2, dist2, rvecs2, tvecs2 = calibrate_single_camera(all_corners2, all_ids2, image_size)
 
 # ステレオキャリブレーション用の共通点抽出
 objpoints_stereo = []
 imgpoints_cam1_stereo = []
 imgpoints_cam2_stereo = []
 
-# OpenCVのバージョン互換性対応
-if hasattr(board, 'chessboardCorners'):
-    board_obj_pts = np.array(board.chessboardCorners)
-else:
-    board_obj_pts = np.array(board.getChessboardCorners())
-
 for i in range(len(all_corners1)):
-    ids1_set = set(all_ids1[i].flatten())
-    ids2_set = set(all_ids2[i].flatten())
-    common_ids = list(ids1_set.intersection(ids2_set))
-    
+    # 共通のIDを抽出
+    common_ids = np.intersect1d(all_ids1[i].flatten(), all_ids2[i].flatten())
     if len(common_ids) >= 6:
-        obj_pts, img_pts1, img_pts2 = [], [], []
-        for cid in common_ids:
-            obj_pts.append(board_obj_pts[cid])
-            idx1 = np.where(all_ids1[i].flatten() == cid)[0][0]
-            img_pts1.append(all_corners1[i][idx1])
-            idx2 = np.where(all_ids2[i].flatten() == cid)[0][0]
-            img_pts2.append(all_corners2[i][idx2])
-            
-        objpoints_stereo.append(np.array(obj_pts, dtype=np.float32))
-        imgpoints_cam1_stereo.append(np.array(img_pts1, dtype=np.float32))
-        imgpoints_cam2_stereo.append(np.array(img_pts2, dtype=np.float32))
+        idx1 = [np.where(all_ids1[i].flatten() == cid)[0][0] for cid in common_ids]
+        idx2 = [np.where(all_ids2[i].flatten() == cid)[0][0] for cid in common_ids]
+        
+        obj_pts = np.array([board_corners[cid] for cid in common_ids], dtype=np.float32).reshape(-1, 1, 3)
+        imgpoints_cam1_stereo.append(all_corners1[i][idx1])
+        imgpoints_cam2_stereo.append(all_corners2[i][idx2])
+        objpoints_stereo.append(obj_pts)
 
-flags = cv2.CALIB_FIX_INTRINSIC
+flags_stereo = cv2.CALIB_FIX_INTRINSIC
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 ret_stereo, mtx1, dist1, mtx2, dist2, R, T, E, F = cv2.stereoCalibrate(
     objpoints_stereo, imgpoints_cam1_stereo, imgpoints_cam2_stereo,
-    mtx1, dist1, mtx2, dist2, image_size, criteria=criteria, flags=flags)
+    mtx1, dist1, mtx2, dist2, image_size, criteria=criteria, flags=flags_stereo)
 
 print(f"ステレオRMS誤差: {ret_stereo:.4f} px")
 
