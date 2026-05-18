@@ -289,12 +289,20 @@ for frame_no in target_frames:
     
     row_data = {"frame_number": frame_no}
     
+    # ---- 三角測量用の投影行列を定義（正規化座標系） ----
+    # undistortPoints に P= を渡さない → 正規化カメラ座標（焦点距離・主点を除去した座標）を取得
+    # その場合の投影行列は「カメラ1は原点 [I|0]」「カメラ2は [R|T]」になる
+    P1_norm = np.hstack([np.eye(3),  np.zeros((3, 1))])   # カメラ1：原点
+    P2_norm = np.hstack([R,          T])                   # カメラ2：ステレオキャリブ結果
+
     # 骨格の三角測量
     if kps1 is not None and kps2 is not None:
-        pts1_ud = cv2.undistortPoints(np.expand_dims(kps1, axis=1), mtx1, dist1, P=mtx1)
-        pts2_ud = cv2.undistortPoints(np.expand_dims(kps2, axis=1), mtx2, dist2, P=mtx2)
+        pts1_norm = cv2.undistortPoints(np.expand_dims(kps1, axis=1), mtx1, dist1)
+        pts2_norm = cv2.undistortPoints(np.expand_dims(kps2, axis=1), mtx2, dist2)
         
-        pts4d = cv2.triangulatePoints(P1, P2, pts1_ud.reshape(-1, 2).T, pts2_ud.reshape(-1, 2).T)
+        pts4d = cv2.triangulatePoints(P1_norm, P2_norm,
+                                      pts1_norm.reshape(-1, 2).T,
+                                      pts2_norm.reshape(-1, 2).T)
         pts3d = (pts4d[:3, :] / pts4d[3, :]).T
         
         for i, kp_name in enumerate(KEYPOINT_NAMES):
@@ -307,10 +315,12 @@ for frame_no in target_frames:
 
     # バットの三角測量
     if bat1 is not None and bat2 is not None:
-        b_pts1_ud = cv2.undistortPoints(np.expand_dims(bat1.reshape(1, 2), axis=1), mtx1, dist1, P=mtx1)
-        b_pts2_ud = cv2.undistortPoints(np.expand_dims(bat2.reshape(1, 2), axis=1), mtx2, dist2, P=mtx2)
+        b_pts1_norm = cv2.undistortPoints(np.expand_dims(bat1.reshape(1, 2), axis=1), mtx1, dist1)
+        b_pts2_norm = cv2.undistortPoints(np.expand_dims(bat2.reshape(1, 2), axis=1), mtx2, dist2)
         
-        b_pts4d = cv2.triangulatePoints(P1, P2, b_pts1_ud.reshape(2, 1), b_pts2_ud.reshape(2, 1))
+        b_pts4d = cv2.triangulatePoints(P1_norm, P2_norm,
+                                        b_pts1_norm.reshape(2, 1),
+                                        b_pts2_norm.reshape(2, 1))
         b_pts3d = (b_pts4d[:3, :] / b_pts4d[3, :]).flatten()
         
         row_data["bat_X"] = round(b_pts3d[0], 4)
