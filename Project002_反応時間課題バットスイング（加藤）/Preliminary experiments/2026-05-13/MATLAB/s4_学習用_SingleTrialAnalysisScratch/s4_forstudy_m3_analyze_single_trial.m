@@ -24,7 +24,7 @@ tCueMarker = round(tCueAnalog / Data.AnalogFs * fs) ;
 
 if isempty(tCueAnalog)
     errorCode = Prm.ErrorCode.LEDTimingNotDetected ;
-    errortext = Prm.ErrorText.LEDTimingNotDetected ;
+    errorText = Prm.ErrorText.LEDTimingNotDetected ;
 else
     if led(tCueAnalog) > 0
         cueCode = 1 ;
