@@ -517,9 +517,9 @@ end
 
 ### 確認ポイント
 
-- [ ] `tSwingOnset` の値が表示されることを確認する
-- [ ] `tSwingOnset > tCueMarker` であることを確認する（スイング開始は LED 点灯後のはず）
-- [ ] `netVelTop(tSwingOnset)` の値が `threshold` に近いことを確認する
+- [X] `tSwingOnset` の値が表示されることを確認する
+- [X] `tSwingOnset > tCueMarker` であることを確認する（スイング開始は LED 点灯後のはず）
+- [X] `netVelTop(tSwingOnset)` の値が `threshold` に近いことを確認する
 
 ---
 
@@ -575,9 +575,9 @@ Result.RT         = RT ;
 
 ### 確認ポイント
 
-- [ ] `RT` の値が表示されることを確認する
-- [ ] RT の値がおおよそ 150〜600 ms 程度であることを確認する（値が極端に小さい・大きい場合はデータや閾値を見直す）
-- [ ] `Result.RT` と `Result.SwingOnset` が格納されていることを確認する（`Result` と入力して確認）
+- [X] `RT` の値が表示されることを確認する
+- [X] RT の値がおおよそ 150〜600 ms 程度であることを確認する（値が極端に小さい・大きい場合はデータや閾値を見直す）
+- [X] `Result.RT` と `Result.SwingOnset` が格納されていることを確認する（`Result` と入力して確認）
 
 ---
 
@@ -635,9 +635,9 @@ end
 
 ### 確認ポイント
 
-- [ ] グラフの速度が最初に上がり始める位置に赤い縦線が引かれることを確認する
-- [ ] タイトルに `RT = ○○○ ms` と表示されることを確認する
-- [ ] 縦線の位置が「速度が閾値を超えた瞬間」と一致しているか、グラフを拡大して確認する
+- [X] グラフの速度が最初に上がり始める位置に赤い縦線が引かれることを確認する
+- [X] タイトルに `RT = ○○○ ms` と表示されることを確認する
+- [X] 縦線の位置が「速度が閾値を超えた瞬間」と一致しているか、グラフを拡大して確認する
 
 ---
 
@@ -645,8 +645,8 @@ end
 
 ### 動作確認チェックリスト
 
-- [ ] スクリプト全体をはじめから最後まで実行してエラーが出ないことを確認する
-- [ ] `Result` に以下のフィールドがすべて含まれることを確認する| フィールド名          | 内容                          |
+- [X] スクリプト全体をはじめから最後まで実行してエラーが出ないことを確認する
+- [X] `Result` に以下のフィールドがすべて含まれることを確認する| フィールド名          | 内容                          |
   | --------------------- | ----------------------------- |
   | `Result.PeakVelTop` | バット先端のピーク速度 [mm/s] |
   | `Result.CueCode`    | 1（Go）または 2（NoGo）       |
@@ -654,8 +654,8 @@ end
   | `Result.TCueMarker` | LED 点灯フレーム番号          |
   | `Result.SwingOnset` | スイング開始フレーム番号      |
   | `Result.RT`         | 反応時間 [ms]                 |
-- [ ] Figure 2 にスイング開始の赤い縦線が表示されることを確認する
-- [ ] タイトルに RT の値が表示されることを確認する
+- [X] Figure 2 にスイング開始の赤い縦線が表示されることを確認する
+- [X] タイトルに RT の値が表示されることを確認する
 
 > 以上が全部 OK なら、`scratch5` は完成です！
 
@@ -696,9 +696,9 @@ end
 
 ### 確認ポイント
 
-- [ ] 関数のコードを書いた
-- [ ] 関数の最初の行が `function Result = s5_forstudy_m3_analyze_single_trial(Data)` になっている
-- [ ] 関数の最後の行が `end` になっている
+- [X] 関数のコードを書いた
+- [X] 関数の最初の行が `function Result = s5_forstudy_m3_analyze_single_trial(Data)` になっている
+- [X] 関数の最後の行が `end` になっている
 
 ---
 
@@ -719,9 +719,9 @@ Result = s5_forstudy_m3_analyze_single_trial(Data)
 
 ### 確認ポイント
 
-- [ ] `Result` 構造体が返ってきているか確認する
-- [ ] `Result.RT` の値が、`scratch5` で確認した RT と一致しているか確認する
-- [ ] `Result.CueText` が `'Go'` または `'NoGo'` になっているか確認する
+- [X] `Result` 構造体が返ってきているか確認する
+- [X] `Result.RT` の値が、`scratch5` で確認した RT と一致しているか確認する
+- [X] `Result.CueText` が `'Go'` または `'NoGo'` になっているか確認する
 
 > **一致していれば、関数が正しく動いています！**
 
@@ -747,26 +747,26 @@ Result = s5_forstudy_m3_analyze_single_trial(Data)
 
 ### 確認ポイント
 
-- [ ] `m3_analyze_single_trial.m` を修正した
+- [X] `m3_analyze_single_trial.m` を修正した
 - [ ] `x3_analyze_single_trial.m` を実行し、`x4_SingleTrialAnalysisResults/` に結果が保存されることを確認する
 
 ---
 
 ## 全体の振り返りチェックリスト
 
-- [ ] STEP 1：カレントフォルダを設定した
-- [ ] STEP 2：前回のコードを `scratch5` に書いてエラーなしに動いた
-- [ ] STEP 3：`Result` に `cueCode` が含まれないバグを発見した
-- [ ] STEP 4：バグを修正し、`Result` に `CueCode`・`CueText`・`TCueMarker` が入るようにした
-- [ ] STEP 5：グラフでスイング開始の様子を目で確認した
-- [ ] STEP 6：ピーク速度の 5% を閾値として設定した
-- [ ] STEP 7：`find` と `searchRange` を使ってスイング開始フレームを検出した
-- [ ] STEP 8：反応時間 [ms] を算出し、妥当な値であることを確認した
-- [ ] STEP 9：グラフにスイング開始の縦線を追加した
-- [ ] STEP 10：`scratch5` 全体を通して実行してエラーなしに完了した
-- [ ] STEP 11：`s5_forstudy_m3` に関数のコードを書いた
-- [ ] STEP 12：関数を呼び出してテストし、`scratch5` と同じ RT が得られることを確認した
-- [ ] STEP 13：本番の `m3_analyze_single_trial.m` に修正・機能追加を反映した
+- [X] STEP 1：カレントフォルダを設定した
+- [X] STEP 2：前回のコードを `scratch5` に書いてエラーなしに動いた
+- [X] STEP 3：`Result` に `cueCode` が含まれないバグを発見した
+- [X] STEP 4：バグを修正し、`Result` に `CueCode`・`CueText`・`TCueMarker` が入るようにした
+- [X] STEP 5：グラフでスイング開始の様子を目で確認した
+- [X] STEP 6：ピーク速度の 5% を閾値として設定した
+- [X] STEP 7：`find` と `searchRange` を使ってスイング開始フレームを検出した
+- [X] STEP 8：反応時間 [ms] を算出し、妥当な値であることを確認した
+- [X] STEP 9：グラフにスイング開始の縦線を追加した
+- [X] STEP 10：`scratch5` 全体を通して実行してエラーなしに完了した
+- [X] STEP 11：`s5_forstudy_m3` に関数のコードを書いた
+- [X] STEP 12：関数を呼び出してテストし、`scratch5` と同じ RT が得られることを確認した
+- [X] STEP 13：本番の `m3_analyze_single_trial.m` に修正・機能追加を反映した
 
 ---
 

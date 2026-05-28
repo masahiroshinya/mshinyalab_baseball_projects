@@ -1,30 +1,4 @@
 function Result = s5_forstudy_m3_analyze_single_trial(Data)
-%
-% 【目的】
-%   m3_analyze_single_trial.m のバグを修正し、
-%   反応時間（RT）算出機能を追加した関数を自分で書く練習。
-%
-% 【workflow.md の STEP 11 に従ってコードを書いていこう】
-%
-% 入力:  Data   → 1試行分のデータ構造体
-% 出力:  Result → 分析結果をまとめた構造体
-%
-% -----------------------------------------------------------------------
-clear
-close all 
-clc
-
-iSubject = 1 ;
-iCondition = 1 ;
-iTrial = 1 ;
-
-ConditionNameArray = {'free', 'simple', 'gonogo'} ;
-nCondition = length(ConditionNameArray) ;
-
-dataFilePath = sprintf('x3_DataChecked/Data%02d', iSubject) ;
-load(dataFilePath)
-
-Data = DataArray(iTrial, iCondition) ;
 
 Prm = parameters ;
 
@@ -69,6 +43,33 @@ threshold = 0.05 * peakVelTop ;
 fprintf('peakVelTop = %.1f mm/s\n', peakVelTop) ;
 fprintf('threshold = %.1f mm/s\n', threshold) ;
 
+% スイング開始フレームを探す
+n = length(netVelTop) ;
+searchRange = tCueMarker : n ;
+
+idxAboveThreshold = find(netVelTop(searchRange) > threshold, 1, 'first') ;
+
+if isempty(idxAboveThreshold)
+    % 閾値を超えなかった（NoGoで正解、またはデータ異常）
+    tSwingOnset = NaN ;
+    fprintf('スイング開始が検出されませんでした\n') ;
+else
+    tSwingOnset = searchRange(1) + idxAboveThreshold - 1 ;
+    fprintf('tSwingOnset = %dフレーム目\n', tSwingOnset) ;
+end
+
+% 反応時間を算出する
+if isnan(tSwingOnset)
+    RT = NaN ;
+    fprintf('RTは算出できませんでした（スイング未検出）\n') ;
+else
+    RT = (tSwingOnset - tCueMarker) / fs * 1000 ;
+    fprintf('RT = %.1f ms\n', RT) ;
+end
+
+Result.SwingOnset = tSwingOnset ;
+Result.RT         = RT ;
+
 % figure
 figure(2)
 plotTimeRange = [-1,3] ;
@@ -85,11 +86,4 @@ tArrayAnalog = ([1:nAnalog] - tCueAnalog) / Data.AnalogFs ;
 plot(tArrayAnalog, Data.LEDData)
 set(gca, 'xlim', plotTimeRange) ;
 
-% stick picture
-figure(1)
-plot3(M.top(:,1), M.top(:,2), M.top(:,3), 'k-') ; hold on
-set(gca, 'xlim', [-1000,2000], 'ylim', [-1000,1000], 'zlim', [0,3000])
-grid on
-
-iFrame = 1 ;
-h1 = draw_stick_picture(M,{'top', 'bottom'}, iFrame, 'xyz', '-o') ;
+end

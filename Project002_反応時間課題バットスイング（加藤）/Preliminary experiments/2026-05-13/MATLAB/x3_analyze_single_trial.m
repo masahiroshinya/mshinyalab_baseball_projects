@@ -1,6 +1,3 @@
-
-
-
 clear
 close all
 clc
@@ -16,7 +13,8 @@ for iSubject = subjects
     load(dataFilePath)
     
     for iCondition = 1:nCondition
-        
+
+        nTrial = size(DataArray, 1) ;
         
         for iTrial = 1:nTrial
             

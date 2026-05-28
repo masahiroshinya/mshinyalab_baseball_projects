@@ -1,4 +1,13 @@
-function Result = s5_forstudy_m3_analyze_single_trial(Data)
+% s5_forstudy_scratch5.m
+%
+% 【目的】
+%   反応時間（Reaction Time: RT）の算出を、1試行分のデータで練習する。
+%
+% 【workflow.md に従ってコードを書いていこう】
+%   STEP 2 から順番に、以下にコードを追記していく。
+%
+% -----------------------------------------------------------------------
+% function Result = s5_forstudy_m3_analyze_single_trial(Data)
 %
 % 【目的】
 %   m3_analyze_single_trial.m のバグを修正し、
@@ -66,7 +75,35 @@ end
 % スイング閾値の検出（例：ピーク速度の5%）
 threshold = 0.05 * peakVelTop ;
 
-fprintf('peakVelTop = %.1')
+fprintf('peakVelTop = %.1f mm/s\n', peakVelTop) ;
+fprintf('threshold = %.1f mm/s\n', threshold) ;
+
+% スイング開始フレームを探す
+n = length(netVelTop) ;
+searchRange = tCueMarker : n ;
+
+idxAboveThreshold = find(netVelTop(searchRange) > threshold, 1, 'first') ;
+
+if isempty(idxAboveThreshold)
+    % 閾値を超えなかった（NoGoで正解、またはデータ異常）
+    tSwingOnset = NaN ;
+    fprintf('スイング開始が検出されませんでした\n') ;
+else
+    tSwingOnset = searchRange(1) + idxAboveThreshold - 1 ;
+    fprintf('tSwingOnset = %dフレーム目\n', tSwingOnset) ;
+end
+
+% 反応時間を算出する
+if isnan(tSwingOnset)
+    RT = NaN ;
+    fprintf('RTは算出できませんでした（スイング未検出）\n') ;
+else
+    RT = (tSwingOnset - tCueMarker) / fs * 1000 ;
+    fprintf('RT = %.1f ms\n', RT) ;
+end
+
+Result.SwingOnset = tSwingOnset ;
+Result.RT         = RT ;
 
 % figure
 figure(2)
@@ -83,6 +120,23 @@ nAnalog = length(Data.LEDData) ;
 tArrayAnalog = ([1:nAnalog] - tCueAnalog) / Data.AnalogFs ;
 plot(tArrayAnalog, Data.LEDData)
 set(gca, 'xlim', plotTimeRange) ;
+
+% figure2のグラフを開く（すでに表示されている場合）
+figure(2)
+subplot(3,1,[1:2])
+
+% スイング開始の縦線（tSwingOnset を LED からの相対時間に変換してから描く）
+if ~isnan(tSwingOnset)
+    tSwingOnset_sec = (tSwingOnset - tCueMarker) / fs ;
+    lineplot(tSwingOnset_sec, 'v', 'r-') ;
+end
+
+% タイトルにRTの値を表示する
+if ~isnan(RT)
+    title(sprintf('RT = %.1f ms (CueText: %s)', RT, cueText))
+else
+    title('スイング未検出')
+end
 
 % stick picture
 figure(1)
