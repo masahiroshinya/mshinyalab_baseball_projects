@@ -429,6 +429,45 @@ else:
 # ============================================================
 # ソフト1（音声版）— S1-4: クロスコリレーションでオフセット計算
 # ============================================================
+def pick_high_energy_peaks(audio, sr, n_peaks=5, min_dist_sec=0.8, energy_window_sec=0.1):
+    energy = np.convolve(audio ** 2,
+                         np.ones(int(sr * energy_window_sec), dtype=np.float32) / max(1, int(sr * energy_window_sec)),
+                         mode='same')
+    peak_idxs, _ = signal.find_peaks(energy, distance=int(min_dist_sec * sr))
+    if len(peak_idxs) < n_peaks:
+        sorted_idxs = np.argsort(energy)[::-1]
+        for idx in sorted_idxs:
+            if idx in peak_idxs:
+                continue
+            peak_idxs = np.append(peak_idxs, idx)
+            if len(peak_idxs) >= n_peaks:
+                break
+    return np.array(sorted(peak_idxs[:n_peaks]))
+
+
+def compute_local_alignment_quality(ref_signal, target_signal, offset_samp, sr, n_peaks=5, window_sec=0.5):
+    peak_idxs = pick_high_energy_peaks(ref_signal, sr, n_peaks=n_peaks)
+    if len(peak_idxs) == 0:
+        return []
+    window_len = int(window_sec * sr)
+    local_sims = []
+    for idx in peak_idxs:
+        start_ref = max(0, idx - window_len // 2)
+        end_ref = min(len(ref_signal), start_ref + window_len)
+        start_ref = max(0, end_ref - window_len)
+        start_target = start_ref + offset_samp
+        end_target = start_target + (end_ref - start_ref)
+        if start_target < 0 or end_target > len(target_signal):
+            continue
+        ref_seg = ref_signal[start_ref:end_ref]
+        tgt_seg = target_signal[start_target:end_target]
+        ref_seg = (ref_seg - np.mean(ref_seg)) / (np.std(ref_seg) + 1e-8)
+        tgt_seg = (tgt_seg - np.mean(tgt_seg)) / (np.std(tgt_seg) + 1e-8)
+        sim = float(np.dot(ref_seg, tgt_seg) / len(ref_seg))
+        local_sims.append((idx, start_ref / sr, sim))
+    return local_sims
+
+
 def compute_audio_offset(audio_ref, audio_target, sr, fps):
     """
     音声クロスコリレーションにより、カメラ間のフレームオフセットを計算する。
@@ -447,6 +486,7 @@ def compute_audio_offset(audio_ref, audio_target, sr, fps):
         offset_samples: オフセットのサンプル数
         correlation   : クロスコリレーション配列
         lags_samples  : ラグ配列（サンプル単位）
+        local_sims    : 主要イベントごとの類似度リスト
     """
     # 正規化（DC成分除去 + 振幅正規化）
     ref_norm    = (audio_ref    - np.mean(audio_ref))    / (np.std(audio_ref)    + 1e-8)
@@ -470,8 +510,9 @@ def compute_audio_offset(audio_ref, audio_target, sr, fps):
     offset_frames = int(round(offset_sec * fps))
     peak_corr    = correlation[peak_idx]
     norm_peak    = peak_corr / n_use   # 正規化相関係数（-1〜1）
+    local_sims   = compute_local_alignment_quality(ref_norm[:n_use], target_norm[:n_use], offset_samp, sr)
 
-    return offset_frames, offset_sec, offset_samp, correlation, lags_samples, norm_peak
+    return offset_frames, offset_sec, offset_samp, correlation, lags_samples, norm_peak, local_sims
 
 # --- Camera 1 を基準に全カメラのオフセットを計算 ---
 print("=== 音声クロスコリレーション ===")
@@ -479,7 +520,7 @@ offsets_frames = [0]   # Camera 1 は基準（オフセット 0）
 offsets_sec    = [0.0]
 
 for i in range(1, nCamera):
-    off_f, off_s, off_samp, corr, lags, peak = compute_audio_offset(
+    off_f, off_s, off_samp, corr, lags, peak, local_sims = compute_audio_offset(
         audio_data[0], audio_data[i], SR, base_fps
     )
     offsets_frames.append(off_f)
@@ -492,6 +533,17 @@ for i in range(1, nCamera):
           f"= {off_f:+d} frames")
     print(f"    → Cam{i+1} は Cam1 より {abs(off_f)} フレーム {direction} 録音開始")
     print(f"    正規化相関係数: {peak:.4f}  (0.3以上で信頼性あり)")
+    if local_sims:
+        values = np.array([sim for _, _, sim in local_sims], dtype=np.float32)
+        mean_sim = float(np.mean(values))
+        min_sim = float(np.min(values))
+        print(f"    主要イベント類似度: mean={mean_sim:.3f}, min={min_sim:.3f}")
+        for peak_idx, ref_sec, sim in local_sims:
+            print(f"      - peak @ {ref_sec:.2f}s (ref sample {peak_idx}): similarity={sim:.3f}")
+        if mean_sim < 0.40 or min_sim < 0.25:
+            print("    ⚠ local similarity が低いです。手動で同期結果を確認してください。必要ならこちらに確認依頼してください。")
+    else:
+        print("    ⚠ 高振幅イベントの類似度評価ができませんでした。手動確認が必要です。必要ならこちらに確認依頼してください。")
 
 print(f"\nオフセット一覧（フレーム）: {offsets_frames}")
 ```
