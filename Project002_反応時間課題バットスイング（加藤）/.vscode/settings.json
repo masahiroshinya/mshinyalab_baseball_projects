@@ -1,3 +1,10 @@
 {
-  "explorer.sortOrder": "mixed"
+  "explorer.sortOrder": "mixed",
+  "editor.formatOnSave": false,
+  "files.associations": {
+    "*.m": "matlab"
+  },
+  "[matlab]": {
+    "editor.formatOnSave": false
+  }
 }
