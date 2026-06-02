@@ -54,10 +54,83 @@ for iTrial = 1:nTrial
         iTrial, Protocol.CueText{iTrial}, Protocol.Foreperiod(iTrial)) ;
     disp(msg) ;
 
-    if Protocol.Foreperiiod(iTrial) <= ready_signal_duration
+    if Protocol.Foreperiod(iTrial) <= ready_signal_duration
         error('試行%d: Foreperiod（%.1fs）はready_signal_duration（%.1fs）より大きくする必要があります。', ...
             iTrial, Protocol.Foreperiod(iTrial), ready_signal_duration) ;
     end
+
+    switch Protocol.CueText{iTrial}
+
+        case 'go'
+
+            waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
+                Protocol.Foreperiod(iTrial) + first_go_signal_duration + ...
+                go_to_branch_off_duration + second_go_signal_duration + off_duration;
+
+            waveform0 = [
+                voltage_off    * ones(ini_duration * sample_rate, 1);
+                voltage_trigOn * ones(trig_signal_duration * sample_rate, 1);
+                voltage_off    * ones(trig_to_ready_interval * sample_rate, 1);
+                voltage_ready  * ones(ready_signal_duration * sample_rate, 1);
+                voltage_off    * ones((Protocol.Foreperiod(iTrial) - ready_signal_duration + first_go_signal_duration + go_to_branch_off_duration + second_go_signal_duration + off_duration) * sample_rate, 1)
+                ];
+
+            waveform1 = [
+                voltage_off * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate, 1);
+                voltage_go  * ones(first_go_signal_duration * sample_rate, 1);
+                voltage_off * ones(go_to_branch_off_duration * sample_rate, 1);
+                voltage_go  * ones(second_go_signal_duration * sample_rate, 1);
+                voltage_off * ones(off_duration * sample_rate, 1)
+                ];
+
+        case 'stop'
+
+            waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
+                Protocol.Foreperiod(iTrial) + first_go_signal_duration + ...
+                go_to_branch_off_duration + stop_signal_duration + off_duration;
+
+            waveform0 = [
+                voltage_off    * ones(ini_duration * sample_rate, 1);
+                voltage_trigOn * ones(trig_signal_duration * sample_rate, 1);
+                voltage_off    * ones(trig_to_ready_interval * sample_rate, 1);
+                voltage_ready  * ones(ready_signal_duration * sample_rate, 1);
+                voltage_off    * ones((Protocol.Foreperiod(iTrial) - ready_signal_duration + first_go_signal_duration + go_to_branch_off_duration + stop_signal_duration + off_duration) * sample_rate, 1)
+                ];
+
+            waveform1 = [
+                voltage_off  * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate, 1);
+                voltage_go   * ones(first_go_signal_duration * sample_rate, 1);
+                voltage_off  * ones(go_to_branch_off_duration * sample_rate, 1);
+                voltage_stop * ones(stop_signal_duration * sample_rate, 1);
+                voltage_off  * ones(off_duration * sample_rate, 1)
+                ];
+
+        otherwise
+            error('試行%d: CueTextは go または stop　にしてください。現在の値: %s', ...
+                iTrial, Protocol.CueText{iTrial}) ;
+    end
+
+    waveform = [waveform0, waveform1] ;
+
+    input(sprintf('[試行 %d/%d] Qualisysをcapture待機状態にし、準備ができたらEnterを押してください...', iTrial, nTrial)) ;
+
+    for iCount = 4:-1:1
+        fprintf(' %d 秒後に開始...\n', iCount) ;
+        pause(1) ;
+    end
+
+    fprintf(' → 試行開始\n') ;
+
+    preload(dq, waveform) ;
+    start(dq, 'Finite') ;
+
+    pause(waveform_duration) ;
+    stop(dq) ;
+
+    fprintf(' スイング完了待機中 (%.0f秒)...\n', swing_max_duration) ;
+    pause(swing_max_duration) ;
+
+    fprintf(' → 次の試行に進んでください\n') ;
 
 end
 
@@ -66,4 +139,7 @@ catch ME
     rethrow(ME) ;
 end
 
-       
+
+
+
+  
