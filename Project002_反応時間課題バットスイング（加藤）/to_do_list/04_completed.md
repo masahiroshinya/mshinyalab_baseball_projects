@@ -4,6 +4,7 @@
 
 ---
 
+- [X] **【2026-06-02 完了】** 5.3. 試行数・ブロック構成確定に伴うCSVファイルおよびスクリプトの更新（`4_4_simplereaction_pre_experiments_20trials.csv`・`4_4_gonogo_pre_experiments_20trials.csv` を4.4フォルダに作成、`4_4_free_pre_experiments.m` の `nTrial = 20` への修正を案内） `[作成者: student]`
 - [X] **【2026-06-02 完了】** Go-Stop課題用コード作成（`demo3_4_3_gostop_pre.m` STEP 1〜8 完成。switch文によるGo/Stop分岐、DAQ出力、エラー時安全停止を実装） `[作成者: student]`
 - [X] **【完了】** 4.1.2-a. Go-Stop課題の Go:Stop 試行比率を先行研究をもとに決定し、プロトコールCSVを更新する `[作成者: student]`
 - [X] **【完了】** 4.4. 木製バット入手 → マーカー貼付 → 剛体登録 `[作成者: student]`
