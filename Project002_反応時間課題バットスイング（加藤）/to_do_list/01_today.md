@@ -13,13 +13,16 @@
 
 【5. 最近完成したMATLABコードの動作テスト】[作成者: mshinyalab] [2026-06-03]
 
-- [ ] 0. Go-Stop課題スクリプト 動作テスト（NI DAQ 接続）← 最初にやる
-  - [ ] `sandbox/4.1.2_Go-Stop課題スクリプト作成/demo3_4_3_gostop_pre.m`
+- [x] 0. Go-Stop課題スクリプト 動作テスト（NI DAQ 接続）← 完了
+  - [x] `sandbox/4.1.2_Go-Stop課題スクリプト作成/4_4_gostop_pre.m`
 
-- [ ] A. 予備実験スクリプト 動作テスト（NI DAQ 接続）
-  - [ ] `4_4_free_pre_experiments.m`（自由スイング条件）
-  - [ ] `4_4_simplereaction_pre_experiments.m`（単純反応条件）
-  - [ ] `4_4_gonogo_pre_experiments.m`（Go-Nogo条件）
+- [ ] 0'. Go-Stop課題スクリプト パラメータ見直し
+  - [ ] 1回目のGo cueから2回目のcue（Go/Stop）までの間隔が短すぎるため、`go_to_branch_off_duration` または関連パラメータを見直す
+
+- [x] A. 予備実験スクリプト 動作テスト（NI DAQ 接続）← 完了
+  - [x] `4_4_free_pre_experiments.m`（自由スイング条件）
+  - [x] `4_4_simplereaction_pre_experiments.m`（単純反応条件）
+  - [x] `4_4_gonogo_pre_experiments.m`（Go-Nogo条件）
 
 - [ ] B. データ分析スクリプト 動作テスト（MATLABデータ使用）
   - [ ] `step3_forstudy_visualize_all_bat_markers.m`（全バットマーカー速度可視化）

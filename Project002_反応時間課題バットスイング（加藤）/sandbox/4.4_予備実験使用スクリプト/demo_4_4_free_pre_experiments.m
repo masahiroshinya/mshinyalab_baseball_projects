@@ -25,6 +25,14 @@ swing_max_duration     = 5.0;
 % === 自由スイング固有パラメータ ===
 foreperiod_fix = 1.5;   % 固定フォアピリオド [秒]（大学・社会人投手の振りかぶり開始〜リリースの中央値）
 
+ini_s           = round(ini_duration           * sample_rate) ;
+trig_s          = round(trig_signal_duration   * sample_rate) ;
+trig_to_ready_s = round(trig_to_ready_interval * sample_rate) ;
+ready_s         = round(ready_signal_duration  * sample_rate) ;
+gonogo_s        = round(gonogo_signal_duration * sample_rate) ;
+off_s           = round(off_duration           * sample_rate) ;
+fp_s            = round(foreperiod_fix         * sample_rate) ;
+
 nTrial = 20;
 
 %% DAQの初期化と設定
@@ -44,16 +52,16 @@ for iTrial = 1:nTrial
     end
 
     % 波形ベクトルの生成 AO0
-    waveform0 = [voltage_off    * ones(ini_duration * sample_rate, 1); ...
-                 voltage_trigOn * ones(trig_signal_duration * sample_rate, 1); ...
-                 voltage_off    * ones(trig_to_ready_interval * sample_rate, 1); ...
-                 voltage_ready  * ones(ready_signal_duration * sample_rate, 1); ...
-                 voltage_off    * ones((foreperiod_fix - ready_signal_duration + gonogo_signal_duration + off_duration) * sample_rate, 1)];
+   waveform0 = [voltage_off    * ones(ini_s, 1); ...
+                voltage_trigOn * ones(trig_s, 1); ...
+                voltage_off    * ones(trig_to_ready_s, 1); ...
+                voltage_ready  * ones(ready_s, 1); ...
+                voltage_off    * ones(fp_s - ready_s + gonogo_s + off_s, 1)] ;
 
-    % 波形ベクトルの生成 AO1
-    waveform1 = [voltage_off * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + foreperiod_fix) * sample_rate, 1); ...
-                 voltage_go  * ones(gonogo_signal_duration * sample_rate, 1); ...
-                 voltage_off * ones(off_duration * sample_rate, 1)];
+   waveform1 = [voltage_off * ones(ini_s + trig_s + trig_to_ready_s + fp_s, 1); ...
+                voltage_go  * ones(gonogo_s, 1); ...
+                voltage_off * ones(off_s, 1)] ;
+
 
     waveform = [waveform0, waveform1];
 

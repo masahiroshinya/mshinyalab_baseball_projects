@@ -5,7 +5,7 @@
 このフォルダでは、Go-NoGo課題スクリプト
 `../4.1_予備実験用スクリプト/demo3_4_2_gonogo_pre_regenerate.m`
 を参考にしながら、Go-Stop課題用スクリプト
-`demo3_4_3_gostop_pre.m`
+`4_4_gostop_pre.m`
 を学習しながら作成する。
 
 Go-Stop課題では、Go-NoGo課題とは異なり、全試行でまず1回目のGo cueを提示する。その後、わずかな消灯時間を挟み、2回目のCueとしてGoまたはStopを提示する。
@@ -28,7 +28,7 @@ Foreperiod
 
 ## 全体の処理の流れ
 
-`demo3_4_3_gostop_pre.m` が行う処理は以下の通り。
+`4_4_gostop_pre.m` が行う処理は以下の通り。
 
 ```text
 [1] 初期化とパラメータ設定
@@ -47,7 +47,7 @@ Foreperiod
 
 ### 書くコード
 
-`demo3_4_3_gostop_pre.m` の先頭に以下を書く。
+`4_4_gostop_pre.m` の先頭に以下を書く。
 
 ```matlab
 clear;

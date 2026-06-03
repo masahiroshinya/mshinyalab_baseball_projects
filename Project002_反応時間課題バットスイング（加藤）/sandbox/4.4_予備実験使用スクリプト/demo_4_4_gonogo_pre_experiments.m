@@ -2,28 +2,35 @@ clear;
 clc;
 close all;
 
-
 % AO0 ch を、Qualisys のトリガーボックス（NC0）に接続　+5Vを出力することで、Qualisys測定開始
 % AO0 ch に、白のLEDを、正負を反転させて接続することで、-5V出力時は白が点灯する（ready cue)
-% AO1 ch に、緑のLEDを接続　+5V出力時に緑が点灯する（go cue）
-
+% AO1 ch に、緑と赤のLEDを、正負を反転させて接続することで、+5V出力時は緑、-5V出力時は赤が点灯する
 
 
 % === ステップ1: 波形ベクトルの作成と確認 ===
 % パラメータ：　全試行共通
-sample_rate  = 1000;    % サンプリングレート [Hz]
+sample_rate  = 1000;
 voltage_off = 0 ;
 voltage_trigOn = 5.0 ;
 voltage_ready = -5.0 ;
 voltage_go = 5.0 ;
+voltage_nogo = -5.0 ;
 
-ini_duration = 0.1;     % 最初の消灯時間 [秒]
+ini_duration = 0.1;
 trig_signal_duration = 0.1 ;
 trig_to_ready_interval = 1.0 ;
 ready_signal_duration = 0.5 ;
 gonogo_signal_duration = 0.5 ;
 off_duration = 0.1 ;
-swing_max_duration = 5.0 ;  % go cue反応後からスイング終了までの最大時間 [秒]
+swing_max_duration = 5.0 ;
+
+% サンプル数を事前に整数として計算
+ini_s           = round(ini_duration           * sample_rate) ;
+trig_s          = round(trig_signal_duration   * sample_rate) ;
+trig_to_ready_s = round(trig_to_ready_interval * sample_rate) ;
+ready_s         = round(ready_signal_duration  * sample_rate) ;
+gonogo_s        = round(gonogo_signal_duration * sample_rate) ;
+off_s           = round(off_duration           * sample_rate) ;
 
 %% プロトコール
 % パラメータ：　試行ごとに異なる
@@ -63,21 +70,27 @@ for iTrial = 1:nTrial
     end
 
 
+    switch Protocol.CueText{iTrial}
+        case 'go'
+            voltage_ao1 = voltage_go ;
+        case 'nogo'
+            voltage_ao1 = voltage_nogo ;
+    end
 
-    voltage_ao1 = voltage_go ;   % 単純選択反応は常に緑LED
 
+    % 波形ベクトルの生成
+    fp_s = round(Protocol.Foreperiod(iTrial) * sample_rate) ;
 
+    waveform0 = [voltage_off    * ones(ini_s, 1); ...
+                 voltage_trigOn * ones(trig_s, 1); ...
+                 voltage_off    * ones(trig_to_ready_s, 1); ...
+                 voltage_ready  * ones(ready_s, 1); ...
+                 voltage_off    * ones(fp_s - ready_s + gonogo_s + off_s, 1)] ;
 
-    % 波形ベクトルの生成 AO0
-    waveform0 = [voltage_off * ones(ini_duration * sample_rate,  1);... % 最初のゼロ
-        voltage_trigOn * ones(trig_signal_duration * sample_rate,  1);... % Qualisysへのトリガー
-        voltage_off * ones(trig_to_ready_interval * sample_rate,  1);... % トリガーからreadyまで
-        voltage_ready * ones(ready_signal_duration * sample_rate,  1);... % ready
-        voltage_off * ones((Protocol.Foreperiod(iTrial) - ready_signal_duration + gonogo_signal_duration + off_duration) * sample_rate,  1)] ; % 残り
+    waveform1 = [voltage_off * ones(ini_s + trig_s + trig_to_ready_s + fp_s, 1); ...
+                 voltage_ao1 * ones(gonogo_s, 1); ...
+                 voltage_off * ones(off_s, 1)] ;
 
-    waveform1 = [voltage_off * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate,  1);... % 最初のゼロ
-        voltage_ao1 * ones(gonogo_signal_duration * sample_rate,  1);... % Go cue
-        voltage_off * ones(off_duration * sample_rate,  1)] ;   % 残り
 
     waveform = [waveform0, waveform1] ;
 

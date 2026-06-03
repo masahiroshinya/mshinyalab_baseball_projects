@@ -25,6 +25,17 @@ stop_signal_duration      = 0.5 ;
 off_duration              = 0.1 ;
 swing_max_duration        = 5.0 ;
 
+% サンプル数を事前に整数として計算
+ini_s              = round(ini_duration              * sample_rate) ;
+trig_s             = round(trig_signal_duration      * sample_rate) ;
+trig_to_ready_s    = round(trig_to_ready_interval    * sample_rate) ;
+ready_s            = round(ready_signal_duration     * sample_rate) ;
+first_go_s         = round(first_go_signal_duration  * sample_rate) ;
+go_branch_off_s    = round(go_to_branch_off_duration * sample_rate) ;
+second_go_s        = round(second_go_signal_duration * sample_rate) ;
+stop_s             = round(stop_signal_duration      * sample_rate) ;
+off_s              = round(off_duration              * sample_rate) ;
+
 % プロトコールCSVの読み込み
 [filename, filepath] = uigetfile('*.csv', 'プロトコールファイルを選択してください') ;
 
@@ -58,30 +69,32 @@ for iTrial = 1:nTrial
         error('試行%d: Foreperiod（%.1fs）はready_signal_duration（%.1fs）より大きくする必要があります。', ...
             iTrial, Protocol.Foreperiod(iTrial), ready_signal_duration) ;
     end
+    
+    fp_s = round(Protocol.Foreperiod(iTrial) * sample_rate) ;
 
     switch Protocol.CueText{iTrial}
 
         case 'go'
-
             waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
                 Protocol.Foreperiod(iTrial) + first_go_signal_duration + ...
                 go_to_branch_off_duration + second_go_signal_duration + off_duration;
 
             waveform0 = [
-                voltage_off    * ones(ini_duration * sample_rate, 1);
-                voltage_trigOn * ones(trig_signal_duration * sample_rate, 1);
-                voltage_off    * ones(trig_to_ready_interval * sample_rate, 1);
-                voltage_ready  * ones(ready_signal_duration * sample_rate, 1);
-                voltage_off    * ones((Protocol.Foreperiod(iTrial) - ready_signal_duration + first_go_signal_duration + go_to_branch_off_duration + second_go_signal_duration + off_duration) * sample_rate, 1)
+                voltage_off    * ones(ini_s, 1);
+                voltage_trigOn * ones(trig_s, 1);
+                voltage_off    * ones(trig_to_ready_s, 1);
+                voltage_ready  * ones(ready_s, 1);
+                voltage_off    * ones(fp_s - ready_s + first_go_s + go_branch_off_s + second_go_s + off_s, 1)
                 ];
 
             waveform1 = [
-                voltage_off * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate, 1);
-                voltage_go  * ones(first_go_signal_duration * sample_rate, 1);
-                voltage_off * ones(go_to_branch_off_duration * sample_rate, 1);
-                voltage_go  * ones(second_go_signal_duration * sample_rate, 1);
-                voltage_off * ones(off_duration * sample_rate, 1)
+                voltage_off * ones(ini_s + trig_s + trig_to_ready_s + fp_s, 1);
+                voltage_go  * ones(first_go_s, 1);
+                voltage_off * ones(go_branch_off_s, 1);
+                voltage_go  * ones(second_go_s, 1);
+                voltage_off * ones(off_s, 1)
                 ];
+
 
         case 'stop'
 
@@ -90,20 +103,21 @@ for iTrial = 1:nTrial
                 go_to_branch_off_duration + stop_signal_duration + off_duration;
 
             waveform0 = [
-                voltage_off    * ones(ini_duration * sample_rate, 1);
-                voltage_trigOn * ones(trig_signal_duration * sample_rate, 1);
-                voltage_off    * ones(trig_to_ready_interval * sample_rate, 1);
-                voltage_ready  * ones(ready_signal_duration * sample_rate, 1);
-                voltage_off    * ones((Protocol.Foreperiod(iTrial) - ready_signal_duration + first_go_signal_duration + go_to_branch_off_duration + stop_signal_duration + off_duration) * sample_rate, 1)
+                voltage_off    * ones(ini_s, 1);
+                voltage_trigOn * ones(trig_s, 1);
+                voltage_off    * ones(trig_to_ready_s, 1);
+                voltage_ready  * ones(ready_s, 1);
+                voltage_off    * ones(fp_s - ready_s + first_go_s + go_branch_off_s + stop_s + off_s, 1)
                 ];
 
             waveform1 = [
-                voltage_off  * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate, 1);
-                voltage_go   * ones(first_go_signal_duration * sample_rate, 1);
-                voltage_off  * ones(go_to_branch_off_duration * sample_rate, 1);
-                voltage_stop * ones(stop_signal_duration * sample_rate, 1);
-                voltage_off  * ones(off_duration * sample_rate, 1)
+                voltage_off  * ones(ini_s + trig_s + trig_to_ready_s + fp_s, 1);
+                voltage_go   * ones(first_go_s, 1);
+                voltage_off  * ones(go_branch_off_s, 1);
+                voltage_stop * ones(stop_s, 1);
+                voltage_off  * ones(off_s, 1)
                 ];
+
 
         otherwise
             error('試行%d: CueTextは go または stop　にしてください。現在の値: %s', ...
