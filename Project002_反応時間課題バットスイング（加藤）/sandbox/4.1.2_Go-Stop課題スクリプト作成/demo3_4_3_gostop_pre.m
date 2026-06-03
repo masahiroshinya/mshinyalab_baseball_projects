@@ -139,7 +139,53 @@ catch ME
     rethrow(ME) ;
 end
 
+<<<<<<< Updated upstream
 
 
 
   
+=======
+case 'go'
+
+    waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
+        Protocol.Foreperiod(iTrial) + first_go_signal_duration + ...
+        go_to_branch_off_duration + second_go_signal_duration + off_duration ;
+
+    waveform0 = [
+        voltage_off    * ones(ini_duration * sample_rate, 1) ;
+        voltage_trigOn * ones(trig_signal_duration * sample_rate, 1) ;
+        voltage_off    * ones(trig_to_ready_interval * sample_rate, 1) ;
+        voltage_ready  * ones(ready_signal_duration * sample_rate, 1) ;
+        voltage_off    * oens((Protocol.Foreperiod(iTrial) - ready_signal_duration + first_go_signal_duration + go_to_branch_off_duration + second_go_signal_duration + off_duration) * sample_rate, 1)
+        ] ;
+
+    waveform1 = [
+        voltage_off  * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate, 1) ;
+        voltage_go   * ones(first_go_signal_duration * sample_rate, 1) ;
+        volttage_off * ones(go_to_branch_off_duration * sample_rate, 1) ;
+        voltage_go   * ones(second_go_signal_duration * sample_rate, 1) ;
+        voltage_off  * ones(off_duration * sample_rate, 1)
+        ] ;
+
+    case 'stop'
+
+        waveform_duration = ini_duration + trig_signal_duration + trig_to_ready_interval + ...
+            Protocol.Foreperiod(iTrial) + first_go_signal_duration + ...
+            go_to_branch_off_duration + stop_signa_duration + off_duration ;
+
+        waveform0 = [
+            voltage_off    * ones(ini_duration * sample_rate, 1) ;
+            voltage_trigOn * ones(trig_signal_duration * sample_rate, 1) ;
+            voltage_off    * ones(trig_to_ready_interval * sample_rate, 1)
+            voltage_ready  * ones(ready_signal_duration * sample_rate, 1)
+            voltage_off    * ones((Protocol.Foreperiod(iTrial)-ready_signal_duration + first_go_signal_duration + go_to_branch_off_duration + stop_signal_duration + off_duration) * sample_rate, 1)
+            ] ;
+
+        waveform1 = [
+            voltage_off  * ones((ini_duration + trig_signal_duration + trig_to_ready_interval + Protocol.Foreperiod(iTrial)) * sample_rate, 1);
+            voltage_go   * ones(first_go_signal_duration * sample_rate, 1);
+            voltage_off  * ones(go_to_branch_off_duration * sample_rate, 1);
+            voltage_stop * ones(stop_signal_duration * sample_rate, 1);
+            voltage_off  * ones(off_duration * sample_rate, 1)
+            ] ; 
+>>>>>>> Stashed changes
