@@ -10,7 +10,7 @@
 
 ### 作成する予定のファイル
 
-* `all_bat_marker_tracking_forstudy.m`：全バットマーカーを確認する学習用スクリプト
+* `step3_forstudy_visualize_all_bat_markers.m`：全バットマーカーを確認する学習用スクリプト
 * 将来的に反映する候補：`m3_analyze_single_trial.m`
 
 ---
@@ -36,7 +36,7 @@
 
 ### 書くコード
 
-`all_bat_marker_tracking_forstudy.m` を新規作成し、先頭に以下を書きます。
+`step3_forstudy_visualize_all_bat_markers.m` を新規作成し、先頭に以下を書きます。
 
 ```matlab
 clear
