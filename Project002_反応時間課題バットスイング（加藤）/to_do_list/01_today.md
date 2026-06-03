@@ -13,6 +13,9 @@
 
 【5. 最近完成したMATLABコードの動作テスト】[作成者: mshinyalab] [2026-06-03]
 
+- [ ] 0. Go-Stop課題スクリプト 動作テスト（NI DAQ 接続）← 最初にやる
+  - [ ] `sandbox/4.1.2_Go-Stop課題スクリプト作成/demo3_4_3_gostop_pre.m`
+
 - [ ] A. 予備実験スクリプト 動作テスト（NI DAQ 接続）
   - [ ] `4_4_free_pre_experiments.m`（自由スイング条件）
   - [ ] `4_4_simplereaction_pre_experiments.m`（単純反応条件）
