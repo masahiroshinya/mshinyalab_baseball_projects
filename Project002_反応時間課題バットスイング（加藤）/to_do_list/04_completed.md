@@ -4,6 +4,10 @@
 
 ---
 
+- [X] **【2026-06-03 完了】** タスク5-B. データ分析スクリプト 動作テスト（`step3_forstudy_visualize_all_bat_markers.m`：全バットマーカー速度波形を可視化。欠損フレームなし、グラフ正常を確認） `[作成者: student]`
+- [X] **【2026-06-03 完了】** タスク5-A. 予備実験スクリプト3本 動作テスト（`4_4_free/simplereaction/gonogo_pre_experiments.m`：浮動小数点バグ修正後、DAQ接続テスト成功） `[作成者: student]`
+- [X] **【2026-06-03 完了】** タスク5-0. Go-Stop課題スクリプト 動作テスト（`4_4_gostop_pre.m`：浮動小数点バグ修正後、DAQ接続テスト成功） `[作成者: student]`
+- [X] **【2026-06-03 完了】** 4. 予備実験コード作成 — Go-Stop課題スクリプト（`4_4_gostop_pre.m` STEP 1〜8 完成。switch文によるGo/Stop分岐、DAQ出力、エラー時安全停止を実装） `[作成者: student]`
 - [X] **【2026-06-02 完了】** 5.3. 試行数・ブロック構成確定に伴うCSVファイルおよびスクリプトの更新（`4_4_simplereaction_pre_experiments_20trials.csv`・`4_4_gonogo_pre_experiments_20trials.csv` を4.4フォルダに作成、`4_4_free_pre_experiments.m` の `nTrial = 20` への修正を案内） `[作成者: student]`
 - [X] **【2026-06-02 完了】** Go-Stop課題用コード作成（`4_4_gostop_pre.m` STEP 1〜8 完成。switch文によるGo/Stop分岐、DAQ出力、エラー時安全停止を実装） `[作成者: student]`
 - [X] **【完了】** 4.1.2-a. Go-Stop課題の Go:Stop 試行比率を先行研究をもとに決定し、プロトコールCSVを更新する `[作成者: student]`
