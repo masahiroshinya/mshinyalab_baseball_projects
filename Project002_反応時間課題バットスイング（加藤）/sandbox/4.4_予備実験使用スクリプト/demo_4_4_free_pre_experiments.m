@@ -16,6 +16,7 @@ voltage_go             = 5.0;
 
 ini_duration           = 0.1;
 trig_signal_duration   = 0.1;
+
 trig_to_ready_interval = 1.0;   % 初期位置計測用（Qualisys開始後の静止期間）
 ready_signal_duration  = 0.5;
 gonogo_signal_duration = 0.5;
