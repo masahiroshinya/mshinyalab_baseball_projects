@@ -5,6 +5,7 @@
 *.mov
 *.MOV
 *.mp4
+**/x1_RawData/
 
 
 
