@@ -4,6 +4,9 @@
 
 ---
 
+- [X] **【2026-06-08 完了】** 1.4. AIMとrigid body の両方を用いて、バットスイング計測（GRF＋人体動作＋バット） `[作成者: student]`
+- [X] **【2026-06-03 完了】** タスク5-0'. Go-Stop課題スクリプト パラメータ見直し（`demo_4_4_gostop_pre.m`：`go_to_branch_off_duration` を 0.1s → 0.2s に変更。大学生硬式100km/h基準、スイング開始後キャンセル可能な領域（〜300ms）に2回目cueを設定） `[作成者: student]`
+- [X] **【2026-06-03 完了】** タスク5-C. 全バットマーカー軌跡可視化スクリプト作成（`step4_forstudy_bat_trajectory.m`：3D軌跡・ピーク速度フレーム特定・スティック図・XY平面図 完成） `[作成者: student]`
 - [X] **【2026-06-03 完了】** タスク5-B. データ分析スクリプト 動作テスト（`step3_forstudy_visualize_all_bat_markers.m`：全バットマーカー速度波形を可視化。欠損フレームなし、グラフ正常を確認） `[作成者: student]`
 - [X] **【2026-06-03 完了】** タスク5-A. 予備実験スクリプト3本 動作テスト（`4_4_free/simplereaction/gonogo_pre_experiments.m`：浮動小数点バグ修正後、DAQ接続テスト成功） `[作成者: student]`
 - [X] **【2026-06-03 完了】** タスク5-0. Go-Stop課題スクリプト 動作テスト（`4_4_gostop_pre.m`：浮動小数点バグ修正後、DAQ接続テスト成功） `[作成者: student]`
