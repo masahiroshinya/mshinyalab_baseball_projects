@@ -2,7 +2,7 @@ clear
 close all
 clc
 
-folderName = '../../2026-0604/x1_RawData/2026-0604予備実験';
+folderName = 'x1_RawData/2026-0604_予備実験';
 fileName   = 'S01_free0001';
 
 Data = load_qualisys_mat(folderName, fileName);
@@ -10,7 +10,7 @@ Data = load_qualisys_mat(folderName, fileName);
 % サンプリング周波数の確認
 fprintf('=== サンプリング周波数 ===\n');
 fprintf('マーカー　: %d Hz\n', Data.FrameRate);
-fprintf('アナログ（GRF）：%d Hz\n', Data.AnalogFs);
+fprintf('アナログ（GRF）：%d Hz\n', Data.Analog.Frequency);
 fprintf('\n');
 
 % Force1・Force2のサイズ確認
@@ -32,7 +32,7 @@ fprintf('Fz2 の最小値：%6.1f N\n', min(Fz2));
 
 % 時間軸を作成する（試行開始を t=0 とする）
 nAnalog  = length(Fz1);
-fsAnalog = Data.AnalogFs;
+fsAnalog = Data.Analog.Frequency;
 tAnalog  = [1:nAnalog] / fsAnalog;
 
 % Fzをプロットする
@@ -51,3 +51,17 @@ xlabel('Time [s] (試行開始からの経過時間)')
 ylabel('Fz2[N]')
 title('垂直分力 - プレート2')
 grid on
+
+% LEDタイミングを取得する
+led = Data.LEDData(:, 2);
+
+tCueAnalog = find(abs(led) > 2, 1, 'first');
+
+if isempty(tCueAnalog)
+      fprintf('LEDタイミングが検出されませんでした\n');
+else
+    fprintf('=== LEDタイミング ===\n');
+    fprintf('LED 点灯サンプル番号：%d\n', tCueAnalog);
+    fprintf('LED 点灯時刻（試行開始から）：%.3f s\n', tCueAnalog / fsAnalog);
+end
+
