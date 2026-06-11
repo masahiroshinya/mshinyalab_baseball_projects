@@ -1,4 +1,4 @@
-% スイング開始の定義：バット長軸の角速度 > 300 deg/s
+% スイング開始�?�定義?��バ�?ト長軸の角�?�度 > 300 deg/s
 
 clear
 close all
@@ -17,7 +17,7 @@ Prm = parameters;
 fs  = Data.FrameRate;
 fprintf('サンプリング周波数: %d Hz\n', fs);
 
-% マーカー一覧を表示する
+% マ�?�カー�?覧を表示する
 disp('=== Data.Markers のフィールド名 ===')
 disp(fieldnames(Data.Markers))
 
@@ -44,11 +44,52 @@ M = filt_all_fields(b, a, Data.Markers);
 r_bottom = M.bottom;
 r_top    = M.top;
 
-% bottom → top の方向ベクトル
+% bottom �? top の方向�?�クトル
 v_long = r_top - r_bottom;
 
-% ノルム（大きさ）の計算
+% ノル�??��大きさ?���?�計�?
 v_long_norm = sum(v_long.^2, 2).^0.5;
 
-% 単位ベクトル（正規化）
-e_long = v_long_norm;
+% 単位�?�クトル?��正規化?�?
+e_long = v_long ./ v_long_norm;
+
+% 単位�?�クトルの時間微�?
+de_long = diff3p(e_long, 1/fs);
+
+% �?フレー�?での大きさ?���? 角�?�度の近似値?�?
+omega_rad = sum(de_long.^2, 2).^0.5;
+
+% ラジアン/�? �? 度/�? に変換
+omega_deg = omega_rad * (180 / pi);
+
+led        = Data.LEDData(:, 2);
+tCueAnalog = find(abs(led) > 2, 1, 'first');
+tCueMarker = round(tCueAnalog / Data.AnalogFs * fs);
+
+if isempty(tCueAnalog)
+     error('LEDタイミングが見つかりませんでした')
+end
+
+if led(tCueAnalog) > 0
+     cueText = 'Go';
+else
+     cueText = 'NoGo';
+end
+
+fprintf('キュー種�?: %s\n', cueText);
+fprintf('LEDフレー�?: %d フレー�?目\n', tCueMarker);
+
+THRESHOLD_OMEGA = 300;
+
+nFrames    = length(omega_deg);
+searchRange = tCueMarker : nFrames;
+
+idxAbove = find(omega_deg(searchRange) > THRESHOLD_OMEGA, 1 ,'first');
+
+if isempty(idxAbove)
+     tSwingOnset = NaN;
+     fprintf('スイング開始が検�?�されませんでした\n');
+else
+     tSwingOnset = searchRange(1) + idxAbove -1;
+     fprintf('スイング開�?: %d フレー�?目\n', tSwingOnset);
+end
