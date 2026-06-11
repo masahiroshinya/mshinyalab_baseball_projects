@@ -46,7 +46,7 @@ for iSubject = subjects
 
     % ç”Ÿãƒ‡ãƒ¼ã‚¿ãŒï¿½??¿½ç´ã•ã‚Œã¦?¿½?ã‚‹ãƒ•ã‚©ãƒ«?¿½???¿½?x1_RawData/??¿½?
     % Folder containing the raw Qualisys data files
-    rawDataFolder = 'x1_RawData/2026-0512 pre—\”õÀŒ±' ;
+    rawDataFolder = 'x1_RawData/2026-0604_—\”õÀŒ±' ;
 
     nCondition = length(ConditionNameArray) ;
 
