@@ -57,7 +57,7 @@ for iSubject = subjects
         conditionName = ConditionNameArray{iCondition} ;
 
         % ?��?条件の試行数 / Number of trials per condition
-        nTrial = 3 ;
+        nTrial = 20 ;
 
         % ---------------------------------------------------------------
         % 試行ルー?��? / Trial loop
