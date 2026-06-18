@@ -28,7 +28,7 @@ clc
 % -----------------------------------------------------------------------
 
 % 処理する被験者番号のリスト / List of subject IDs to process
-subjects = [1] ;
+subjects = [1,2] ;
 
 % 条件名リスト / List of condition names
 ConditionNameArray = {'free', 'simple', 'gonogo'} ;

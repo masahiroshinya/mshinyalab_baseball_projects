@@ -34,7 +34,7 @@ ConditionNameArray = {'free', 'simple', 'gonogo'} ;
 
 % 処?��?する被験�??番号のリスト（�?数?��?定可: ?��? [1, 2, 3]??��?
 % List of subject IDs to process (multiple subjects allowed, e.g. [1, 2, 3])
-subjects = [1] ;
+subjects = [1,2] ;
 
 % parameters
 Prm = parameters ;
@@ -107,9 +107,22 @@ for iSubject = subjects
             %   チャンネル1 / Channel 1: LED1 --- 刺?��?提示タイミングの記録 / Stimulus onset timing
             %   チャンネル2 / Channel 2: LED2 --- 予備チャンネル           / Reserved channel
             % -----------------------------------------------------------
-            analogData = X.Analog.Data' ;    % 転置 / Transpose: [samples ?��? channels]
-            X.LEDData  = analogData(:,1:2) ; % 先�??��2チャンネルのみ保持 / Keep first 2 channels only
-            X.AnalogFs = X.Analog.Frequency ;
+            if isfield(X, 'Analog')
+               rawAnalog = X.Analog.Data ; 
+               if size(rawAnalog, 1) < size(rawAnalog, 2)
+                   rawAnalog = rawAnalog' ;
+               end
+               analogData = rawAnalog ;
+               X.LEDData  = analogData(:,1:2) ;
+               X.AnalogFs = X.Analog.Frequency ;
+            else
+               X.LEDData  = [] ;
+               X.AnalogFs = NaN ;
+               X.ErrorCode = 99 ;
+               X.ErrorText = 'Analog data missing' ;
+               fprintf('Warning: Analog �Ȃ� �� %s\n', fileName) ;
+            end
+
             % -----------------------------------------------------------
             % 不要フィールド�??��削除 / Remove unnecessary fields
             % MarkerArray および Analog は上記で?��?要な?��?ータを抽出済みのため削除し�??
@@ -117,7 +130,12 @@ for iSubject = subjects
             % MarkerArray and Analog have been fully processed above;
             % removing them reduces struct size.
             % -----------------------------------------------------------
-            XX = rmfields(X, {'MarkerArray', 'Analog'}) ;
+            if isfield(X, 'Analog')
+               XX = rmfields(X, {'MarkerArray', 'Analog'}) ;
+            else
+               XX = rmfields(X, {'MarkerArray'}) ;
+            end
+
 
             % DataArray(試行番号, 条件番号) に格?��?
             % Store into DataArray indexed by (trial, condition)

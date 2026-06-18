@@ -16,7 +16,7 @@ clc
 % -----------------------------------------------------------------------
 % 設定
 % -----------------------------------------------------------------------
-iSubject   = 1 ;
+iSubject   = 2 ;
 iCondition = 3;   % 1=free, 2=simple, 3=gonogo
 ConditionNameArray = {'free', 'simple', 'gonogo'} ;
 condName           = ConditionNameArray{iCondition} ;   % 番号に応じて自動で設定

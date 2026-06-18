@@ -12,7 +12,7 @@ clc
 % -----------------------------------------------------------------------
 % 設定
 % -----------------------------------------------------------------------
-subjects           = [1] ;
+subjects           = [1,2] ;
 ConditionNameArray = {'free', 'simple', 'gonogo'} ;
 nCondition         = length(ConditionNameArray) ;
 
