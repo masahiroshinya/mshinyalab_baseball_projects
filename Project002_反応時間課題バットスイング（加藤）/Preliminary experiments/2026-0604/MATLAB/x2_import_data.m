@@ -74,6 +74,7 @@ for iSubject = subjects
             % Load the Qualisys .mat file
             X = load_qualisys_mat(rawDataFolder, fileName) ;
 
+
             % -----------------------------------------------------------
             % メタ?��?報の付�? / Attach metadata
             % 後段の?��?析で構�??体単体から試行情報を参照できるようにするため?��?

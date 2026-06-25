@@ -20,7 +20,7 @@ clear
 close all
 clc
 
-iSubject = 2;
+iSubject = 1;
 
 load(sprintf('x2_Data/Data%02d', iSubject))
 
@@ -162,51 +162,128 @@ legend('Location', 'best');
 grid on
 
 % GRF時系列
-iCondition_show = 1;
-iTrial_show     = 1;
+% GRF時系列
+plotRange = [-1, 3];
+fsAnalog  = DataArray(1, 1).AnalogFs;
+nPlot     = round((plotRange(2) - plotRange(1)) * fsAnalog);
+tPlot     = plotRange(1) + [0:nPlot-1] / fsAnalog;
 
-Data   = DataArray(iTrial_show, iCondition_show);
-Result = SingleTrialResultArray(iTrial_show, iCondition_show);
+condColors = {'g', 'b', 'r'};
 
-Fz1 = Data.Force1(:, 3);
-Fz2 = Data.Force2(:, 3);
+figure(3); clf
+figure(4); clf
 
-fsAnalog   = Data.AnalogFs;
-nAnalog    = length(Fz1);
-tCueAnalog = round(Result.TCueMarker / Data.FrameRate * fsAnalog);
+for iCondition = 1:nCondition
 
-bw = mean(Fz1(1 : tCueAnalog-1)) + mean(Fz2(1 : tCueAnalog-1));
-Fz1_BW = Fz1 / bw;
-Fz2_BW = Fz2 / bw;
+    condName = ConditionNameArray{iCondition};
 
-tFromLED = ([1:nAnalog] - tCueAnalog) / fsAnalog;
-plotTimeRange = [-1, 3];
+    Fz1_raw_cell  = {};
+    Fz2_raw_cell  = {};
+    Fz1_norm_cell = {};
+    Fz2_norm_cell = {};
 
-if ~isnan(Result.SwingOnset)
-    tSwingFromLED = (Result.SwingOnset - Result.TCueMarker) / Data.FrameRate;
+    for iTrial = 1:nTrial
+
+        Data   = DataArray(iTrial, iCondition);
+        Result = SingleTrialResultArray(iTrial, iCondition);
+
+        if ~strcmp(Result.CueText, 'Go')
+            continue
+        end
+        if isnan(Result.TCueMarker) || ~isfield(Data, 'Force1') || isempty(Data.Force1)
+            continue
+        end
+
+        Fz1 = Data.Force1(:, 3);
+        Fz2 = Data.Force2(:, 3);
+        nAnalog    = length(Fz1);
+        tCueAnalog = round(Result.TCueMarker / Data.FrameRate * Data.AnalogFs);
+
+        if tCueAnalog < 2
+            continue
+        end
+
+        bw = mean(Fz1(1:tCueAnalog-1)) + mean(Fz2(1:tCueAnalog-1));
+        if bw <= 0
+            continue
+        end
+
+        iStart = tCueAnalog + round(plotRange(1) * fsAnalog);
+        iEnd   = iStart + nPlot - 1;
+
+        if iStart < 1 || iEnd > nAnalog
+            continue
+        end
+
+        % 正規化前（N）
+        Fz1_raw_cell{end+1}  = Data.Force1(iStart:iEnd, 3);
+        Fz2_raw_cell{end+1}  = Data.Force2(iStart:iEnd, 3);
+
+        % 正規化後（BW）
+        Fz1_norm_cell{end+1} = Data.Force1(iStart:iEnd, 3) / bw;
+        Fz2_norm_cell{end+1} = Data.Force2(iStart:iEnd, 3) / bw;
+
+    end
+
+    if isempty(Fz1_raw_cell)
+        continue
+    end
+
+    nValid        = length(Fz1_raw_cell);
+    Fz1_raw_mean  = mean(cell2mat(Fz1_raw_cell),  2)';
+    Fz2_raw_mean  = mean(cell2mat(Fz2_raw_cell),  2)';
+    Fz1_norm_mean = mean(cell2mat(Fz1_norm_cell), 2)';
+    Fz2_norm_mean = mean(cell2mat(Fz2_norm_cell), 2)';
+
+    % Figure 3：正規化前（N）
+    figure(3)
+    subplot(2, 1, 1); hold on
+    plot(tPlot, Fz1_raw_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+    subplot(2, 1, 2); hold on
+    plot(tPlot, Fz2_raw_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+
+    % Figure 4：正規化後（BW）
+    figure(4)
+    subplot(2, 1, 1); hold on
+    plot(tPlot, Fz1_norm_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+    subplot(2, 1, 2); hold on
+    plot(tPlot, Fz2_norm_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+
 end
 
+% Figure 3 の装飾（正規化前・YLim は自動）
 figure(3)
-clf
+subplot(2, 1, 1)
+lineplot(0, 'v', 'k--');
+set(gca, 'XLim', plotRange);
+xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
+title(sprintf('Subject %02d  プレート１（後ろ足）— 条件別平均（正規化前）', iSubject));
+legend('Location', 'northwest'); grid on
 
-plot(tFromLED, Fz1_BW, 'b-', 'LineWidth', 1.2, 'DisplayName','プレート１（後ろ足）');
-hold on
-plot(tFromLED, Fz2_BW, 'r-', 'LineWidth', 1.2, 'DisplayName','プレート２（前の足）');
+subplot(2, 1, 2)
+lineplot(0, 'v', 'k--');
+set(gca, 'XLim', plotRange);
+xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
+title(sprintf('Subject %02d  プレート２（前の足）— 条件別平均（正規化前）', iSubject));
+legend('Location', 'northwest'); grid on
 
-xline(0, 'k--', 'LineWidth', 1.2);
+% Figure 4 の装飾（正規化後・YLim 固定）
+figure(4)
+subplot(2, 1, 1)
+lineplot(0, 'v', 'k--');
+set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
+xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
+title(sprintf('Subject %02d  プレート１（後ろ足）— 条件別平均（正規化後）', iSubject));
+legend('Location', 'northwest'); grid on
 
-if ~isnan(Result.SwingOnset)
-    xline(tSwingFromLED, 'm-', 'LineWidth', 1.2);
-end
+subplot(2, 1, 2)
+lineplot(0, 'v', 'k--');
+set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
+xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
+title(sprintf('Subject %02d  プレート２（前の足）— 条件別平均（正規化後）', iSubject));
+legend('Location', 'northwest'); grid on
 
-hold off
-
-set(gca, 'XLim', plotTimeRange);
-set(gca, 'YLim', [-0.1, 1.6]);
-xlabel('LEDからの時間 [s]');
-ylabel('Fz [BW]');
-title(sprintf('Subject %02d %s Trial %d [%s] RT = %.0f ms', ...
-    iSubject, ConditionNameArray{iCondition_show}, iTrial_show, ...
-    Result.CueText, Result.RT));
-legend('Location', 'northwest');
-grid on

@@ -67,12 +67,12 @@ Fz（垂直分力）
 
 `load_qualisys_mat` を実行すると、`Data` 構造体に以下のフィールドが含まれます。
 
-| フィールド名      | サイズ              | 内容                                     |
-| ----------------- | ------------------- | ---------------------------------------- |
-| `Data.Force1`   | nAnalogSamples × 3 | プレート1の力\[N\]（列：Fx, Fy, Fz）     |
-| `Data.Force2`   | nAnalogSamples × 3 | プレート2の力\[N\]（列：Fx, Fy, Fz）     |
-| `Data.Moment1`  | nAnalogSamples × 3 | プレート1のモーメント\[N·m\]            |
-| `Data.Moment2`  | nAnalogSamples × 3 | プレート2のモーメント\[N·m\]            |
+| フィールド名              | サイズ              | 内容                                     |
+| ------------------------- | ------------------- | ---------------------------------------- |
+| `Data.Force1`           | nAnalogSamples × 3 | プレート1の力\[N\]（列：Fx, Fy, Fz）     |
+| `Data.Force2`           | nAnalogSamples × 3 | プレート2の力\[N\]（列：Fx, Fy, Fz）     |
+| `Data.Moment1`          | nAnalogSamples × 3 | プレート1のモーメント\[N·m\]            |
+| `Data.Moment2`          | nAnalogSamples × 3 | プレート2のモーメント\[N·m\]            |
 | `Data.Analog.Frequency` | スカラー            | アナログデータのサンプリング周波数\[Hz\] |
 
 > **サンプリング周波数の違い**：
@@ -107,14 +107,15 @@ Fz = 0 → その足が床から離れている、または力がかかってい
 ## 全体の流れ
 
 ```
-[1] データ読み込み     → load_qualisys_mat で1試行を読み込む
-[2] データ構造の確認   → Force1・Force2 のサイズとサンプリング周波数を確認する
-[3] 生波形の可視化     → 試行全体の Fz（垂直分力）をプロットする
-[4] LED基準の時間軸    → LEDタイミングに合わせた時間軸でプロットする
-[5] 体重推定と正規化   → 静止期の Fz から体重を推定し、BW単位に変換する
-[6] 重心移動の観察     → 正規化済み Fz を重ねてプロットし、体重移動を観察する
-[7] 前後分力の確認     → Fy（前後方向分力）も可視化する
-[8] 考察              → バットスイングと床反力の関係を考える
+[1] データ読み込み          → load_qualisys_mat で1試行を読み込む
+[2] データ構造の確認        → Force1・Force2 のサイズとサンプリング周波数を確認する
+[3] 生波形の可視化          → 試行全体の Fz（垂直分力）をプロットする
+[4] LED基準の時間軸         → LEDタイミングに合わせた時間軸でプロットする
+[5] 体重推定と正規化        → 静止期の Fz から体重を推定し、BW単位に変換する
+[6] 重心移動の観察          → 正規化済み Fz を重ねてプロットし、体重移動を観察する
+[7] 前後分力の確認          → Fy（前後方向分力）も可視化する
+[8] 条件別平均の可視化      → 正規化前（N）と正規化後（BW）の条件別平均を比較する
+[9] 考察                   → バットスイングと床反力の関係を考える
 ```
 
 ---
@@ -458,12 +459,12 @@ Fz2_BW = Fz2 / bodyWeight_N ;
 
 この1行は「内側から外側へ」順番に読むと理解しやすいです。
 
-| 順番 | 部分 | 意味 | 例（tCueAnalog = 1000 の場合） |
-| :--: | ---- | ---- | ------------------------------ |
-| ① | `staticStart:staticEnd` | 静止期のインデックス範囲（連番）を作る | `[1, 2, 3, ..., 999]` |
-| ② | `Fz1(staticStart:staticEnd)` | `Fz1` から静止期のサンプルだけを取り出す | `[580.1, 582.3, 579.8, ...]`（999個） |
-| ③ | `mean(...)` | 取り出したサンプルの平均値を計算する | `→ 580.5 N` |
-| ④ | `meanFz1_static = ...` | 計算結果を変数に保存する | `meanFz1_static = 580.5` |
+| 順番 | 部分                           | 意味                                       | 例（tCueAnalog = 1000 の場合）          |
+| :--: | ------------------------------ | ------------------------------------------ | --------------------------------------- |
+|  ①  | `staticStart:staticEnd`      | 静止期のインデックス範囲（連番）を作る     | `[1, 2, 3, ..., 999]`                 |
+|  ②  | `Fz1(staticStart:staticEnd)` | `Fz1` から静止期のサンプルだけを取り出す | `[580.1, 582.3, 579.8, ...]`（999個） |
+|  ③  | `mean(...)`                  | 取り出したサンプルの平均値を計算する       | `→ 580.5 N`                          |
+|  ④  | `meanFz1_static = ...`       | 計算結果を変数に保存する                   | `meanFz1_static = 580.5`              |
 
 ```
 Fz1 = [580, 582, 579, ..., (静止期 999サンプル), ..., 200, 150, ...]
@@ -614,7 +615,234 @@ lineplot(0, 'v', 'k--') ; grid on
 
 ---
 
-## STEP 8：観察結果を整理して考察する
+## STEP 8：条件別 GRF 時系列の平均と比較（正規化前・正規化後）
+
+### やること
+
+これまでは1試行のデータを可視化してきました。
+このステップでは **すべての試行の平均** をとり、**3つの条件（free / simple / gonogo）を重ねて比較**します。
+さらに **正規化前（N）と正規化後（BW）の両方**を出力して、正規化の効果も合わせて確認します。
+
+> **なぜ平均をとるのか？**
+> 1試行だけでは、その試行固有のばらつき（準備タイミングのずれ・疲労など）が含まれます。
+> 複数試行の平均をとることで、条件に特有の安定したパターンが浮かび上がります。
+
+> **なぜ gonogo 条件の NoGo 試行を除くのか？**
+> NoGo 試行では被験者はスイングしません。スイングがないと体重移動も起きないため、
+> Go 試行と混ぜて平均すると波形が打ち消し合ってしまいます。
+
+> **なぜ正規化前・後の両方を出すのか？**
+> - **正規化前（N）**：絶対値での比較。条件間で力の大きさそのものに違いがあるか確認できます。
+> - **正規化後（BW）**：体重比での比較。被験者間の体重差を除去した形で条件間を比較できます。
+> 両方を並べることで「条件間の差は体重のせいか、それとも本当の力の違いか」を判断する材料になります。
+
+### このステップで使うデータ
+
+| 変数名                     | 読み込み元                                   | 内容                                             |
+| -------------------------- | -------------------------------------------- | ------------------------------------------------ |
+| `DataArray`              | `x2_Data/Data%02d.mat`                     | 試行×条件の構造体配列                           |
+| `SingleTrialResultArray` | `x5_SingleTrialAnalysisResultsChecked/...` | 各試行の分析結果（LED タイミング・CueText など） |
+
+### コードを書こう
+
+```matlab
+% ---- データの読み込み ----
+iSubject = 1 ;   % 被験者番号
+load(sprintf('x2_Data/Data%02d', iSubject))
+load(sprintf('x5_SingleTrialAnalysisResultsChecked/SingleTrialAnalysisResults%02d', iSubject))
+
+ConditionNameArray = {'free', 'simple', 'gonogo'} ;
+nCondition = length(ConditionNameArray) ;
+nTrial     = size(DataArray, 1) ;
+
+% ---- 固定時間軸の設定（全試行を LED 基準で揃えるための共通軸）----
+plotRange = [-1, 3] ;
+fsAnalog  = DataArray(1, 1).AnalogFs ;
+nPlot     = round((plotRange(2) - plotRange(1)) * fsAnalog) ;
+tPlot     = plotRange(1) + [0:nPlot-1] / fsAnalog ;
+
+condColors = {'g', 'b', 'r'} ;   % free=緑, simple=青, gonogo=赤
+
+figure(6) ; clf   % 正規化前（N）
+figure(7) ; clf   % 正規化後（BW）
+
+for iCondition = 1:nCondition
+
+    condName = ConditionNameArray{iCondition} ;
+
+    Fz1_raw_cell  = {} ;   % 正規化前の波形を溜めるセル配列
+    Fz2_raw_cell  = {} ;
+    Fz1_norm_cell = {} ;   % 正規化後の波形を溜めるセル配列
+    Fz2_norm_cell = {} ;
+
+    for iTrial = 1:nTrial
+
+        Data   = DataArray(iTrial, iCondition) ;
+        Result = SingleTrialResultArray(iTrial, iCondition) ;
+
+        % NoGo 試行・エラー試行・データなし試行をスキップ
+        if ~strcmp(Result.CueText, 'Go')
+            continue
+        end
+        if isnan(Result.TCueMarker) || ~isfield(Data, 'Force1') || isempty(Data.Force1)
+            continue
+        end
+
+        Fz1        = Data.Force1(:, 3) ;
+        Fz2        = Data.Force2(:, 3) ;
+        nAnalog    = length(Fz1) ;
+        tCueAnalog = round(Result.TCueMarker / Data.FrameRate * Data.AnalogFs) ;
+
+        if tCueAnalog < 2
+            continue
+        end
+
+        % 体重推定（LED 点灯前の静止期）
+        bw = mean(Fz1(1:tCueAnalog-1)) + mean(Fz2(1:tCueAnalog-1)) ;
+        if bw <= 0
+            continue
+        end
+
+        % 固定時間窓を切り出す（LED 基準 -1 〜 +3 秒）
+        iStart = tCueAnalog + round(plotRange(1) * fsAnalog) ;
+        iEnd   = iStart + nPlot - 1 ;
+
+        if iStart < 1 || iEnd > nAnalog
+            continue
+        end
+
+        % 正規化前（N）と正規化後（BW）を同時に蓄積する
+        Fz1_raw_cell{end+1}  = Data.Force1(iStart:iEnd, 3) ;
+        Fz2_raw_cell{end+1}  = Data.Force2(iStart:iEnd, 3) ;
+        Fz1_norm_cell{end+1} = Data.Force1(iStart:iEnd, 3) / bw ;
+        Fz2_norm_cell{end+1} = Data.Force2(iStart:iEnd, 3) / bw ;
+
+    end  % iTrial
+
+    if isempty(Fz1_raw_cell)
+        continue
+    end
+
+    nValid        = length(Fz1_raw_cell) ;
+    Fz1_raw_mean  = mean(cell2mat(Fz1_raw_cell),  2)' ;
+    Fz2_raw_mean  = mean(cell2mat(Fz2_raw_cell),  2)' ;
+    Fz1_norm_mean = mean(cell2mat(Fz1_norm_cell), 2)' ;
+    Fz2_norm_mean = mean(cell2mat(Fz2_norm_cell), 2)' ;
+
+    % Figure 6：正規化前（N）
+    figure(6)
+    subplot(2, 1, 1) ; hold on
+    plot(tPlot, Fz1_raw_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid)) ;
+    subplot(2, 1, 2) ; hold on
+    plot(tPlot, Fz2_raw_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid)) ;
+
+    % Figure 7：正規化後（BW）
+    figure(7)
+    subplot(2, 1, 1) ; hold on
+    plot(tPlot, Fz1_norm_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid)) ;
+    subplot(2, 1, 2) ; hold on
+    plot(tPlot, Fz2_norm_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
+        'DisplayName', sprintf('%s (n=%d)', condName, nValid)) ;
+
+end  % iCondition
+
+% Figure 6 の装飾（正規化前・YLim は自動）
+figure(6)
+subplot(2, 1, 1)
+lineplot(0, 'v', 'k--') ;
+set(gca, 'XLim', plotRange) ;
+xlabel('LEDからの時間 [s]') ; ylabel('Fz [N]') ;
+title(sprintf('Subject %02d  プレート１（後ろ足）— 条件別平均（正規化前）', iSubject)) ;
+legend('Location', 'northwest') ; grid on
+
+subplot(2, 1, 2)
+lineplot(0, 'v', 'k--') ;
+set(gca, 'XLim', plotRange) ;
+xlabel('LEDからの時間 [s]') ; ylabel('Fz [N]') ;
+title(sprintf('Subject %02d  プレート２（前の足）— 条件別平均（正規化前）', iSubject)) ;
+legend('Location', 'northwest') ; grid on
+
+% Figure 7 の装飾（正規化後・YLim 固定）
+figure(7)
+subplot(2, 1, 1)
+lineplot(0, 'v', 'k--') ;
+set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]) ;
+xlabel('LEDからの時間 [s]') ; ylabel('Fz [BW]') ;
+title(sprintf('Subject %02d  プレート１（後ろ足）— 条件別平均（正規化後）', iSubject)) ;
+legend('Location', 'northwest') ; grid on
+
+subplot(2, 1, 2)
+lineplot(0, 'v', 'k--') ;
+set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]) ;
+xlabel('LEDからの時間 [s]') ; ylabel('Fz [BW]') ;
+title(sprintf('Subject %02d  プレート２（前の足）— 条件別平均（正規化後）', iSubject)) ;
+legend('Location', 'northwest') ; grid on
+```
+
+### コードの重要ポイント
+
+**① NoGo 試行の除外**
+
+```matlab
+if ~strcmp(Result.CueText, 'Go')
+    continue
+end
+```
+
+`Result.CueText` には `'Go'` または `'NoGo'` が入っています。
+`strcmp` は文字列を比較する関数で、`~strcmp(...)` は「Go でないとき」という意味です。
+`continue` はループの残りの処理をスキップして次の試行へ進みます。
+
+**② 固定時間窓の切り出し**
+
+```matlab
+iStart = tCueAnalog + round(plotRange(1) * fsAnalog) ;
+iEnd   = iStart + nPlot - 1 ;
+```
+
+全試行を「LED点灯の1秒前から3秒後」という同じ長さの窓で切り出します。
+これにより、すべての試行が同じ時間軸に揃い、平均が計算できます。
+
+**③ 正規化前・後を同時に蓄積する**
+
+```matlab
+Fz1_raw_cell{end+1}  = Data.Force1(iStart:iEnd, 3) ;        % 正規化なし（N）
+Fz1_norm_cell{end+1} = Data.Force1(iStart:iEnd, 3) / bw ;   % 正規化あり（BW）
+```
+
+同じ切り出し窓のデータを2つのセル配列に同時に保存します。`/ bw` の有無が唯一の違いです。
+
+**④ `cell2mat` と `mean` の組み合わせ**
+
+```
+Fz1_raw_cell = { [col1], [col2], ..., [colN] }   % 1 × N のセル配列
+                  ↓（各要素は nPlot × 1 の列ベクトル）
+
+cell2mat(Fz1_raw_cell) → nPlot × N の行列
+
+mean(..., 2)           → 各行の平均（列方向 = 試行方向）→ nPlot × 1 の列ベクトル
+                         ↑ 第2引数 '2' は「2次元目（列方向）に平均をとる」という意味
+
+' （転置）             → 1 × nPlot の行ベクトル（plot に渡す形）
+```
+
+### 確認ポイント
+
+- [ ] Figure 6（正規化前・N）に 3 条件の波形が色分けして表示されることを確認する
+- [ ] Figure 7（正規化後・BW）に 3 条件の波形が色分けして表示されることを確認する
+- [ ] Figure 6 と Figure 7 でグラフの形は同じで、Y 軸の単位（N と BW）だけが異なることを確認する
+- [ ] 凡例の `(n=xx)` で各条件の有効試行数（Go 試行数）を確認する
+- [ ] 3 条件の GRF パターンに違いがあるか観察する
+  - **free 条件**（緑）：自由スイング → 体重移動のタイミングや大きさはどうか？
+  - **simple 条件**（青）：Go 刺激でスイング → free との違いはあるか？
+  - **gonogo 条件**（赤）：Go 試行のみ → 見極めが必要な分、動き出しが遅くなるか？
+
+---
+
+## STEP 9：観察結果を整理して考察する
 
 ### 整理すべきこと
 
@@ -666,7 +894,8 @@ lineplot(0, 'v', 'k--') ; grid on
 - [ ] STEP 5：静止期からの体重推定と BW 正規化を実行した
 - [ ] STEP 6：正規化済み Fz を重ねてプロットし、体重移動パターンを観察した（Figure 3, 4）
 - [ ] STEP 7：前後方向分力（Fy）を可視化した（Figure 5）
-- [ ] STEP 8：観察メモをコード内に記録した
+- [ ] STEP 8：条件別平均 GRF を正規化前（Figure 6・N）・正規化後（Figure 7・BW）でプロットし、条件間の違いを観察した
+- [ ] STEP 9：観察メモをコード内に記録した
 
 ---
 
@@ -674,11 +903,11 @@ lineplot(0, 'v', 'k--') ; grid on
 
 ### `load_qualisys_mat` でエラーが出るとき
 
-| よくあるエラー                             | 原因                                            | 対処法                                                      |
-| ------------------------------------------ | ----------------------------------------------- | ----------------------------------------------------------- |
-| `Undefined function 'load_qualisys_mat'` | カレントフォルダが `MATLAB/` になっていない   | MATLABのカレントフォルダを `2026-0604/MATLAB/` に設定する |
-| `No such file or directory`              | `folderName` または `fileName` のパスが違う | ファイルブラウザで正確なパスを確認する                      |
-| `Index exceeds array dimensions`         | 列番号が範囲外                                  | `size(Data.Force1)` でサイズを確認する                    |
+| よくあるエラー                             | 原因                                            | 対処法                                                     |
+| ------------------------------------------ | ----------------------------------------------- | ---------------------------------------------------------- |
+| `Undefined function 'load_qualisys_mat'` | カレントフォルダが`MATLAB/` になっていない    | MATLABのカレントフォルダを`2026-0604/MATLAB/` に設定する |
+| `No such file or directory`              | `folderName` または `fileName` のパスが違う | ファイルブラウザで正確なパスを確認する                     |
+| `Index exceeds array dimensions`         | 列番号が範囲外                                  | `size(Data.Force1)` でサイズを確認する                   |
 
 ### グラフで Fz がずっと 0 に近いとき
 
