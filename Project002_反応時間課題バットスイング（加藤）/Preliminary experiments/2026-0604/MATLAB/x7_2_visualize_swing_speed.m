@@ -21,7 +21,7 @@ clear
 close all
 clc
 
-iSubject = 2;
+iSubject = 1;
 
 filePath = sprintf('x7_MultiTrialAnalysisResultsChecked/MultiTrialResults%02d', iSubject);
 load(filePath)
