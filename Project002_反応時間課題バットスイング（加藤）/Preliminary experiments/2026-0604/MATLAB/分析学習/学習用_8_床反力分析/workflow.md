@@ -115,7 +115,8 @@ Fz = 0 → その足が床から離れている、または力がかかってい
 [6] 重心移動の観察          → 正規化済み Fz を重ねてプロットし、体重移動を観察する
 [7] 前後分力の確認          → Fy（前後方向分力）も可視化する
 [8] 条件別平均の可視化      → 正規化前（N）と正規化後（BW）の条件別平均を比較する
-[9] 考察                   → バットスイングと床反力の関係を考える
+[9] 個別試行と平均の重ね描き → 各試行を薄く、平均を濃く重ねて描画し、ばらつきを観察する
+[10] 考察                  → バットスイングと床反力の関係を考える
 ```
 
 ---
@@ -842,7 +843,206 @@ mean(..., 2)           → 各行の平均（列方向 = 試行方向）→ nPlo
 
 ---
 
-## STEP 9：観察結果を整理して考察する
+## STEP 9：各試行を薄く、平均を濃く重ねて描画する（条件ごとに図を分ける）
+
+### やること
+
+STEP 8 では条件ごとの **平均波形だけ** をプロットしました。
+このステップでは、平均を計算する前の **各試行の生波形** も同じグラフに **薄く** 重ね描きし、
+その上から平均波形を **濃く（太く）** 重ねます。
+
+> **なぜ個別試行も表示するのか？**
+> 平均だけを見ていると、「試行間のばらつきがどれくらい大きいか」「外れ値（極端に大きい/小さい試行）があるか」が分かりません。
+> 個別波形を薄く表示することで、平均線がその条件を代表する波形として妥当かどうかを目で判断できるようになります。
+
+> **なぜ透明度（alpha）ではなく「薄い色」を使うのか？**
+> MATLAB の `plot` で描く線に透明度をつける公式な方法は用意されていません（`h.Color(4) = alpha` という非公式の裏技はありますが、バージョンによって挙動が変わることがあります）。
+> 代わりに、条件色（緑・青・赤）を **白に近づけた薄い色** を新しく用意し、それを個別試行用の色として使います。公式にサポートされた方法なので、バージョンに依存せず確実に動作します。
+
+> **なぜ3条件を1枚のグラフに重ねないのか？**
+> 最初は STEP 8 と同じように、1枚のグラフに free / simple / gonogo をすべて重ねて描画してみました。
+> しかし各条件で何十本もの個別試行の線が重なると、色が入り混じって非常に見づらくなります。
+> そこで、**条件ごとに別々の figure** に分けることにしました。1つの図には1条件分の「個別試行（薄）＋平均（濃）」だけが描かれるため、ばらつきの大きさが直感的に読み取れます。
+
+### このステップで使うデータ
+
+条件ごとに figure 番号を分けます。プレート1・2は STEP 8 と同じく `subplot(2,1,...)` で1つの figure の中に上下に並べます。
+
+| 条件     | 正規化前（N）の figure 番号 | 正規化後（BW）の figure 番号 |
+| -------- | ---------------------------- | ------------------------------ |
+| free     | 6                             | 9                               |
+| simple   | 7                             | 10                              |
+| gonogo   | 8                             | 11                              |
+
+### コードを書こう（STEP 8 のコードを次のように拡張する）
+
+STEP 8 の `condColors` の定義の下に、個別試行用の薄い色と、条件ごとの figure 番号の対応表を追加します。
+
+```matlab
+condColors      = {'g', 'b', 'r'} ;                          % 平均線用（濃い色）
+condColorsLight = {[0.7 1 0.7], [0.7 0.7 1], [1 0.7 0.7]} ;  % 個別試行用（薄い色）
+
+figRawByCondition  = [6, 7, 8] ;    % 正規化前（N）：free, simple, gonogo
+figNormByCondition = [9, 10, 11] ;  % 正規化後（BW）：free, simple, gonogo
+
+for iFig = [figRawByCondition, figNormByCondition]
+    figure(iFig) ; clf
+end
+```
+
+そして、STEP 8 の `for iCondition = 1:nCondition` ループの中の、平均を計算・描画している部分（`nValid = length(Fz1_raw_cell) ;` 以降）を、次のように「①条件専用の figure を選ぶ → ②個別試行を薄く描画 → ③平均を濃く描画」の順番に書き換えます。
+
+```matlab
+    nValid  = length(Fz1_raw_cell) ;
+    figRaw  = figRawByCondition(iCondition) ;   % ① この条件専用の figure 番号
+    figNorm = figNormByCondition(iCondition) ;
+
+    % ② 各試行のFzを薄く描画する（先に描いて背面に回す）
+    figure(figRaw)
+    subplot(2, 1, 1) ; hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz1_raw_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off') ;
+    end
+    subplot(2, 1, 2) ; hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz2_raw_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off') ;
+    end
+
+    figure(figNorm)
+    subplot(2, 1, 1) ; hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz1_norm_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off') ;
+    end
+    subplot(2, 1, 2) ; hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz2_norm_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off') ;
+    end
+
+    % ③ 全試行の平均Fzを濃く描画する（後に描いて前面に出す）
+    Fz1_raw_mean  = mean(cell2mat(Fz1_raw_cell),  2)' ;
+    Fz2_raw_mean  = mean(cell2mat(Fz2_raw_cell),  2)' ;
+    Fz1_norm_mean = mean(cell2mat(Fz1_norm_cell), 2)' ;
+    Fz2_norm_mean = mean(cell2mat(Fz2_norm_cell), 2)' ;
+
+    figure(figRaw)
+    subplot(2, 1, 1) ; hold on
+    plot(tPlot, Fz1_raw_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid)) ;
+    subplot(2, 1, 2) ; hold on
+    plot(tPlot, Fz2_raw_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid)) ;
+
+    figure(figNorm)
+    subplot(2, 1, 1) ; hold on
+    plot(tPlot, Fz1_norm_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid)) ;
+    subplot(2, 1, 2) ; hold on
+    plot(tPlot, Fz2_norm_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid)) ;
+
+end  % iCondition
+```
+
+最後に、条件ごとの figure を装飾します（タイトルに条件名を入れる点が STEP 8 と異なります）。
+
+```matlab
+for iCondition = 1:nCondition
+    condName = ConditionNameArray{iCondition} ;
+    figRaw   = figRawByCondition(iCondition) ;
+    figNorm  = figNormByCondition(iCondition) ;
+
+    % 正規化前（N）の装飾（YLimは自動）
+    figure(figRaw)
+    subplot(2, 1, 1)
+    lineplot(0, 'v', 'k--') ;
+    set(gca, 'XLim', plotRange) ;
+    xlabel('LEDからの時間 [s]') ; ylabel('Fz [N]') ;
+    title(sprintf('Subject %02d  %s条件  プレート１（後ろ足）— 正規化前', iSubject, condName)) ;
+    legend('Location', 'northwest') ; grid on
+
+    subplot(2, 1, 2)
+    lineplot(0, 'v', 'k--') ;
+    set(gca, 'XLim', plotRange) ;
+    xlabel('LEDからの時間 [s]') ; ylabel('Fz [N]') ;
+    title(sprintf('Subject %02d  %s条件  プレート２（前の足）— 正規化前', iSubject, condName)) ;
+    legend('Location', 'northwest') ; grid on
+
+    % 正規化後（BW）の装飾（YLimは固定）
+    figure(figNorm)
+    subplot(2, 1, 1)
+    lineplot(0, 'v', 'k--') ;
+    set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]) ;
+    xlabel('LEDからの時間 [s]') ; ylabel('Fz [BW]') ;
+    title(sprintf('Subject %02d  %s条件  プレート１（後ろ足）— 正規化後', iSubject, condName)) ;
+    legend('Location', 'northwest') ; grid on
+
+    subplot(2, 1, 2)
+    lineplot(0, 'v', 'k--') ;
+    set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]) ;
+    xlabel('LEDからの時間 [s]') ; ylabel('Fz [BW]') ;
+    title(sprintf('Subject %02d  %s条件  プレート２（前の足）— 正規化後', iSubject, condName)) ;
+    legend('Location', 'northwest') ; grid on
+end
+```
+
+### コードの重要ポイント
+
+**① 条件ごとに figure 番号を切り替える**
+
+```matlab
+figRawByCondition  = [6, 7, 8] ;
+figRaw = figRawByCondition(iCondition) ;
+```
+
+配列 `figRawByCondition` の `iCondition` 番目の要素を取り出すことで、「free なら figure 6、simple なら figure 7、gonogo なら figure 8」という対応関係を作っています。
+STEP 8 のように毎回同じ `figure(6)` に描き続けるのではなく、条件ごとに違う figure 番号を選ぶのがポイントです。
+
+**② 描画の順番が「見た目の重なり」を決める**
+
+MATLAB では、後から `plot` した線が前面（手前）に描かれます。
+そのため、同じ条件・同じ figure の中で「①個別試行（薄い・細い）→ ②平均（濃い・太い）」の順に描くことで、
+平均線が個別試行の線に埋もれずに見えるようになります。条件ごとに figure が分かれているため、STEP 8 の重ね描き版で問題になっていた「他条件の薄線が平均線の上に乗ってしまう」ことも起こりません。
+
+```matlab
+for iTrial = 1:nValid          % 先に描く → 背面
+    plot(..., 'LineWidth', 0.5)
+end
+plot(..., 'LineWidth', 2)      % 後に描く → 前面
+```
+
+**③ `HandleVisibility off` で凡例を汚さない**
+
+```matlab
+plot(..., 'HandleVisibility', 'off') ;
+```
+
+個別試行の線1本1本に凡例（legend）の項目を作ってしまうと、試行数だけ凡例が並んで読めなくなります。
+`HandleVisibility off` を指定した線は凡例に表示されなくなるため、凡例には平均線の `平均 (n=xx)` の1項目だけが残ります。
+
+**④ `condColorsLight` の作り方**
+
+```matlab
+condColorsLight = {[0.7 1 0.7], [0.7 0.7 1], [1 0.7 0.7]} ;
+```
+
+MATLAB の色は `[R G B]`（各成分 0〜1）で指定できます。値を 1（白）に近づけるほど薄い色になります。
+例えば緑 `[0 1 0]` を `[0.7 1 0.7]` にすると、赤と青の成分が上がって白に近づき、淡い黄緑になります。
+
+### 確認ポイント
+
+- [ ] free / simple / gonogo それぞれについて、正規化前（figure 6〜8）・正規化後（figure 9〜11）の図が個別に開くことを確認する
+- [ ] 各 figure の背景に、その条件の薄い色の個別試行波形が何本も重なって見えることを確認する
+- [ ] その上に、その条件の濃い太線（平均波形）がはっきり見えることを確認する
+- [ ] タイトルに条件名（free / simple / gonogo）が表示され、どの図がどの条件か一目で分かることを確認する
+- [ ] 条件によって個別試行のばらつきの大きさが違うか観察する
+
+---
+
+## STEP 10：観察結果を整理して考察する
 
 ### 整理すべきこと
 
@@ -895,7 +1095,8 @@ mean(..., 2)           → 各行の平均（列方向 = 試行方向）→ nPlo
 - [ ] STEP 6：正規化済み Fz を重ねてプロットし、体重移動パターンを観察した（Figure 3, 4）
 - [ ] STEP 7：前後方向分力（Fy）を可視化した（Figure 5）
 - [ ] STEP 8：条件別平均 GRF を正規化前（Figure 6・N）・正規化後（Figure 7・BW）でプロットし、条件間の違いを観察した
-- [ ] STEP 9：観察メモをコード内に記録した
+- [ ] STEP 9：各試行を薄く、平均を濃く重ねて描画し、試行間のばらつきを観察した
+- [ ] STEP 10：観察メモをコード内に記録した
 
 ---
 
@@ -938,3 +1139,4 @@ tFromLED = [-1.999, ..., 0, ..., 3.000]  % 単位：秒
 ---
 
 *作成日: 2026-06-09*
+*更新日: 2026-07-02（STEP 9「各試行を薄く、平均を濃く重ねて描画する」を追加、条件ごとにfigureを分ける構成に更新）*

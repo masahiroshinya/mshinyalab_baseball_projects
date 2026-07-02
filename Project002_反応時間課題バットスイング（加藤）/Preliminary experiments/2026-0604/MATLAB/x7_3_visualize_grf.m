@@ -162,16 +162,20 @@ legend('Location', 'best');
 grid on
 
 % GRF時系列
-% GRF時系列
 plotRange = [-1, 3];
 fsAnalog  = DataArray(1, 1).AnalogFs;
 nPlot     = round((plotRange(2) - plotRange(1)) * fsAnalog);
 tPlot     = plotRange(1) + [0:nPlot-1] / fsAnalog;
 
-condColors = {'g', 'b', 'r'};
+condColors      = {'g', 'b', 'r'};
+condColorsLight = {[0.7 1 0.7], [0.7 0.7 1], [1 0.7 0.7]};  % 個別試行用の薄い色
 
-figure(3); clf
-figure(4); clf
+figRawByCondition  = [3, 4, 5];   % 正規化前（N）：free, simple, gonogo
+figNormByCondition = [6, 7, 8];   % 正規化後（BW）：free, simple, gonogo
+
+for iFig = [figRawByCondition, figNormByCondition]
+    figure(iFig); clf
+end
 
 for iCondition = 1:nCondition
 
@@ -229,61 +233,94 @@ for iCondition = 1:nCondition
         continue
     end
 
-    nValid        = length(Fz1_raw_cell);
+    nValid  = length(Fz1_raw_cell);
+    figRaw  = figRawByCondition(iCondition);
+    figNorm = figNormByCondition(iCondition);
+
+    % 各試行のFzを薄く描画（背面）
+    figure(figRaw)
+    subplot(2, 1, 1); hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz1_raw_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off');
+    end
+    subplot(2, 1, 2); hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz2_raw_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off');
+    end
+
+    figure(figNorm)
+    subplot(2, 1, 1); hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz1_norm_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off');
+    end
+    subplot(2, 1, 2); hold on
+    for iTrial = 1:nValid
+        plot(tPlot, Fz2_norm_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
+            'LineWidth', 0.5, 'HandleVisibility', 'off');
+    end
+
+    % 全試行の平均Fzを濃く描画（前面）
     Fz1_raw_mean  = mean(cell2mat(Fz1_raw_cell),  2)';
     Fz2_raw_mean  = mean(cell2mat(Fz2_raw_cell),  2)';
     Fz1_norm_mean = mean(cell2mat(Fz1_norm_cell), 2)';
     Fz2_norm_mean = mean(cell2mat(Fz2_norm_cell), 2)';
 
-    % Figure 3：正規化前（N）
-    figure(3)
+    figure(figRaw)
     subplot(2, 1, 1); hold on
-    plot(tPlot, Fz1_raw_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
-        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+    plot(tPlot, Fz1_raw_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid));
     subplot(2, 1, 2); hold on
-    plot(tPlot, Fz2_raw_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
-        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+    plot(tPlot, Fz2_raw_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid));
 
-    % Figure 4：正規化後（BW）
-    figure(4)
+    figure(figNorm)
     subplot(2, 1, 1); hold on
-    plot(tPlot, Fz1_norm_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
-        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+    plot(tPlot, Fz1_norm_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid));
     subplot(2, 1, 2); hold on
-    plot(tPlot, Fz2_norm_mean, condColors{iCondition}, 'LineWidth', 1.5, ...
-        'DisplayName', sprintf('%s (n=%d)', condName, nValid));
+    plot(tPlot, Fz2_norm_mean, condColors{iCondition}, 'LineWidth', 2, ...
+        'DisplayName', sprintf('平均 (n=%d)', nValid));
 
 end
 
-% Figure 3 の装飾（正規化前・YLim は自動）
-figure(3)
-subplot(2, 1, 1)
-lineplot(0, 'v', 'k--');
-set(gca, 'XLim', plotRange);
-xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
-title(sprintf('Subject %02d  プレート１（後ろ足）— 条件別平均（正規化前）', iSubject));
-legend('Location', 'northwest'); grid on
+% 条件ごとの装飾（タイトルに条件名を入れる）
+for iCondition = 1:nCondition
+    condName = ConditionNameArray{iCondition};
+    figRaw   = figRawByCondition(iCondition);
+    figNorm  = figNormByCondition(iCondition);
 
-subplot(2, 1, 2)
-lineplot(0, 'v', 'k--');
-set(gca, 'XLim', plotRange);
-xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
-title(sprintf('Subject %02d  プレート２（前の足）— 条件別平均（正規化前）', iSubject));
-legend('Location', 'northwest'); grid on
+    % 正規化前（N）の装飾（YLimは自動）
+    figure(figRaw)
+    subplot(2, 1, 1)
+    lineplot(0, 'v', 'k--');
+    set(gca, 'XLim', plotRange);
+    xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
+    title(sprintf('Subject %02d  %s条件  プレート１（後ろ足）— 正規化前', iSubject, condName));
+    legend('Location', 'northwest'); grid on
 
-% Figure 4 の装飾（正規化後・YLim 固定）
-figure(4)
-subplot(2, 1, 1)
-lineplot(0, 'v', 'k--');
-set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
-xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
-title(sprintf('Subject %02d  プレート１（後ろ足）— 条件別平均（正規化後）', iSubject));
-legend('Location', 'northwest'); grid on
+    subplot(2, 1, 2)
+    lineplot(0, 'v', 'k--');
+    set(gca, 'XLim', plotRange);
+    xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
+    title(sprintf('Subject %02d  %s条件  プレート２（前の足）— 正規化前', iSubject, condName));
+    legend('Location', 'northwest'); grid on
 
-subplot(2, 1, 2)
-lineplot(0, 'v', 'k--');
-set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
-xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
-title(sprintf('Subject %02d  プレート２（前の足）— 条件別平均（正規化後）', iSubject));
-legend('Location', 'northwest'); grid on
+    % 正規化後（BW）の装飾（YLimは固定）
+    figure(figNorm)
+    subplot(2, 1, 1)
+    lineplot(0, 'v', 'k--');
+    set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
+    xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
+    title(sprintf('Subject %02d  %s条件  プレート１（後ろ足）— 正規化後', iSubject, condName));
+    legend('Location', 'northwest'); grid on
 
+    subplot(2, 1, 2)
+    lineplot(0, 'v', 'k--');
+    set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
+    xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
+    title(sprintf('Subject %02d  %s条件  プレート２（前の足）— 正規化後', iSubject, condName));
+    legend('Location', 'northwest'); grid on
+end
