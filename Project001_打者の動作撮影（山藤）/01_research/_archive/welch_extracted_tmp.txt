@@ -1,0 +1,1038 @@
+Hitting a Baseball: A Biomechanical Description 
+Christian M. Welch, BS ' 
+Scott A. Banks, PhD 
+Frank F. Cook, MD3 
+Pete Draovitch, MS, PT, ATC, CSCS4 
+or as long as the game of 
+baseball has been played, 
+hitting has intrigued play- 
+ers, coaches, and research- 
+ers alike. Advancing tech- 
+nology has facilitated the ability to 
+capture the act of hitting and analyze 
+the mechanics involved. In 1961, 
+Race (14), with the aid of a 16mm 
+movie camera and the swings of 17 
+minor league players, presented one 
+of the first effective qualitative and 
+quantitative breakdowns of the over- 
+all swing. The concepts of kinetic 
+linking, angular measurement, bal- 
+ance, and judgment time were intro- 
+duced and supported with data. 
+In subsequent studies, the ability 
+to transform standard film and video 
+into a three-dimensional representa- 
+tion of the captured hitting motion 
+not only increased the accuracy of 
+measurement, but introduced new 
+analysis parameters. Using this tech- 
+nology, Shapiro (17), in a study of 
+bat dynamics, described the bat's 
+movement during the swing using 
+the three-dimensional components 
+of its motion, while DeRenne (4), 
+through a series of studies, developed 
+an elaborate method of assessing a 
+hitter's mechanical efficiency. 
+The combination of biomechani- 
+cal research and traditional baseball 
+knowledge has begun the process of 
+research and investigation (1,6,7,12, 
+18.19). The missing component to 
+this point has been the ability to 
+build a comprehensive understanding 
+of the body's natural coordination 
+and movement during the swing. 
+Once a baseline understanding has 
+A tremendous amount of time and energy has been dedicated to the development of 
+conditioning programs, mechanics drills, and rehabilitation protocols for the throwing athlete. In 
+comparison, a significantly smaller amount has been spent on the needs of the hitting athlete. Before 
+these needs can be addressed, an understanding of mechanics and the demands placed on the body 
+during the swing must be developed. This study uses three-dimensional kinematic and kinetic data to 
+define and quantify biomechanics during the baseball swing. The results show that a hitter starts the 
+swing with a weight shih toward the rear foot and the generation of trunk coil. As the hitter strides 
+forward, force applied by the front foot equal to 123% of body weight promotes segment acceler- 
+ation around the axis of the t~nk. The hip segment rotates to a maximum speed of 714Ysec 
+followed by a maximum shoulder segment velocity of 937%~. The product of this kinetic link is a 
+maximum linear bat velocity of 31 dsec. By quantikng the hitting motion, a more educated 
+approach can be made in developing rehabilitation, strength, and conditioning programs for the 
+hitting athlete. 
+Key Words: biomechanics, baseball, batting 
+' President, Human Performance Technologies, Inc., 825 South U.S. Highway One, Suite 200, jupiter, FL 
+33477 
+Technical Director, Orthopaedic Research Laboratory, Good Samaritan Medical Center, West Palm Beach, FL 
+' Co-Medical Director, Orthopaedic Research Laboratory, Good Samaritan Medical Center, West Palm 
+Beach, FL 
+Consultant, Orthopa& Research Laboratory, Good Samaritan Medical Center, West Palm Beach, FL 
+been developed, we can move on to 
+investigate the intricacies of specific 
+mechanical parameters and relate 
+this information to a hitter's ability at 
+the plate. The goal of this study was 
+to develop an understanding of base- 
+line mechanics through quantitative 
+biomechanical data and provide a 
+preliminary synthesis of results for 
+the application to training and reha- 
+bilitation. 
+METHODS 
+Testing Procedure 
+Thirty-nine (25 right-handed hit- 
+ters and 14 left-handed hitters) male 
+professional baseball players were 
+tested at an indoor biomechanics fa- 
+cility. In order to maintain uniformity 
+in the population used for this study, 
+only the right-handed subjects were 
+considered. Of the 25 right-handed 
+hitters, only those who had at least 
+100 "at-bats" and a minimum batting 
+average of .250 during the 1993 sea- 
+son were included. Each minor 
+league player's batting statistics were 
+combined for all clubs and organiza- 
+tions played with during the 1993 
+season. 
+Data included in this study, based 
+on the defined criteria, were gener- 
+ated from seven subjects. The mean 
+batting average for the subjects was 
+.293 (t .OX) and the average num- 
+ber of "at-bats" was 273 ( t 168). The 
+JOSPT Volume 22 Number 5 November 1995 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+RESEARCH STUDY 
+seven subjects' level of play ranged 
+from minor league to major league. 
+At the time of testing, six subjects 
+were playing in the minor leagues 
+and one subject was playing in the 
+major leagues. The average weight 
+was 844 N (224 N) and the average 
+height was 1.83 m (2.06 m). 
+Preceding data collection, a sys- 
+tem of 23 reflective markers was 
+placed on the hitter, bat, and ball. 
+Markers applied directly to the skin 
+were held securely in place with soft 
+foam adhesive biofeedback pads 
+(Davicon, Billerica, MA). "Stick" 
+markers, pelvis markers, and wrist 
+markers were held in place using 
+Neoprene wraps and VelcroTM. 
+Marker placement (Figure 1) includ- 
+ed: I) right and left shoulder placed 
+at the acromioclavicular joint, 
+2) neck placed at C7 of the spine, 
+3) right and left elbow placed at the 
+lateral epicondyle, 4) right and left 
+wrist placed dorsally between the ul- 
+nar and radial styloid process, 5) sa- 
+crum marker placed at L5 of the 
+spine, 6) right and left anterior supe- 
+rior illiac spine, 7) right and left 
+thigh using a "stick" marker to define 
+the frontal plane, 8) right and left 
+knee placed at the joint line, 9) right 
+Once a baseline 
+understanding has 
+been developed, we 
+can move on to 
+investigate the 
+intricacies of specific 
+mechanical parameters. 
+and left shank using a "stick" marker 
+to define the frontal plane, 10) right 
+and left ankle placed at the lateral 
+malleoli, 11) right and left forefoot 
+placed on top of the shoe, 12) reflec- 
+tive tape on the ball, and 13) reflec- 
+tive tape around the bat handle just 
+FIGURE 1. Marker placement for subject, bat, and ball. 
+above the hands and at the top of 
+the barrel end of the bat. 
+After the subject had warmed up 
+and the reflective markers had been 
+securely applied, he was instructed to 
+hit a number of baseballs off of a 
+standard batting tee. The tee was 
+placed in the hitting area so that the 
+designated batter's box was com- 
+prised of two force plates. The force 
+plates were arranged side by side so 
+that the subject could comfortably 
+place each foot on an individual 
+force plate. The tee was adjusted to 
+the subject's preferred position and 
+height to hit a line drive "up the 
+middle," based on both verbal com- 
+munication with the subject and 
+warm-up performance. The subject 
+was then asked to hit a ball marked 
+with reflective tape for data collec- 
+tion. The three best line drive hits 
+were used for data in this study. Cri- 
+teria for determining the three best 
+line drive hits included verbal com- 
+munication with the subject, contact, 
+flight of the ball, and accuracy of 
+data collection. 
+During data collection, the move- 
+ment of the reflective markers was 
+simultaneously captured by six cam- 
+eras at a rate of 200 frames per sec- 
+ond (Motion Analysis Corporation, 
+Santa Rosa, CA). The information 
+collected by each of the six cameras 
+was then mathematically processed 
+and the three-dimensional movement 
+of each marker was calculated using 
+Expert Vision digitizing software (Mo- 
+tion Analysis Corporation, Santa 
+Rosa, CA). In addition, the three- 
+dimensional ground reaction forces 
+were measured for each foot at a rate 
+of 1000 samples per second using two 
+sixchannel force plates (Advanced 
+Mechanical Technology, Inc., New- 
+ton, MA). Both the motion and the 
+ground reaction force collection sys- 
+tems were electronically synchronized 
+to begin collection simultaneously. 
+The parameters chosen to por- 
+tray the motion of the baseball swing 
+were consequently based on the bio- 
+mechanical data. Kinematics and ki- 
+netics were calculated using the 
+threedimensional information gener- 
+ated during a test. The relative move- 
+ment of the reflective markers within 
+the global reference frame and 
+body/joint reference frames defined 
+Volume 22 Number 5 November 1995 JOSPT 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+RESEARCH STUDY 
+8: STRIDE DlRECTlON 
+8: FRONT FOOT POSITION 
+f : STRIDE LENGTH 
+(B) 
+A: SHOULDERS 
+B: HIPS 
+C: ARMS 
+(C) 
+FIGURE 2. Batter orientation and movement. A) Global reference frame. B) Stride parameters. C) Segmental rotation around axis of the trunk (AOT). 
+general kinematics, including dis- 
+placement and velocity for both lin- 
+ear and angular measurements. The 
+application of force by each foot to 
+the ground relative to the coordi- 
+nates of the global reference frame 
+defined kinetics. 
+PARAMETER DESCRIPTION/ 
+CALCULATION 
+Global Reference Frame 
+The global reference frame was 
+defined as the three-dimensional co- 
+ordinate system in which the relative 
+movement of the body was measured 
+(Figure 2A). Each of the three axes 
+were perpendicular to each other 
+and defined three planes of move- 
+ment. For this study, the positive X 
+axis was the most crucial because it 
+was used as a reference for the seg- 
+ment rotation and stride parameters. 
+It was defined as the direction from 
+home plate to the pitching rubber 
+and parallel to the surface of the bat- 
+ter's box. When looking in the posi- 
+tive X direction, positive Z was de- 
+fined as pointing superiorly and 
+positive Y was defined as pointing to 
+the left. 
+Ground Reaction Forces 
+Ground reaction forces repre- 
+sented the interaction of the body 
+with the ground (10). The three- 
+dimensional force applied to the 
+ground by both feet was measured 
+during each swing. Each individual 
+component of applied force (X, Y, Z) 
+in the global reference frame (Figure 
+2A) was expressed as a value in N for 
+the left and right foot. The resultant 
+magnitude of force for each foot was 
+expressed as a value in N as well as a 
+percentage of body weight. 
+Center of Pressure/Center of Mass 
+The relative movement of the 
+center of pressure between the two 
+feet and the body's calculated center 
+of mass in the global X direction was 
+measured as an indication of dy- 
+namic balance and forward momen- 
+tum (3,4,15). The position of the 
+center of pressure between the two 
+feet was calculated by first weighting 
+The three-dimensional 
+position of the center 
+of mass for each 
+individual segment was 
+summed to produce 
+the position of the 
+whole body 
+center of mass 
+in global coordinates. 
+the position of the center of pressure 
+by the magnitude of the downward 
+force for each individual force plate 
+(each foot). The two weighted posi- 
+tions were then averaged to produce 
+the center of pressure between the 
+two feet in global coordinates. The 
+center of mass was calculated using 
+segment center of mass and segment 
+body weight percentage measure- 
+ments presented by Contini (3). The 
+JOSPT Volume 22 Number 5 November 1995 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+RESEARCH STUDY - --- - - - -- ..---.--..--..--- ?. . - -- . -. .- -- 
+three-dimensional position of the 
+center of mass for each individual 
+segment was calculated, weighted by 
+its percentage of body mass, and 
+summed to produce the position of 
+the whole body center of mass in 
+global coordinates. 
+Stride 
+As the hitter strode forward and 
+the front foot made contact with the 
+ground, the length and direction of 
+the stride as well as the position of 
+the left (front) foot were defined 
+(Figure 2B). Stride length was the 
+distance between the right and left 
+toe at foot down. It was expressed as 
+a value in cm and as a percentage of 
+the width of the hips from right hip 
+center to left hip center. The direc- 
+tion of the stride was the angle 
+formed between the vector from 
+right to left toe and the global X axis 
+(+ = closed, - = open). The posi- 
+tion of the left foot was the angle 
+formed between the vector from left 
+ankle to left forefoot and the global 
+X axis (+ = closed, - = open). 
+Both were expressed in degrees. 
+Flexion and extension of the left 
+and right knee as well as the left and 
+right elbow (8) were defined as the 
+absolute angle formed between the 
+proximal and distal segments com- 
+prising the joint. Full anatomical ex- 
+tension of the joint corresponded to 
+0" while full anatomical flexion of 
+the joint corresponded to 180". 
+Segment Rotation 
+A hitter's ability to utilize a ki- 
+netic link to generate bat speed de- 
+pended heavily on the interaction of 
+three body segments (4.1 1,13). The 
+segments were the hips, shoulders, 
+and the arms (Figure 2C). The hips 
+were defined as a vector from the 
+right hip to the left hip. The shoul- 
+ders were defined as a vector from 
+the right shoulder to the left shoul- 
+der and the arms were defined as a 
+vector from mid-shoulders to mid- 
+wrists. Their interaction was the rota- 
+tion around a common axis. This axis 
+was defined as the axis of the trunk 
+from mid-hips to mid-shoulders and 
+the rotation was measured with re- 
+spect to the global X axis. 
+The orientation of the trunk axis 
+was also measured. It was defined as 
+the angle formed between the vector 
+representing the trunk and the global 
+Z axis in the median plane (+ = 
+flexion, - = extension) and the 
+frontal plane (+ = right, - = left) 
+of the body. 
+Bat Movement 
+The movement of the bat can be 
+described by bat lag (2,4,11) and the 
+linear velocity of the end of the bat 
+(9,17). For this paper, bat lag was 
+defined as the absolute angle formed 
+between the vector representing the 
+bat from the handle to the barrel 
+and the vector from mid-shoulders to 
+mid-wrists. When the bat was fully 
+extended away from the arms and 
+both the vector representing the bat 
+and the vector representing the arms 
+were in line, the corresponding bat 
+lag angle was 180". The linear veloc- 
+ity at the barrel end of the bat was 
+defined by the first derivative of each 
+of the component displacements in 
+the global reference frame (Figure 
+2A) and the resultant magnitude. 
+Batting Events 
+For the purpose of describing a 
+hitter's natural coordination and 
+movement, three key events were 
+chosen as both landmarks for refer- 
+ence and for the identification of key 
+mechanical transitions. The first was 
+foot off. It was defined as the instant 
+the left (front) foot broke contact 
+with the ground and began the 
+stride. The second was foot down. It 
+was defined as the instant the left 
+foot made full contact with the 
+ground, ending the stride and begin- 
+ning closed chain energy transfer. 
+The third was ball contact. It was de- 
+fined as the instant the bat made 
+contact with the ball, beginning the 
+follow-through. 
+RESULTS 
+Before the parameters were cal- 
+culated, all threedimensional data 
+were smoothed using a fourth-order, 
+zero phase shift, low pass Butterworth 
+filter with a cut-off frequency of 13.3 
+Hz. The individual data included for 
+each of the seven subjects were gen- 
+erated as the average of their three 
+line drive swings. Mean kinematic 
+and kinetic data 5 standard deviation 
+for the seven subjects are presented 
+in Tables 1-4. 
+BIOMECHANICAL DESCRIPTION 
+The swing was initiated with a 
+weight shift toward the right (back) 
+leg. At approximately the same time, 
+the upper body rotated in a clockwise 
+direction (Figure 2C) around the 
+axis of the trunk, initiated by the 
+arms and shoulders, and followed 
+closely by the hips. This began the 
+coiling process. 
+Foot OffIStride 
+Immediately following the initia- 
+tion of coiling, the left (front) leg 
+was lifted and the left foot broke con- 
+tact with the ground (foot off), in- 
+creasing the total force applied by 
+the right (back) foot to a value of 
+102% of body weight. Part of the to- 
+tal force applied by each foot was 
+shear force acting parallel to the 
+ground in the global X and Y direc- 
+tions. Ground reaction to the shear 
+force promoted the linear and rota- 
+tional movement of the hitter. At 
+foot off, the right foot applied 146 N 
+of shear force in the negative X di- 
+rection and 26 N in the positive Y 
+direction. The right knee was flexed 
+at 32" and the center of pressure had 
+moved in the negative X direction 
+toward the right foot to a point 20 
+cm behind the center of mass. The 
+Volume 22 Number 5 November 1995 JOSPT 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+Parameter 
+Foot Off Foot Down Ball Contad 
+- - - 
+X SD X SD X SD 
+Right Foot 
+Total force (N) 
+Percent of body weight 
+X component (N) 
+Y component (N) 
+Z component (N) 
+Left Foot 
+Total force (N) 1007 472 709 270 
+Percent of body weight 123 63 84 32 
+X component (N) 292 167 153 146 
+Y component (N) -280 125 28 65 
+Z component (N) -91 7 429 -672 270 - 
+SD = Standard dwi~tion. 
+TABLE 1. Force applied by each foot at key points in swing. 
+- 
+Parameter X SD 
+HMRV ("lsec) 714 76 
+SMRV ("Isec) 937 102 
+AMRV (O/sec) 1160 96 
+BLMRV ("Isec) 1588 162 
+BMLV (rnfsec) 3 1 2 
+the same time, continued in a clock- 
+wise rotation around the axis of the 
+trunk, increasing the coil of the up 
+per body against the movement of 
+the hips and shoulders. 
+SD = Standard &viation. 
+HMRV = Hip segment maximum rotational velocity. 
+SMRV = Shoulder segment maximum rotational 
+velocity. 
+AMRV = Arm segment maximum rotational velocity. 
+BLMRV = Bat lag maximum rotational velocity. 
+BMl V = Bat maximum linear velocity. 
+TABLE 2. Maximum segment rotational velocities 
+and bar linear velocity. 
+arms, which led the clockwise rota- 
+tion, had rotated to 150" at foot off, 
+while the shoulders had rotated to 
+30". followed by the hips at 18". This 
+rotation occurred around an axis of 
+the trunk that was fairly upright. The 
+trunk was flexed forward 21" and lat- 
+erally left 6". 
+As the stride continued toward 
+foot down, the hips rotated to a max- 
+imum position of 28", 0.350 seconds 
+prior to ball contact. At that instant, 
+the hips began to rotate in a counter- 
+clockwise direction. The shoulders, 
+however, continued in a clockwise 
+direction, increasing the coil of the 
+trunk until they reached a maximum 
+rotation of 52", 0.265 seconds prior 
+to ball contact. At that instant, they 
+changed direction and followed the 
+lead of the hips in a counterclockwise 
+rotation toward the ball. The arms, at 
+Foot Contact 
+A. the left forefoot made contact 
+with the ground, the length and di- 
+rection of the stride were defined. 
+The mean stride length was a dis- 
+tance of 85 cm or 380% of hip width. 
+The direction of the stride was 12" 
+(closed) and the position of the foot 
+as it began to make contact with the 
+ground was 67" (closed) (Figure 2B). 
+It was with left foot contact that the 
+hitting action became a closed chain 
+energy transfer. The arms which had 
+increased the coil of the upper body 
+by continuing in a clockwise rotation 
+around the axis of the trunk reached 
+a maximum position of 185" and be- 
+gan a counterclockwise rotation. 
+Weight was shifted forward as the 
+heel of the left foot made contact 
+with the ground (foot down). The 
+left foot was in a position of 61" 
+(closed) and was applying a total 
+force equal to 123% of body weight 
+to the ground. As a part of the total 
+force applied by the left foot, 292 N 
+of shear force were applied in the 
+positive X direction and 280 N of 
+shear force were applied in the nega- 
+tive Y direction. The total force ap 
+plied by the right foot had decreased 
+to 58% of body weight. As a part of 
+the total force applied by the right 
+foot, 80 N of shear force were ap 
+plied in the negative X direction and 
+184 N of shear force were applied in 
+the positive Y direction. At that point, 
+the center of pressure had made a 
+drastic shift forward in the X direc- 
+tion to a point 20 cm ahead of the 
+center of mass. 
+With the weight shift forward and 
+the shear force applied in the X and 
+Y direction by both the left and right 
+foot, segments were now accelerated 
+to maximum velocities a. the body 
+coordinated an effort to produce bat 
+speed. The left leg extended at the 
+knee, pushing the left hip backward, 
+while the right leg pushed the right 
+hip forward, creating a counterclock- 
+wise acceleration of the hips around 
+the axis of the trunk. The rotational 
+velocity of the hips increased until it 
+reached a maximum of 714"/sec, 
+0.075 seconds prior to ball contact. 
+The shoulders and arms, following 
+the lead of the hips, accelerated to a 
+maximum rotational velocity of 937"/ 
+sec and 1 160°/sec, respectively, 0.065 
+seconds prior to ball contact. 
+As a result of the body's coordi- 
+nation, the bat also moved around 
+the axis of the trunk, increasing in 
+both angular velocity and linear ve- 
+locity. The two main components of 
+linear movement were anterior or 
+JOSPT Volume 22 Number 5 November 1995 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+Foot Off Foot Down Ball Contact 
+- - - 
+X SD X SD X SD 
+Hip rotation ("1 
+Shoulder rotation (") 
+Arm rotation ("1 
+Bat lag ('1 
+Right knee flexiodextension ("1 
+Left knee flexionlextension ("1 
+Right elbow flexionlextension ("1 
+Left elbow flexiodextension (") 
+Trunk flexiodextension ("1 
+Trunk lateral flexion ("1 
+Cop-Com (crn) 
+SD = Standard deviation. 
+Cop-Com = The relative difference in position of the center of pressure between the two feet and the calculated whole body center of mass in the global X direction I(-) center 
+of pressure behind center of mass, (+I center of pressure ahead of center of mass/. 
+TABLE 3. Position of body parameters at key points in swing. 
+Parameter x SD 
+Stride length (crn) 85 12 
+Stride as percent of hip width 380 75 
+Stride direction (") 12 3 
+Lead foot position ("1 61 11 - 
+SO = Standard deviation. 
+TABLE 4. Stride parameters. 
+away from the body in the negative Y 
+direction and downward in the nega- 
+tive Z direction. The anterior move- 
+ment of the bat away from the body 
+increased to a velocity of 19 m/sec at 
+0.040 seconds before ball contact. At 
+the same time, the downward move- 
+ment of the bat increased to a maxi- 
+mum velocity of 16 m/sec. The linear 
+motion of the bat then became domi- 
+nated by an increase in the positive X 
+direction toward the ball, while the Y 
+and Z components of linear velocity 
+decreased in magnitude (Figure 4). 
+Nearing the point of impact, the 
+hitter utilized the last bit of angular 
+speed and kinetic link as the speed 
+of bat lag or uncocking reached its 
+maximum value of 1588"/sec at 0.020 
+seconds before ball contact (Table 2, 
+Figure 3). The bat was then driven to 
+its maximum linear velocity of 31 
+m/sec in unison with the right arm 
+maximum extension velocity of 9487 
+sec, both occurring 0.015 seconds 
+before ball contact. 
+Ball Contact 
+At ball contact, the body had 
+used both coordination and position 
+to generate bat speed and direction. 
+The linear speed of the bat had de- 
+celerated slightly to 29 m/sec, but 
+the most significant component of 
+that speed was directed in the posi- 
+tive X direction toward the ball. The 
+left leg was acting as a block, flexed 
+15" at the knee and applying a total 
+force to the ground equal to 84% of 
+body weight. The right leg was now 
+acting in a support capacity, flexed 
+45" at the knee and applying a total 
+force of 16% of body weight to the 
+ground. The trunk had moved 
+through a significant range of motion 
+in an effort to assist in bat position 
+and become an extension of the 
+front leg's block. It had moved 
+through a range of 30" backward to a 
+position of 9" of trunk extension. It 
+had also moved through a range of 
+26" right to a position of 20" of right 
+lateral flexion. 
+After ball contact, the body acted 
+to slow itself and the bat through ec- 
+centric contraction and the diffusion 
+of energy through the larger muscle 
+groups (5). This study focused on the 
+swing from foot off to ball contact; 
+however, insight into the follow- 
+through portion and the deceleration 
+of segments can be gained using de- 
+scriptions by Shaffer et al (16). Gar- 
+hammer (5), and DeRenne (4). 
+DISCUSSION 
+To begin the process of building 
+an understanding of mechanics and 
+the demands placed on the body dur- 
+ing the swing, it is essential to have a 
+base understanding. The intent of 
+this paper is to provide the first step 
+through a quantitative biomechanical 
+description of hitting a baseball. The 
+description presented is not only fun- 
+damental to the knowledge of the 
+mechanics of hitting, but also for the 
+approach to analyzing a hitter's per- 
+formance at the plate. A subject-posi- 
+tioned batting tee was used in this 
+study to try to eliminate the variables 
+of recognition, reaction, and adjust- 
+ment to a pitched baseball. The re- 
+sulting data, summarized in Tables 
+1-4, provide a very useful guide for 
+understanding the general principles 
+of both the mechanics and the physi- 
+ology involved in hitting a baseball. 
+The results also provide a foundation 
+for not only studying the individual 
+parameters more thoroughly, but 
+studying variations within and be- 
+tween individual hitters. 
+Much like a golfer, the hitter 
+generates bat speed using a kinetic 
+link (11.13). A kinetic link can be 
+briefly summarized as large base seg- 
+ments "passing" momentum to 
+Volume 22 Number 5 November 1995 JOSFT 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+RESEARCH STUDY 
+FIGURE 3. Sequence of events occurring in a baseball swing in relation to ball contact Events: I) foot off, 
+2) maximum hip rotation, 3) maximum shoulder rotation, 4) maximum arm rotation, 5) foot down, 6) maximum hip 
+rotational velocity, 7) maximum shoulder and arm rotational velocity, 8) maximum Y and Z components of bat 
+linear velocity, 91 bat lag maximum rotational velocity, 10) maximum bat linear velocity and maximum right elbow 
+extension velocity, 1 1) maximum X component ofbat linear velocity, 12) ball contact, and 131 maximum lefi elbow 
+extension velocity. 
+smaller adjacent segments. The basic 
+principle is that a system of segments 
+moving at a certain velocity has mo- 
+mentum. When a large base segment 
+decelerates, the velocity of the re- 
+maining system increases as it as- 
+sumes the momentum lost by the 
+base segment. In the particular in- 
+stance of hitting mechanics, the seg- 
+ments are interrelated via the muscu- 
+loskeletal system. This system can 
+potentially accelerate and decelerate 
+the segments through the application 
+of muscular force, therefore, adding 
+a second component to the kinetic 
+link. Optimizing both the mechanical 
+and physiological components creates 
+the "motivation" for a majority of the 
+mechanics incorporated during the 
+hitting motion. Consequently, a large 
+part of a hitter's mechanical perfor- 
+mance is derived from maximizing 
+the kinetic link parameters. 
+A hitter starts the swing with the 
+clockwise rotation (right-handed hit- 
+ter) of the arm, shoulder, and hip 
+segments, while shifting weight to- 
+ward the rear foot. This action can 
+be considered the act of loading or 
+coiling. The hitter moves segments 
+opposite of both the intended rota- 
+tional (counterclockwise for right- 
+handed hitter) and linear (forward in 
+the global positive X) direction be- 
+fore accelerating into ball contact. 
+This action defines two components 
+of motion: rotational and linear. 
+The rotational component in- 
+volves the movement of segments 
+around the axis of the trunk. The 
+important factors to consider during 
+the stride are the amount of clock- 
+wise rotation by each segment and 
+the sequence of the initial movement 
+of each segment in the counterclock- 
+wise (intended) direction. As shown 
+in the results (Figure 3), it is impor- 
+tant that the hip segment starts coun- 
+terclockwise rotation before the 
+shoulder segment, which, in turn, 
+should start before the arm segment. 
+This sequence allows the kinetic link 
+system to begin to incorporate the 
+musculature of the trunk and upper 
+extremity through preload. Excessive 
+clockwise rotation of individual seg- 
+ments or all of the segments may 
+contribute to a reduction of muscular 
+efficiency as well as produce a disrup 
+tion in the sequencing of segments. 
+In turn, the disruption of the se- 
+quence of each segment's initial rota- 
+tion in the counterclockwise (intend- 
+ed) direction interrupts the hitter's 
+ability to fully incorporate the trunk 
+and upper extremity musculature. 
+The linear component is the for- 
+ward movement (global positive X 
+direction) of the body. By shifting 
+weight to the rear foot, the hitter has 
+moved the center of pressure behind 
+the position of the center of mass 
+(global X direction). Data in Table 3 
+show that the center of mass can be 
+20 cm ahead of the center of pres 
+sure. This moves the body out of an 
+equilibrium state where the center of 
+pressure and center of mass are 
+aligned (15). causing the body to 
+"motivate" toward the direction of 
+the center of mass. This, combined 
+with the application of shear force by 
+the right foot (rear) in the global 
+negative X direction, drives the hitter 
+in a linear fashion toward the ball. 
+As the hitter's stride foot makes 
+contact with the ground, the linear 
+component and the rotational com- 
+ponent begin to interact with each 
+other. The interaction of the two 
+movements determine how the ki- 
+netic link will be utilized. At foot 
+down, the center of pressure has now 
+moved ahead of the center of mass 
+(Table 3). The application of shear 
+forces by the left and right foot (Ta- 
+ble 1) produce a force couple at the 
+hip segment, facilitating its counter- 
+clockwise acceleration around the 
+axis of the trunk. At this point in the 
+swing, the hitter can mechanically 
+emphasize either the rotational or 
+linear component. If the rotational 
+component is emphasized, the center 
+of pressure aligns itself with the cen- 
+Proper timing facilitates 
+successively higher 
+rotational velocities. 
+ter of mass between both feet. This 
+allows significant shear force to be 
+applied by each foot and increases 
+the force couple applied to the hip 
+segment. If the linear component is 
+emphasized, then the center of pres- 
+sure stays in a forward position at the 
+lead foot and the center of mass 
+moves to align itself over the lead 
+leg. In this case, the only significant 
+shear application is produced by the 
+lead foot, reducing the force couple 
+applied to the hip segment for accel- 
+eration. The results of this study 
+demonstrate that the emphasis of 
+rotational and linear movements var- 
+ies between hitters as shown by high 
+standard deviations in shear force 
+application (Table 1) and center of 
+mass/center of pressure relative 
+movement (Table 3). 
+JOSFT Volume 22 Number 5 November 1995 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+left 
+X COMPONENT 
+(m/s> 
+right 
+posterior 
+Y COMPONENT 
+(m/4 
+anterior 
+Z COMPONENT 
+(m/4 
+down 
+LINEAR VELOCITY 
+(m/s> 
+-1.0 -0.8 -0.6 -0.4 -0.2 0.0 
+Time (s) 
+FIGURE 4. Component and resultant linear velocities of the bat during a ~ypical baseball swing. Vertical axis is 
+velocity (dsecj and horizontal axis is time (seconds). Time of 0.0 represents ball contact. 
+Regardless of individual mechan- 
+ics, the hip segment is accelerated 
+around the axis of the trunk to a 
+maximum velocity. This increases the 
+velocity of the entire system moving 
+in the intended direction. The hip 
+segment is then decelerated, as the 
+shoulder segment is accelerated, uti- 
+lizing the kinetic link principle (4,11, 
+13). Again, timing is essential for the 
+most efficient acceleration of each 
+successive segment, culminating with 
+the bat. Proper timing facilitates suc- 
+cessively higher rotational velocities 
+(Table 2). which, in turn, produce 
+bat speed and power. Conversely, if a 
+smaller adjacent segment reaches a 
+maximum velocity before the preced- 
+ing base segment, then it has lost the 
+ability to make full use of the speed 
+and, consequently, the momentum 
+generated by the base segment. 
+Although these data are a prelim- 
+inary step needed to lay the ground 
+work for more indepth study, they 
+certainly serve as pertinent informa- 
+tion for the clinician, whether that be 
+the physician, therapist, trainer, or 
+coach. The information in this paper 
+provides a fundamental understand- 
+ing of hitting biomechanics, which 
+can serve as the basis for a structured 
+and informed approach to the reha- 
+bilitation and training of the hitting 
+athlete. 
+SUMMARY 
+The purpose of this study was to 
+provide a foundation for the biome- 
+chanical study of hitting and the pre- 
+liminary synthesis of data for applica- 
+tion to the rehabilitation and training 
+of the hitting athlete. This goal is 
+achieved by presenting a biomechani- 
+cal description of hitting a baseball 
+using the mean kinematic and kinetic 
+data of seven professional baseball play- 
+ers in a controlled environment The 
+emphasis of the data presented is the 
+portrayal of the body's natural motion 
+and coordination. 
+Additional studies are being con- 
+ducted and will focus specifically on: 
+1) the relationship between the rota- 
+tional and linear components of 
+weight transfer, 2) the specific inter- 
+action of segments involved in the 
+kinetic link, and 3) the acceleration 
+and power with which the bat moves 
+into contact with the ball. Each of 
+the additional studies will concen- 
+trate on a specific area of biomechan- 
+ics introduced in this study. This will 
+allow the concepts and principles 
+involved to be fully investigated. The 
+combination of all these studies will 
+provide a comprehensive understand- 
+ing of the biomechanics and coordi- 
+nation involved during the baseball 
+swing. In addition, they will provide a 
+stepping stone for the total under- 
+standing of a hitter's performance at 
+the plate. JOSPT 
+Volume 22 a Number 5 November 1995 JOSPT 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
+
+. . . . , . . . . . . .. .. . RESEARCH STUDY 
+-. .. *.-- - -. .. .--. ---.---..,- ..--..- .. -.- ". . - . -. . ... 
+ACKNOWLEDGMENTS 
+The authors acknowledge the 
+contributions of Sean Cunningham, 
+ATC, CSCS of the Montreal Expos as 
+well as the entire Montreal Expos 
+organization for their baseball guid- 
+ance and expertise. We also thank 
+the athletes who participated in our 
+study and continue to support our 
+ongoing effort to study injury and 
+performance mechanics. 
+REFERENCES 
+1. Breen JL: What makes a good hitter? J 
+Health Phys Ed Rec 38:36-39, 1967 
+2. Budney DR, Bellow DG: Kinetic anal- 
+ysis of a golf swing. Res Q 50(2):171- 
+179, 1979 
+3. Contini R: Body segment parameters. 
+Part 11. Artif Limbs 16(1):1-19, 1972 
+4. DeRenne C: High-Tech Hitting: Sci- 
+ence vs. Tradition, St. Paul, MN: West 
+Publishing Company, 1 993 
+5. Garhammer J: A kinesiological analysis 
+of hitting for baseball. Natl Strength Con- 
+ditioning Asxx J 5(2):6 -7, 70-7 1, 1 983 
+6. Lau C, Glombrenner A, LaRussa T: The 
+Art of Hitting .300, New York, NY: Vi- 
+king Penguin, 199 1 
+7. Lefebvre ): Hitting the baseball: Let's 
+understand the process. Natl Strength 
+Conditioning Assoc J 5(2):6 -7, 70-71, 
+1983 
+8. Mclntyre DR, ffautsch EW: A kine- 
+matic analysis of the baseball batting 
+swings involved in opposite-field and 
+same-field hitting. Res Q Exerc Sport 
+53(3):206-2 13, 1982 
+9. Messier Sf, Owen MG: Bat dynamics 
+of female fast pitch softball batters. Res 
+Q Exerc Sport 55(2): 14 1 - 145, 1 984 
+10. Messier Sf, Owen MG: The mechanics 
+of batting: Analysis of ground reaction 
+forces and seleaed lower extremity kine- 
+matics. Res Q Exerc Sport 56(2):138- 
+143, 1985 
+1 1. Milburn PD: Summation of segmental 
+velocities in the golf swing. Med Sci 
+Sports Exerc 74:60-64, 1982 
+12. Miller RG, Shay CT: Relationship of re- 
+action time to the speed of a sohball. 
+Res Q 35(Suppl3):433-437, 1964 
+13. Putnam CA: Sequential motions of 
+body segments in striking and throwing 
+skills: Description and explanations. J 
+Biomech 26(Suppl): 125-1 35, 1983 
+14. Race DE: A cinematographics and me- 
+chanical analysis of the external move- 
+ments involved in hitting a baseball ef- 
+fectively. Res Q 32(3):394-404, 1961 
+15. Riley PO, Schenkman ML, Mann RW, 
+Hodge WA: Mechanics of a con- 
+strained chair-rise. ] Biomech 24(1):77- 
+85, 1991 
+16. Shaffer B, lobe FW, Pink M, Perry J: 
+Baseball batting: An electrom yographic 
+study. Clin Orthop 292:285-298, 1993 
+17. Shapiro R: Three-dimensional kinetic 
+analysis of the baseball swing. Unpub- 
+lished doctoral dissertation, University 
+of Illinois at Urbana-Champaign, Urba- 
+na-Champaign, IL, 1979 
+18. Watts L: Classroom approach to bat- 
+ting. Scholastic Coach 35: 19-20, 1966 
+19. Williams T, Underwood): The Science 
+of Hitting, New York, NY: Simon and 
+Schuster Inc., 1986 
+JOSPT Volume 22 Number 5 November 1995 
+ Journal of Orthopaedic & Sports Physical Therapy® 
+ Downloaded from www.jospt.org at on April 15, 2026. For personal use only. No other uses without permission. 
+ Copyright © 1995 Journal of Orthopaedic & Sports Physical Therapy®. All rights reserved.
