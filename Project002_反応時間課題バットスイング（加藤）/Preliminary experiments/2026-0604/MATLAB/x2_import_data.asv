@@ -2,25 +2,33 @@ clear
 close all
 clc
 
-ConditionNameArray = {'free', 'simple', 'gonogo'} ; % ƒf[ƒ^‚ÉŠÜ‚ŞğŒ
+ConditionNameArray = {'free', 'simple', 'gonogo'} ; % ãƒ‡ãƒ¼ã‚¿ã«å«ã‚€æ¡ä»¶
 
-subjects = [1,2] ; % ƒf[ƒ^‚ÉŠÜ‚Ş”íŒ±Ò
+subjects = [1,2] ; % ãƒ‡ãƒ¼ã‚¿ã«å«ã‚€è¢«é¨“è€…
 
 % parameters
 Prm = parameters ;
 
 for iSubject = subjects
-    rawDataFolder = 'x1_RawData/2026-0604_—\”õÀŒ±' ;
-    nCondition = length(ConditionNameArray) ; % ConditionNameArray‚Ì—v‘f”iğŒ‚Ì”j
+    rawDataFolder = 'x1_RawData/2026-0604_äºˆå‚™å®Ÿé¨“' ;
+    nCondition = length(ConditionNameArray) ; % length=ConditionNameArrayã®è¦ç´ æ•°ï¼ˆï¼æ¡ä»¶ã®æ•°
+
     
     for iCondition = 1:nCondition
         conditionName = ConditionNameArray{iCondition} ;
 
-        nTrial = 20 ; % s”
+        nTrial = 20 ;
 
         for iTrial = 1:nTrial
-            fileName = [sprintf('S%02d_', iSubject), conditionName, sprintf('%04d', iTrial)] ; % sprintfF•¶š—ñ‚ÉŠi”[
-            X = load_qualisys_mat(rawDataFolder, fileName) ; % load_qualisys_mat.m‚©‚ç‹A‚Á‚Ä‚«‚½ƒf[ƒ^‚ğX‚ÉŠi”[ 
+
+           
+            fileName = [sprintf('S%02d_', iSubject), conditionName, sprintf('%04d', iTrial)] ;
+
+       
+            X = load_qualisys_mat(rawDataFolder, fileName) ;
+
+
+           
             X.SubjectID     = iSubject ;    
             X.ConditionCode = iCondition ;  
             X.ConditionName = conditionName ;
@@ -38,6 +46,7 @@ for iSubject = subjects
             end
                 
             
+          
             if isfield(X, 'Analog')
                rawAnalog = X.Analog.Data ; 
                if size(rawAnalog, 1) < size(rawAnalog, 2)
@@ -51,9 +60,10 @@ for iSubject = subjects
                X.AnalogFs = NaN ;
                X.ErrorCode = 99 ;
                X.ErrorText = 'Analog data missing' ;
-               fprintf('Warning: Analog ‚È‚µ ¨ %s\n', fileName) ;
+               fprintf('Warning: Analog ãªã— â†’ %s\n', fileName) ;
             end
-            
+
+         
             if isfield(X, 'Analog')
                XX = rmfields(X, {'MarkerArray', 'Analog'}) ;
             else
@@ -74,7 +84,7 @@ for iSubject = subjects
     save(dataFilePath, 'DataArray')
 
    
-    fprintf('•Û‘¶Š®—¹ / Saved: %s.mat\n', dataFilePath) ;
+    fprintf('è«æ™ï½­ä¼œï½®é¯‰ï½¿ï½½? / Saved: %s.mat\n', dataFilePath) ;
 
    
     clear DataArray
