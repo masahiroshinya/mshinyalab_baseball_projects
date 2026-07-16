@@ -22,17 +22,15 @@ end
 
 M = filt_all_fields(b, a, Data.Markers) ;
 
-% ---- Shinya 角速度法（学習用_6 で確認済み）----
-r_bottom    = M.bottom ;
-r_top       = M.top ;
-v_long      = r_top - r_bottom ;
-v_long_norm = sum(v_long.^2, 2).^0.5 ;
-e_long      = v_long ./ v_long_norm ;
-de_long     = diff3p(e_long, 1/fs) ;
-omega_rad   = sum(de_long.^2, 2).^0.5 ;
-omega_deg   = omega_rad * (180/pi) ;
+% ---- ② バット先端（top）の並進速度 ----
+%  Qualisys の座標は mm なので、1000 で割って m に直してから微分する。
+%  こうすると velTop の単位が最初から m/s になり、以降で単位を意識せずに済む。
+posTop    = M.top / 1000 ;                    % [m]    各列 = x, y, z
+velTop    = diff3p(posTop, 1/fs) ;            % [m/s]  中心差分（3点法）
+netVelTop = sum(velTop.^2, 2).^0.5 ;          % [m/s]  速度ベクトルのノルム（＝速さ）
 
-Result.PeakOmegaDeg = max(omega_deg) ;      % スイング中の最大角速度
+Result.NetVelTop  = netVelTop ;
+Result.PeakVelTop = max(netVelTop) ;
 
 % ---- LED タイミング（Go=列2, NoGo=列1 を個別検索）----
 led_go   = Data.LEDData(:, 2) ;
@@ -62,26 +60,12 @@ Result.CueCode    = cueCode ;
 Result.CueText    = cueText ;
 Result.TCueMarker = tCueMarker ;
 
-% ---- スイング開始検出（絶対閾値 300 deg/s）----
-THRESHOLD_OMEGA = 300 ;
-nFrames         = length(omega_deg) ;
-searchRange     = tCueMarker : nFrames ;
-idxAbove        = find(omega_deg(searchRange) > THRESHOLD_OMEGA, 1, 'first') ;
-
-if isempty(idxAbove)
-    tSwingOnset = NaN ;
-else
-    tSwingOnset = searchRange(1) + idxAbove - 1 ;
-end
-
-% ---- 反応時間 ----
-if isnan(tSwingOnset)
-    RT = NaN ;
-else
-    RT = (tSwingOnset - tCueMarker) / fs * 1000 ;
-end
-
-Result.SwingOnset = tSwingOnset ;
-Result.RT         = RT ;
+% ---- スイング開始検出 ----
+%  角速度 300 deg/s による検出は廃止した（00 §2 の決定）。
+%  新しい検出信号（バット先端速度 or 床反力 Fz）は 00 で検討中のため、
+%  それが決まるまで RT は NaN とする。フィールドは残す（消すと x4 で
+%  構造体配列のフィールド不一致エラーになる）。
+Result.SwingOnset = NaN ;
+Result.RT         = NaN ;
 
 end
