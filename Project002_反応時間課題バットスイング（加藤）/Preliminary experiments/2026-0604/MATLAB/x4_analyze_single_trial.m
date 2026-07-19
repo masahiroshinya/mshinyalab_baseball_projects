@@ -77,12 +77,19 @@ fprintf('=== 全被験者の処理が完了しました ===\n') ;
 % ローカル関数：エラー時の空の Result
 % -----------------------------------------------------------------------
 function Result = makeEmptyResult()
-Result.NetVelTop     = [] ;    
-Result.PeakVelTop    = NaN ;   
+Result.NetVelTop     = [] ;
+Result.VelTopX       = [] ;
+Result.PeakVelTop    = NaN ;
+Result.TPeakVelTop   = NaN ;
+Result.PeakVelTopX   = NaN ;
+Result.TPeakVelTopX  = NaN ;
+Result.VelTopXAtPeak = NaN ;
 Result.CueCode       = NaN ;
 Result.CueText       = '' ;
 Result.TCueMarker    = NaN ;
 Result.SwingOnset    = NaN ;
 Result.RT            = NaN ;
 end
+
+
 

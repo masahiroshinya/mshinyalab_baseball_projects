@@ -65,53 +65,42 @@ else
 end
 
 % -----------------------------------------------------------------------
-% 条件別 PeakVelTop サマリー（Go 試行）
+% 条件別 速度サマリー（Go 試行）
 % -----------------------------------------------------------------------
 fprintf('\n--- 条件別 バット先端速度サマリー（Go 試行）---\n') ;
 GoVelRows  = ResultsTable.CueText == "Go" & ~isnan(ResultsTable.PeakVelTop) ;
 GoVelTable = ResultsTable(GoVelRows, :) ;
 velConditions = unique(GoVelTable.Condition) ;
 for k = 1:numel(velConditions)
-    cond     = velConditions(k) ;
-    idx      = GoVelTable.Condition == cond ;
-    vel_vals = GoVelTable.PeakVelTop(idx) ;
-    fprintf('  %s: n=%d, 平均=%.1f m/s, SD=%.1f m/s\n', ...
-        char(cond), sum(idx), mean(vel_vals), std(vel_vals)) ;
+    cond = velConditions(k) ;
+    idx  = GoVelTable.Condition == cond ;
+    fprintf('  %s (n=%d)\n', char(cond), sum(idx)) ;
+    fprintf('      合成速度ピーク  : %.1f ± %.1f m/s\n', ...
+        mean(GoVelTable.PeakVelTop(idx)),    std(GoVelTable.PeakVelTop(idx))) ;
+    fprintf('      Vx ピーク       : %.1f ± %.1f m/s\n', ...
+        mean(GoVelTable.PeakVelTopX(idx)),   std(GoVelTable.PeakVelTopX(idx))) ;
+    fprintf('      合成ピーク時のVx: %.1f ± %.1f m/s\n', ...
+        mean(GoVelTable.VelTopXAtPeak(idx)), std(GoVelTable.VelTopXAtPeak(idx))) ;
+    fprintf('      Vx / |V| の比   : %.3f\n', ...
+        mean(GoVelTable.VelTopXAtPeak(idx) ./ GoVelTable.PeakVelTop(idx))) ;
 end
 
 % -----------------------------------------------------------------------
-% グラフ表示
+% 表の検算（x6 が表を正しく組めたか）
 % -----------------------------------------------------------------------
-figure(1) ; clf
+fprintf('\n--- 表の検算 ---\n') ;
+fprintf('  総行数: %d（期待値: 条件数 × 試行数）\n', height(ResultsTable)) ;
+fprintf('  条件ごとの行数:\n') ;
+disp(groupsummary(ResultsTable, 'Condition')) ;
+fprintf('  PeakVelTop が NaN の行: %d\n', sum(isnan(ResultsTable.PeakVelTop))) ;
+fprintf('  Vx > 合成速度 の行（ありえない）: %d\n', ...
+    sum(ResultsTable.VelTopXAtPeak > ResultsTable.PeakVelTop + 1e-9)) ;
 
-% ---- 条件別 最大バット先端速度 箱ひげ図（全試行）----
-% NoGo 試行もあえて含める。NoGo の PeakVelTop がスイングより桁で低いことを
-% 目で確かめられ、01 論点2 の「スイング有無判定」の根拠になるため。
-allConditions = unique(ResultsTable.Condition) ;
-cond_vel  = [] ;
-grp_idx2  = [] ;
-lbl_cell2 = {} ;
-for k = 1:numel(allConditions)
-    cond = allConditions(k) ;
-    idx  = ResultsTable.Condition == cond ;
-    vel  = ResultsTable.PeakVelTop(idx) ;
-    cond_vel  = [cond_vel ; vel] ;                       %#ok<AGROW>
-    grp_idx2  = [grp_idx2 ; repmat(k, sum(idx), 1)] ;    %#ok<AGROW>
-    lbl_cell2{k} = char(cond) ;
-end
-if ~isempty(cond_vel)
-    boxplot(cond_vel, grp_idx2, 'Labels', lbl_cell2) ;
-end
-ylabel('最大バット先端速度 (m/s)') ;
-title('条件別 スイングスピード（全試行）') ;
-grid on
-
-sgtitle(sprintf('マルチ試行分析結果 Subject %02d', iSubject)) ;
 
 % -----------------------------------------------------------------------
 % 確認後に保存
 % -----------------------------------------------------------------------
-answer = input('\nグラフと集計を確認しました。x7 に保存しますか？ [y/n]: ', 's') ;
+answer = input('\n集計と検算を確認しました。x7 に保存しますか？ [y/n]: ', 's') ;
 if strcmpi(answer, 'y')
     savePath = sprintf('x7_MultiTrialAnalysisResultsChecked/MultiTrialResults%02d', iSubject) ;
     save(savePath, 'ResultsTable') ;

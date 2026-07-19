@@ -1,99 +1,224 @@
 % x7_2_visualize_swing_speed.m
 %
 % 目的:
-%   x7_MultiTrialAnalysisResultsChecked/ の確認済みマルチ試行結果から
-%   スイングスピード（PeakVelTop: バット先端マーカーの最大並進速度）を読み込み、
-%   条件間の比較を可視化する。
+%   バット先端速度を4つの図で可視化する。横軸はすべて Go cue からの時間。
+%     figure 1 : 合成速度のピーク（散布図：ピーク時刻 × ピーク値）
+%     figure 2 : 合成速度の時系列（条件ごと・全試行重ね描き／NoGo 除外）
+%     figure 3 : Vx のピーク（散布図：ピーク時刻 × ピーク値）
+%     figure 4 : Vx の時系列（条件ごと・全試行重ね描き／NoGo 除外）
 %
 % 入力:
-%   x7_MultiTrialAnalysisResultsChecked/MultiTrialResults<SubjectID>.mat
-%   変数: ResultsTable（列: Subject, Condition, Trial, CueText, PeakVelTop, ...）
-%
-% 出力:
-%   figure 1 --- 条件別 最大バット先端速度の箱ひげ図（free / simple / gonogo）
-%   figure 2 --- 試行ごとの最大バット先端速度の散布図
+%   x5_SingleTrialAnalysisResultsChecked/SingleTrialAnalysisResults<ID>.mat
+%       → SingleTrialResultArray（波形 NetVelTop・VelTopX を持つ）
+%   x3_DataChecked/Data<ID>.mat
+%       → FrameRate（時間軸を秒に直すために必要）
 %
 % 備考:
-%   - PeakVelTop の単位は m/s（top マーカーの合成速度のピーク値）
-%   - 角速度（PeakOmegaDeg）による指標は廃止した（00 §2 の決定）
-%   - gonogo 条件では NoGo 試行（CueText == 'NoGo'）を除外して集計する
-%   - PeakVelTop が NaN の試行も除外する
+%   - 従来の x7_2 は x7_MultiTrialAnalysisResultsChecked/ の ResultsTable を
+%     読んでいたが、あの表はスカラー列しか持たず波形がないため、
+%     時系列グラフ（figure 2・4）が描けない。→ 読み込み元を x5_Checked に変更した。
+%   - Vx は +X = 投手方向（s3b で両被験者 40/40 で確認済み）。正 = 投手方向。
+%   - 角速度による指標は廃止済み（00 §2）。
 
 clear
 close all
 clc
 
+% -----------------------------------------------------------------------
+% 設定
+% -----------------------------------------------------------------------
 iSubject = 1;
 
-filePath = sprintf('x7_MultiTrialAnalysisResultsChecked/MultiTrialResults%02d', iSubject);
-load(filePath)
+ConditionNameArray = {'free', 'simple', 'gonogo'} ;
+ConditionColor     = {'g', 'b', 'r'} ;
+nCondition         = numel(ConditionNameArray) ;
 
-% free条件
-mask_free  = ResultsTable.Condition == "free" & ResultsTable.CueText == "Go";
-Vel_free   = ResultsTable.PeakVelTop(mask_free);
-Trial_free = ResultsTable.Trial(mask_free);
+SHOW_NOGO_IN_SCATTER = false ;    % figure 1・3 に NoGo を含めるか
+XLIM_TIMESERIES      = [-0.5 2.0] ;   % 時系列グラフの表示範囲 [s]
 
-nanMask_free = ~isnan(Vel_free);
-Vel_free     = Vel_free(nanMask_free);
-Trial_free   = Trial_free(nanMask_free);
+% -----------------------------------------------------------------------
+% データ読み込み
+% -----------------------------------------------------------------------
+load(sprintf('x5_SingleTrialAnalysisResultsChecked/SingleTrialAnalysisResults%02d', iSubject))
+load(sprintf('x3_DataChecked/Data%02d', iSubject))
 
-% simple条件
-mask_simple  = ResultsTable.Condition == "simple" & ResultsTable.CueText == "Go";
-Vel_simple   = ResultsTable.PeakVelTop(mask_simple);
-Trial_simple = ResultsTable.Trial(mask_simple);
+nTrial = size(SingleTrialResultArray, 1) ;
 
-nanMask_simple = ~isnan(Vel_simple);
-Vel_simple     = Vel_simple(nanMask_simple);
-Trial_simple   = Trial_simple(nanMask_simple);
+% -----------------------------------------------------------------------
+% figure 1・3：ピークの散布図（横軸＝ピークが出た時刻）
+% -----------------------------------------------------------------------
+figure(1) ; clf ; hold on
+figure(3) ; clf ; hold on
 
-% gonogo条件
-mask_gonogo  = ResultsTable.Condition == "gonogo" & ResultsTable.CueText == "Go";
-Vel_gonogo   = ResultsTable.PeakVelTop(mask_gonogo);
-Trial_gonogo = ResultsTable.Trial(mask_gonogo);
+fprintf('=== Subject %02d：ピークの時刻と値 ===\n', iSubject) ;
 
-nanMask_gonogo = ~isnan(Vel_gonogo);
-Vel_gonogo     = Vel_gonogo(nanMask_gonogo);
-Trial_gonogo   = Trial_gonogo(nanMask_gonogo);
+% 箱ひげ図用の蓄積（条件ループをまたいで貯める）
+boxVel   = [] ;    % 合成速度のピーク
+boxVelX  = [] ;    % Vx のピーク
+boxLabel = {} ;    % 各データ点がどの条件のものか
 
-mean_free   = mean(Vel_free);
-mean_simple = mean(Vel_simple);
-mean_gonogo = mean(Vel_gonogo);
+for iCondition = 1:nCondition
 
-std_free   = std(Vel_free);
-std_simple = std(Vel_simple);
-std_gonogo = std(Vel_gonogo);
+    tPeakList  = [] ;   peakList  = [] ;    % Go 用（合成速度）
+    tPeakListX = [] ;   peakListX = [] ;    % Go 用（Vx）
+    tNoGo      = [] ;   pNoGo     = [] ;    % NoGo 用（合成速度）
+    tNoGoX     = [] ;   pNoGoX    = [] ;    % NoGo 用（Vx）
 
-% 箱ひげ図で条件間を比較
+    for iTrial = 1:nTrial
+
+        Result = SingleTrialResultArray(iTrial, iCondition) ;
+
+        if isempty(Result.NetVelTop),  continue, end
+        if isnan(Result.TCueMarker),   continue, end
+
+        fs = DataArray(iTrial, iCondition).FrameRate ;
+
+        % 合成速度のピーク（時刻は m3 が保存した TPeakVelTop を使う）
+        tPeak = (Result.TPeakVelTop - Result.TCueMarker) / fs ;
+        peak  = Result.PeakVelTop ;
+
+        % Vx のピーク（m3 が保存した値を使う）
+        peakX  = Result.PeakVelTopX ;
+        tPeakX = (Result.TPeakVelTopX - Result.TCueMarker) / fs ;
+
+
+        if strcmp(Result.CueText, 'Go')
+            tPeakList(end+1)  = tPeak  ; peakList(end+1)  = peak  ; %#ok<SAGROW>
+            tPeakListX(end+1) = tPeakX ; peakListX(end+1) = peakX ; %#ok<SAGROW>
+        else
+            tNoGo(end+1)  = tPeak  ; pNoGo(end+1)  = peak  ;        %#ok<SAGROW>
+            tNoGoX(end+1) = tPeakX ; pNoGoX(end+1) = peakX ;        %#ok<SAGROW>
+        end
+
+    end % iTrial
+
+    % 箱ひげ図用に貯める（Go 試行のみ）
+    boxVel   = [boxVel   ; peakList(:)] ;
+    boxVelX  = [boxVelX  ; peakListX(:)] ;
+    boxLabel = [boxLabel ; repmat(ConditionNameArray(iCondition), numel(peakList), 1)] ;
+
+    fprintf('%-7s Go: n=%2d, ピーク %.1f±%.1f m/s, 時刻 %.2f±%.2f s\n', ...
+        ConditionNameArray{iCondition}, numel(peakList), ...
+        mean(peakList), std(peakList), mean(tPeakList), std(tPeakList)) ;
+
+    figure(1)
+    scatter(tPeakList, peakList, 45, ConditionColor{iCondition}, 'filled', ...
+        'DisplayName', ConditionNameArray{iCondition}) ;
+    if SHOW_NOGO_IN_SCATTER && ~isempty(tNoGo)
+        scatter(tNoGo, pNoGo, 45, ConditionColor{iCondition}, 'x', 'LineWidth', 1.5, ...
+            'DisplayName', [ConditionNameArray{iCondition} ' (NoGo)']) ;
+    end
+
+    figure(3)
+    scatter(tPeakListX, peakListX, 45, ConditionColor{iCondition}, 'filled', ...
+        'DisplayName', ConditionNameArray{iCondition}) ;
+    if SHOW_NOGO_IN_SCATTER && ~isempty(tNoGoX)
+        scatter(tNoGoX, pNoGoX, 45, ConditionColor{iCondition}, 'x', 'LineWidth', 1.5, ...
+            'DisplayName', [ConditionNameArray{iCondition} ' (NoGo)']) ;
+    end
+
+end % iCondition
+
 figure(1)
-clf
-
-allVel   = [Vel_free ; Vel_simple ; Vel_gonogo];
-alllabel = [repmat({'free'},   length(Vel_free), 1); ...
-    repmat({'simple'}, length(Vel_simple), 1); ...
-    repmat({'gonogo'}, length(Vel_gonogo), 1)];
-
-boxplot(allVel, alllabel, 'GroupOrder', {'free', 'simple', 'gonogo'});
-
-ylabel('先端マーカーピーク合成速度（m/s）');
-title(sprintf('Subject %02d：先端マーカーピーク合成速度\nfree：%.1f±%.1f m/s / simple：%.1f±%.1f m/s / gonogo：%.1f±%.1f m/s', ...
-    iSubject, mean_free, std_free, mean_simple, std_simple, mean_gonogo, std_gonogo));
-grid on
-
-% 各試行のスイングスピードを散布図で確認する
-figure(2)
-clf
-
-hold on
-
-scatter(Trial_free,   Vel_free  , 40, 'g', 'filled', 'DisplayName', 'free');
-scatter(Trial_simple, Vel_simple, 40, 'b', 'filled', 'DisplayName', 'simple');
-scatter(Trial_gonogo, Vel_gonogo, 40, 'r', 'filled', 'DisplayName', 'gonogo');
-
 hold off
+xlabel('Go cue からの時間 (s)') ;
+ylabel('合成速度のピーク (m/s)') ;
+title(sprintf('Subject %02d：合成速度のピーク', iSubject)) ;
+legend('Location', 'best') ; grid on
 
-xlabel('試行番号');
-ylabel('先端マーカーピーク合成速度（m/s）');
-title(sprintf('Subject %02d：先端マーカーピーク合成速度\nfree：%.1f±%.1f m/s / simple：%.1f±%.1f m/s / gonogo：%.1f±%.1f m/s', ...
-    iSubject, mean_free, std_free, mean_simple, std_simple, mean_gonogo, std_gonogo));
-legend('Location', 'best');
+figure(3)
+hold off
+xlabel('Go cue からの時間 (s)') ;
+ylabel('Vx のピーク (m/s)') ;
+title(sprintf('Subject %02d：投手方向成分 Vx のピーク', iSubject)) ;
+legend('Location', 'best') ; grid on
+
+% -----------------------------------------------------------------------
+% figure 5：条件別ピーク速度の箱ひげ図（Go 試行）
+% -----------------------------------------------------------------------
+figure(5) ; clf
+
+% 2つの箱ひげ図で縦軸を揃える（Vx が合成速度の何割かを目で見るため）
+yLo = min([boxVel ; boxVelX]) - 1 ;
+yHi = max([boxVel ; boxVelX]) + 1 ;
+
+subplot(1,2,1)
+boxplot(boxVel, boxLabel, 'GroupOrder', ConditionNameArray) ;
+set(gca, 'YLim', [yLo yHi]) ;
+ylabel('合成速度のピーク (m/s)') ;
+title(sprintf('Subject %02d：合成速度ピーク平均', iSubject)) ;
 grid on
+
+subplot(1,2,2)
+boxplot(boxVelX, boxLabel, 'GroupOrder', ConditionNameArray) ;
+set(gca, 'YLim', [yLo yHi]) ;
+ylabel('Vx のピーク (m/s)') ;
+title(sprintf('Subject %02d：Vxピーク平均', iSubject)) ;
+grid on
+
+% -----------------------------------------------------------------------
+% figure 2・4：時系列（条件ごとに subplot、全試行を重ね描き。NoGo は除外）
+% -----------------------------------------------------------------------
+figure(2) ; clf
+figure(4) ; clf
+
+for iCondition = 1:nCondition
+
+    nShown = 0 ;
+
+    for iTrial = 1:nTrial
+
+        Result = SingleTrialResultArray(iTrial, iCondition) ;
+
+        if ~strcmp(Result.CueText, 'Go'), continue, end   % NoGo 除外
+        if isempty(Result.NetVelTop),     continue, end
+        if isnan(Result.TCueMarker),      continue, end
+
+        fs     = DataArray(iTrial, iCondition).FrameRate ;
+        tArray = ((1:numel(Result.NetVelTop))' - Result.TCueMarker) / fs ;
+
+        nShown = nShown + 1 ;
+
+        % 凡例は各条件の1本目にだけ付ける
+        if nShown == 1
+            visArg = {'DisplayName', ConditionNameArray{iCondition}} ;
+        else
+            visArg = {'HandleVisibility', 'off'} ;
+        end
+
+        figure(2)
+        subplot(nCondition, 1, iCondition) ; hold on
+        plot(tArray, Result.NetVelTop, '-', 'Color', ConditionColor{iCondition}, ...
+            'LineWidth', 0.8, visArg{:}) ;
+
+        figure(4)
+        subplot(nCondition, 1, iCondition) ; hold on
+        plot(tArray, Result.VelTopX, '-', 'Color', ConditionColor{iCondition}, ...
+            'LineWidth', 0.8, visArg{:}) ;
+
+    end % iTrial
+
+    figure(2)
+    subplot(nCondition, 1, iCondition) ; hold off
+    set(gca, 'XLim', XLIM_TIMESERIES) ;
+    xlabel('Go cue からの時間 (s)') ;
+    ylabel('合成速度 (m/s)') ;
+    title(sprintf('%s（Go %d 試行）', ConditionNameArray{iCondition}, nShown)) ;
+    grid on
+
+    figure(4)
+    subplot(nCondition, 1, iCondition) ; hold off
+    yline(0, 'k:') ;
+    set(gca, 'XLim', XLIM_TIMESERIES) ;
+    xlabel('Go cue からの時間 (s)') ;
+    ylabel('Vx (m/s)') ;
+    title(sprintf('%s（Go %d 試行）', ConditionNameArray{iCondition}, nShown)) ;
+    grid on
+
+end % iCondition
+
+figure(2)
+sgtitle(sprintf('Subject %02d：合成速度の時系列（NoGo 除外）', iSubject)) ;
+
+figure(4)
+sgtitle(sprintf('Subject %02d：投手方向成分 Vx の時系列（NoGo 除外）', iSubject)) ;

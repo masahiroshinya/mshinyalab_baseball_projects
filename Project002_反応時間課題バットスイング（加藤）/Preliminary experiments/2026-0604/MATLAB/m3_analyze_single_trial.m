@@ -29,14 +29,27 @@ posTop    = M.top / 1000 ;                    % [m]    各列 = x, y, z
 velTop    = diff3p(posTop, 1/fs) ;            % [m/s]  中心差分（3点法）
 netVelTop = sum(velTop.^2, 2).^0.5 ;          % [m/s]  速度ベクトルのノルム（＝速さ）
 
-Result.NetVelTop  = netVelTop ;
-Result.PeakVelTop = max(netVelTop) ;
+%  +X = 投手方向（s3b で両被験者・40/40 で確認済み）。
+%  合成速度と違い符号を持つ：正 = 投手方向、負 = 捕手方向（テイクバック）。
+velTopX = velTop(:, 1) ;                      % [m/s]  投手方向成分
 
-% ---- LED タイミング（Go=列2, NoGo=列1 を個別検索）----
-led_go   = Data.LEDData(:, 2) ;
-led_nogo = Data.LEDData(:, 1) ;
-tCueGo   = find(led_go   >  2, 1, 'first') ;
-tCueNoGo = find(led_nogo < -2, 1, 'first') ;
+[peakVelTop,  idxPeak]  = max(netVelTop) ;    % 合成速度のピークとその時刻
+[peakVelTopX, idxPeakX] = max(velTopX) ;      % Vx のピークとその時刻
+
+Result.NetVelTop     = netVelTop ;            % 合成速度の波形
+Result.VelTopX       = velTopX ;              % 投手方向成分の波形
+Result.PeakVelTop    = peakVelTop ;           % 合成速度のピーク [m/s]
+Result.TPeakVelTop   = idxPeak ;              % そのフレーム番号（試行先頭から）
+Result.PeakVelTopX   = peakVelTopX ;          % Vx のピーク [m/s]
+Result.TPeakVelTopX  = idxPeakX ;             % そのフレーム番号（試行先頭から）
+Result.VelTopXAtPeak = velTopX(idxPeak) ;     % 合成速度ピーク時の Vx [m/s]
+
+
+% ---- LED タイミング（ch2 = cue チャンネル。正=Go, 負=NoGo。ch1 は ready cue）----
+led_cue  = Data.LEDData(:, 2) ;
+tCueGo   = find(led_cue >  2,    1, 'first') ;
+tCueNoGo = find(led_cue < -1,    1, 'first') ;
+
 
 if ~isempty(tCueGo)
     tCueAnalog = tCueGo ;
