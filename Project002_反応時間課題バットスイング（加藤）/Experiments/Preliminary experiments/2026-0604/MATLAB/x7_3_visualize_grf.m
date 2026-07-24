@@ -20,7 +20,7 @@ clear
 close all
 clc
 
-iSubject = 1;
+iSubject = 2;
 
 load(sprintf('x2_Data/Data%02d', iSubject))
 

@@ -34,7 +34,7 @@ gonogo_s        = round(gonogo_signal_duration * sample_rate) ;
 off_s           = round(off_duration           * sample_rate) ;
 fp_s            = round(foreperiod_fix         * sample_rate) ;
 
-nTrial = 10;
+nTrial = 15;
 
 %% DAQの初期化と設定
 disp('DAQの初期化を行っています...');
