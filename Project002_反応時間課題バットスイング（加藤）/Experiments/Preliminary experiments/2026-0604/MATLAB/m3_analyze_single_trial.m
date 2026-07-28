@@ -60,25 +60,75 @@ elseif ~isempty(tCueNoGo)
     cueCode    = 2 ;
     cueText    = 'NoGo' ;
 else
-    Result.CueCode    = NaN ;
-    Result.CueText    = '' ;
-    Result.TCueMarker = NaN ;
-    Result.SwingOnset = NaN ;
-    Result.RT         = NaN ;
+    Result.CueCode     = NaN ;
+    Result.CueText     = '' ;
+    Result.TCueMarker  = NaN ;
+    Result.Fz1BaseMean = NaN ;
+    Result.Fz1BaseSD   = NaN ;
+    Result.SwingOnset  = NaN ;
+    Result.RT          = NaN ;
     return
 end
+
 
 tCueMarker = round(tCueAnalog / Data.AnalogFs * fs) ;
 Result.CueCode    = cueCode ;
 Result.CueText    = cueText ;
 Result.TCueMarker = tCueMarker ;
 
-% ---- スイング開始検出 ----
-%  角速度 300 deg/s による検出は廃止した（00 §2 の決定）。
-%  新しい検出信号（バット先端速度 or 床反力 Fz）は 00 で検討中のため、
-%  それが決まるまで RT は NaN とする。フィールドは残す（消すと x4 で
-%  構造体配列のフィールド不一致エラーになる）。
-Result.SwingOnset = NaN ;
-Result.RT         = NaN ;
+% ---- スイング開始検出（後ろ足 Fz1）----
+%  00 §0.1 の確定仕様。キュー前 0.5 秒を平常時とみなして平均 mu と
+%  ばらつき sd を求め、|Fz1 - mu| > k*sd が 30 ms 続いた最初の時点を
+%  動作開始とする。角速度 300 deg/s による検出は廃止した（00 §2）。
+%  時刻はアナログのサンプル番号のまま扱い、ms への変換は出力時だけ行う。
+%  RT を出すのは Go 試行のみ（NoGo には動作開始が存在しない）。
+Result.Fz1BaseMean = NaN ;
+Result.Fz1BaseSD   = NaN ;
+Result.SwingOnset  = NaN ;   % アナログのサンプル番号（試行先頭から）
+Result.RT          = NaN ;   % [ms] キュー → 動作開始
 
+if cueCode == 1 && isfield(Data, 'Force1') && ~isempty(Data.Force1)
+
+    fsA   = Data.AnalogFs ;
+    Fz1   = Data.Force1(:, 3) ;
+    nA    = numel(Fz1) ;
+    nBase = round(Prm.RT.BaseSec * fsA) ;
+
+    % 平常時を測る区間がキューの手前に確保できる場合のみ処理する
+    if tCueAnalog - nBase >= 1
+
+        base = Fz1(tCueAnalog-nBase : tCueAnalog-1) ;
+
+        if ~any(isnan(base))
+
+            mu = mean(base) ;
+            sd = std(base) ;
+            Result.Fz1BaseMean = mu ;
+            Result.Fz1BaseSD   = sd ;
+
+            % キューから 2 秒先までを探索範囲とする
+            w     = tCueAnalog : min(tCueAnalog + round(Prm.RT.WinSec*fsA), nA) ;
+            over  = abs(Fz1(w) - mu) > Prm.RT.FzK * sd ;
+            holdN = round(Prm.RT.DurMs/1000 * fsA) ;
+            idx   = firstSustained(over, holdN) ;   % 探索範囲 w の中での位置
+
+            if ~isempty(idx)
+                Result.SwingOnset = tCueAnalog + idx - 1 ;   % 試行先頭からの位置に直す
+                Result.RT         = (idx-1) / fsA * 1000 ;   % [ms]（idx=1 なら RT=0）
+            end
+
+        end
+    end
+end
+
+end
+
+
+% ---- 閾値超えが holdN サンプル続いた最初の位置を返す（s2f と同じロジック）----
+function idx = firstSustained(over, holdN)
+idx = [] ;
+d = diff([0; over(:); 0]) ;
+starts = find(d==1) ; ends = find(d==-1)-1 ;
+run = find((ends-starts+1) >= holdN, 1, 'first') ;
+if ~isempty(run), idx = starts(run) ; end
 end

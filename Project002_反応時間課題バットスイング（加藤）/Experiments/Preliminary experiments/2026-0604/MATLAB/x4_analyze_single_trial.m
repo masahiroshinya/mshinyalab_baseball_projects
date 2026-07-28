@@ -87,9 +87,12 @@ Result.VelTopXAtPeak = NaN ;
 Result.CueCode       = NaN ;
 Result.CueText       = '' ;
 Result.TCueMarker    = NaN ;
+Result.Fz1BaseMean   = NaN ;
+Result.Fz1BaseSD     = NaN ;
 Result.SwingOnset    = NaN ;
 Result.RT            = NaN ;
 end
+
 
 
 
