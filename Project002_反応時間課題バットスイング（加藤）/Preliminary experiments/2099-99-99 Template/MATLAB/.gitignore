@@ -1,8 +1,0 @@
-# .mat ファイルは容量が大きいため x1〜x7 は git 管理外とする
-x1_RawData/*.mat
-x2_Data/*.mat
-x3_DataChecked/*.mat
-x4_SingleTrialAnalysisResults/*.mat
-x5_SingleTrialAnalysisResultsChecked/*.mat
-x6_MultiTrialAnalysisResults/*.mat
-x7_MultiTrialAnalysisResultsChecked/*.mat
