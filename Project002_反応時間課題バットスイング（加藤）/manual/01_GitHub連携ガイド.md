@@ -63,3 +63,55 @@ git push origin main
 git pull origin main --rebase
 git push origin main
 ```
+
+---
+
+## トラブルシューティング：`git pull` が "unmerged files" で失敗する
+
+### 症状（2026-08-04 発生）
+
+```
+error: Pulling is not possible because you have unmerged files.
+hint: Fix them up in the work tree, and then use 'git add/rm <file>'
+fatal: Exiting because of an unresolved conflict.
+```
+
+### 原因
+
+過去の `git pull --rebase` の途中でコンフリクトが発生し、その状態が**インデックス（ステージング領域）に取り残されたまま**になっていた。
+
+- `git log` / `git reflog` 上では pull は完走しており、`HEAD` は `origin/main` と一致（＝コミット履歴は正常）
+- しかし `git ls-files -u` で確認すると、Project001配下の70ファイルが未マージ状態（`UD` = 手元は変更なし／向こうは削除）として残存
+- `.git/MERGE_HEAD` は存在せず、マージ・リベースは進行中ではない（＝「幽霊コンフリクト」だけが残った状態）
+- Gitは未マージのエントリが1つでもあると次の pull をブロックするため、毎回このエラーになる
+
+### 切り分け手順
+
+```bash
+git status --short              # UD などの未マージ表示を確認
+git ls-files -u | wc -l         # 未マージエントリの実数を確認（0以外なら残存）
+ls -a .git | grep MERGE_HEAD    # 出力が無ければマージは進行中ではない
+git log --oneline -1 HEAD       # HEAD と origin/main が同じなら履歴は無事
+git log --oneline -1 @{u}
+```
+
+### 解決策
+
+作業ツリー（実ファイル）はそのままで、インデックスだけを `HEAD` の状態に戻す。
+
+```bash
+cd ~/mshinyalab_baseball_projects   # リポジトリのルートで実行
+git reset                           # --hard は付けない（付けると編集中の内容が消える）
+```
+
+このとき、身に覚えのないファイル削除がステージされている場合がある（今回はProject001のsandbox内4ファイル）。他ユーザーのファイルを誤って消さないよう復元してから pull する。
+
+```bash
+git checkout -- "復元したいパス"    # HEAD の内容でファイルを戻す
+git pull
+```
+
+### 注意点
+
+- `git reset --hard` は作業ツリーごと巻き戻すため、未コミットの編集が消える。今回のような「インデックスだけ壊れている」ケースでは **`--hard` なしの `git reset`** を使う。
+- `pull.rebase = true` が設定されているため、未ステージの変更が残っていると `cannot pull with rebase: You have unstaged changes.` で止まる。先に commit / stash / 復元して作業ツリーをきれいにしてから pull する。
