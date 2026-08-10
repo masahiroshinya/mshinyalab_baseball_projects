@@ -10,13 +10,13 @@ subjects = [1,2] ; % データに含む被験者
 Prm = parameters ;
 
 for iSubject = subjects
-    rawDataFolder = 'x1_RawData/2026-0604_予備実験' ;
+    rawDataFolder = 'x1_RawData/2026-0810_S01' ;
     nCondition = length(ConditionNameArray) ; % ConditionNameArrayの要素数（＝条件の数）
     
     for iCondition = 1:nCondition
         conditionName = ConditionNameArray{iCondition} ;
 
-        nTrial = 20 ; % 試行数
+        nTrial = 15 ; % 試行数
 
         for iTrial = 1:nTrial
             fileName = [sprintf('S%02d_', iSubject), conditionName, sprintf('%04d', iTrial)] ; % sprintf：文字列に格納
