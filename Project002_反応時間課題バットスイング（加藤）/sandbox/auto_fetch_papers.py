@@ -37,8 +37,8 @@ def get_oa_pdf_url(doi):
         pass
     return None
 
-pdf_path = "../Previous Research/Qualysis_AIM_マーカー貼付参考文献/先行研究一覧_Qualisys_AIM_バッティング研究.pdf"
-out_dir = "../Previous Research/Qualysis_AIM_マーカー貼付参考文献"
+pdf_path = "../References/Qualysis_AIM_マーカー貼付参考文献/先行研究一覧_Qualisys_AIM_バッティング研究.pdf"
+out_dir = "../References/Qualysis_AIM_マーカー貼付参考文献"
 
 pdf = PdfReader(pdf_path)
 text = '\n'.join([page.extract_text() for page in pdf.pages])
