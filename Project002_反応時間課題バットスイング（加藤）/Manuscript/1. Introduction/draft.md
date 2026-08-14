@@ -5,7 +5,7 @@
 「文章」（清書用の本文）の対で管理する。
 改稿の経緯は log/ 配下の各セッションログと git 履歴を参照（本ファイルには残さない）。
 文献は本節配下の `references/` に配置し、フォルダ番号を**本文の引用番号と一致**させている。
-対応表と欠番（03 Kahneman・04 Herman・08 Nakamoto は未収集）は `references/00_引用番号対応表.md` を参照。
+対応表と欠番（04 Herman・08 Nakamoto は未収集）は `references/00_引用番号対応表.md` を参照。
 ※ プロジェクト全体のカタログ `Manuscript/References/` は収集順で採番しており、同じ番号でも指す文献が異なる。
 その他の出典：`sandbox/進捗報告/PowerPoint/2026-0623_スライド構成案.md`、`sandbox/進捗報告/論文/2026-0630_論文執筆メモ.md`。
 -->
@@ -89,7 +89,7 @@
 
 > 【メモ】onset control / ongoing adjustment の2方略は、本研究の条件設計（自由スイング条件からGo/No-Go課題まで＝スイング開始前の判断＝onset control、Go/Stop課題＝開始後の調整＝ongoing adjustment）に直接対応するため、1-4の理論的根拠としても活用する（`02_認知運動統合バッティング課題_Nasu_et_al_2020/03_notes.md`「自身のプロジェクトへの応用」参照）。
 
-> 出典：`Manuscript/References/` の 01・02・04・07・08 の各 03_notes.md
+> 出典：`Manuscript/References/` の 01・02・04・07・08・10 の各 03_notes.md
 
 ### 文章
 
