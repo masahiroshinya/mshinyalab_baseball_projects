@@ -44,5 +44,18 @@ Prm.RT.BaseSec = 0.5 ;   % ベースライン窓（キュー直前）[s]
 Prm.RT.WinSec  = 2.0 ;   % 探索窓（キュー起点）[s]
 Prm.RT.FloorMs = 150 ;   % 生理的下限。目視照合の基準（強制 NaN 化はしない）
 
+%% x7_3 / x7_4: 床反力の体重正規化に用いるベースラインの妥当性チェック
+%  静止時の Fz1+Fz2 は体重にほぼ一致するはずである。大きく外れる試行は
+%  プレートに正しく乗っていない計測不良なので、正規化すると異常値になる。
+Prm.GRF.BWTolerance = 0.2 ;   % 被験者中央値からの許容ずれ（±20%）
+
+%% m3 / x4: RT 算出（2方式を併記する）
+%  方式Hand = Nasu et al. (2020) 準拠。手部（骨盤基準）の投手方向速度が
+%             「全試行の平均ピーク速度の10%」を超えた時点を動作開始とする。
+%  方式Force = 後ろ足 Fz1 が平常時から 10SD 逸脱し 30 ms 持続した時点（既存）。
+Prm.RT.HandMarkerNames   = {'Firtst', 'Second', 'Third'} ;         % 手部（Firtst は QTM 側の綴り）
+Prm.RT.PelvisMarkerNames = {'RASIS', 'LASIS', 'RPSIS', 'LPSIS'} ;  % 骨盤
+Prm.RT.HandThrRatio      = 0.10 ;      % 平均ピーク速度に対する閾値の比
+Prm.RT.PrimaryMethod     = 'Force' ;   % Result.RT に入れる方式（'Force' / 'Hand'）
 
 

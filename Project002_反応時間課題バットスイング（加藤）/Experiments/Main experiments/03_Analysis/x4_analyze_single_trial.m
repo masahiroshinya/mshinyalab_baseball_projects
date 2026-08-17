@@ -60,15 +60,79 @@ for iSubject = subjects
             catch ME
                 fprintf('    Trial %2d: エラー "%s" → スキップ\n', iTrial, ME.message) ;
                 Result = makeEmptyResult() ;
+                SingleTrialResultArray(iTrial, iCondition) = Result ;
+                continue
             end
 
             SingleTrialResultArray(iTrial, iCondition) = Result ;
 
-            fprintf('    Trial %2d [%s]: RT = %.1f ms\n', ...
-                iTrial, Result.CueText, Result.RT) ;
+            fprintf('    Trial %2d [%s]: RTForce = %.1f ms\n', ...
+                iTrial, Result.CueText, Result.RTForce) ;
+
 
         end % iTrial
     end % iCondition
+
+    % ---------------------------------------------------------------
+    % 第2パス：Nasu 方式の閾値を確定し、手部 onset を検出する
+    %   閾値 = その被験者の全スイング試行の平均ピーク速度 × 10%
+    %   スイングしない NoGo / Stop 試行はピークの平均に含めない。
+    %   条件ごとではなく全条件をまとめて平均する（条件差が閾値の差に
+    %   吸収されるのを避けるため。Methods draft §2-4-1 の方針）。
+    % ---------------------------------------------------------------
+    ExcludedCueTextArray = {'NoGo', 'Stop'} ;
+
+    PeakArray = nan(nTrial, nCondition) ;
+    for iCondition = 1:nCondition
+        for iTrial = 1:nTrial
+            R = SingleTrialResultArray(iTrial, iCondition) ;
+            if ismember(R.CueText, ExcludedCueTextArray), continue, end
+            PeakArray(iTrial, iCondition) = R.PeakVelHandX ;
+        end
+    end
+
+    meanPeak   = mean(PeakArray(:), 'omitnan') ;
+    thrVelHand = Prm.RT.HandThrRatio * meanPeak ;
+    fprintf('\n  Nasu 方式の閾値: 平均ピーク %.2f m/s × %.0f%% = %.3f m/s（n=%d 試行）\n', ...
+        meanPeak, Prm.RT.HandThrRatio*100, thrVelHand, sum(~isnan(PeakArray(:)))) ;
+
+    % Result.RT / SwingOnset は m3 では作らないので、ここで全要素に一括で追加する。
+    % 構造体配列は要素ごとにフィールド集合が一致していないと代入できないため、
+    % ループの中で新しいフィールドを足すとエラーになる。
+    [SingleTrialResultArray.SwingOnset] = deal(NaN) ;
+    [SingleTrialResultArray.RT]         = deal(NaN) ;
+
+    for iCondition = 1:nCondition
+        for iTrial = 1:nTrial
+
+            R  = SingleTrialResultArray(iTrial, iCondition) ;
+            fs = DataArray(iTrial, iCondition).FrameRate ;
+
+            R = detectHandOnset(R, thrVelHand, fs) ;
+
+            % 指定した方式を Result.RT / SwingOnset の別名にする（下流の互換のため）
+            switch Prm.RT.PrimaryMethod
+                case 'Hand'
+                    R.SwingOnset = R.SwingOnsetHand ;
+                    R.RT         = R.RTHand ;
+                case 'Force'
+                    R.SwingOnset = R.SwingOnsetForce ;
+                    R.RT         = R.RTForce ;
+                otherwise
+                    error('Prm.RT.PrimaryMethod が不正です: %s', Prm.RT.PrimaryMethod) ;
+            end
+
+            SingleTrialResultArray(iTrial, iCondition) = R ;
+
+            if ~isnan(R.RTHand) && ~isnan(R.RTForce)
+                fprintf('    %-7s Trial %2d [%-4s]: 手部 %6.1f ms / 床反力 %6.1f ms （差 %+6.1f）\n', ...
+                    ConditionNameArray{iCondition}, iTrial, R.CueText, ...
+                    R.RTHand, R.RTForce, R.RTHand - R.RTForce) ;
+            end
+
+        end
+    end
+
 
     % 保存
     resultFilePath = sprintf('x4_SingleTrialAnalysisResults/SingleTrialAnalysisResults%02d', iSubject) ;
@@ -86,21 +150,51 @@ fprintf('=== 全被験者の処理が完了しました ===\n') ;
 % ローカル関数：エラー時の空の Result
 % -----------------------------------------------------------------------
 function Result = makeEmptyResult()
-Result.NetVelTop     = [] ;
-Result.VelTopX       = [] ;
-Result.PeakVelTop    = NaN ;
-Result.TPeakVelTop   = NaN ;
-Result.PeakVelTopX   = NaN ;
-Result.TPeakVelTopX  = NaN ;
-Result.VelTopXAtPeak = NaN ;
-Result.CueCode       = NaN ;
-Result.CueText       = '' ;
-Result.TCueMarker    = NaN ;
-Result.Fz1BaseMean   = NaN ;
-Result.Fz1BaseSD     = NaN ;
-Result.SwingOnset    = NaN ;
-Result.RT            = NaN ;
+Result.NetVelTop       = [] ;
+Result.VelTopX         = [] ;
+Result.PeakVelTop      = NaN ;
+Result.TPeakVelTop     = NaN ;
+Result.PeakVelTopX     = NaN ;
+Result.TPeakVelTopX    = NaN ;
+Result.VelTopXAtPeak   = NaN ;
+Result.VelHandX        = [] ;
+Result.CueCode         = NaN ;
+Result.CueText         = '' ;
+Result.TCueMarker      = NaN ;
+Result.PeakVelHandX    = NaN ;
+Result.TPeakVelHandX   = NaN ;
+Result.SwingOnsetHand  = NaN ;
+Result.RTHand          = NaN ;
+Result.Fz1BaseMean     = NaN ;
+Result.Fz1BaseSD       = NaN ;
+Result.SwingOnsetForce = NaN ;
+Result.RTForce         = NaN ;
 end
+
+
+% -----------------------------------------------------------------------
+% ローカル関数：手部 onset の検出（Nasu et al., 2020 準拠）
+%   ピーク時刻から時間を遡り、閾値を下回った最後の点を動作開始とする。
+%   前向きに探すと構え・ステップの小さな山を誤検出するため（技術説明 §2.3 手順9）。
+% -----------------------------------------------------------------------
+function Result = detectHandOnset(Result, thrVel, fs)
+Result.SwingOnsetHand = NaN ;
+Result.RTHand         = NaN ;
+
+if isempty(Result.VelHandX) || isnan(Result.TPeakVelHandX) || isnan(Result.TCueMarker)
+    return
+end
+
+v     = Result.VelHandX ;
+idxOn = find(v(1:Result.TPeakVelHandX) <= thrVel, 1, 'last') ;
+if isempty(idxOn)
+    return
+end
+
+Result.SwingOnsetHand = idxOn ;                                    % フレーム番号
+Result.RTHand         = (idxOn - Result.TCueMarker) / fs * 1000 ;  % [ms]
+end
+
 
 
 

@@ -61,6 +61,32 @@ peakFz2 = max(Fz2_BW(swingRange));
 fprintf('ピークFz1 = %.3f BW\n', peakFz1);
 fprintf('ピークFz2 = %.3f BW\n', peakFz2);
 
+% ---- パス1: 全試行のベースライン荷重を集め、異常な試行を洗い出す ----
+Prm     = parameters ;
+BWArray = nan(nTrial, nCondition) ;
+for iCondition = 1:nCondition
+    for iTrial = 1:nTrial
+        Data   = DataArray(iTrial, iCondition) ;
+        Result = SingleTrialResultArray(iTrial, iCondition) ;
+        if ~isfield(Data, 'Force1') || isempty(Data.Force1), continue, end
+        if isnan(Result.TCueMarker), continue, end
+        tCueAnalog = round(Result.TCueMarker / Data.FrameRate * Data.AnalogFs) ;
+        if tCueAnalog < 2, continue, end
+        BWArray(iTrial, iCondition) = mean(Data.Force1(1:tCueAnalog-1, 3)) ...
+            + mean(Data.Force2(1:tCueAnalog-1, 3)) ;
+    end
+end
+bwRef   = median(BWArray(:), 'omitnan') ;                        % 体重の代表値 [N]
+isBadBW = abs(BWArray - bwRef) > Prm.GRF.BWTolerance * bwRef ;
+
+fprintf('体重の代表値: %.1f N（約 %.1f kg）\n', bwRef, bwRef/9.81) ;
+for iCondition = 1:nCondition
+    for iTrial = find(isBadBW(:, iCondition))'
+        fprintf('除外（ベースライン荷重が異常）: %s 行%d  bw = %.1f N\n', ...
+            ConditionNameArray{iCondition}, iTrial, BWArray(iTrial, iCondition)) ;
+    end
+end
+
 % 全試行のピークFzを計算してまとめる
 PeakFz1 = nan(nTrial, nCondition);
 PeakFz2 = nan(nTrial, nCondition);
@@ -93,6 +119,10 @@ for iCondition = 1:nCondition
 
     bw = mean(Fz1(1 : tCueAnalog-1)) + mean(Fz2(1 : tCueAnalog-1));
     if bw <= 0
+        continue
+    end
+
+    if isBadBW(iTrial, iCondition)
         continue
     end
 
@@ -181,30 +211,26 @@ title(sprintf('Subject %02d: 試行別のピーク垂直分力（踏み込み足
 legend('Location', 'best');
 grid on
 
-% GRF時系列
-plotRange = [-1, 3];
+% GRF時系列（体重正規化後のみ。プレート１＝後ろ足／プレート２＝踏み込み足を上下に並べる）
+%   x7_2 の時系列グラフと同じ方針で、全試行を条件色の実線で重ね描きする（平均線は描かない）。
+plotRange = [-1, 2] ;   % [-1, 3] から変更
 fsAnalog  = DataArray(1, 1).AnalogFs;
 nPlot     = round((plotRange(2) - plotRange(1)) * fsAnalog);
 tPlot     = plotRange(1) + [0:nPlot-1] / fsAnalog;
 
-condColors      = {'g', 'b', 'r', 'm'};
-condColorsLight = {[0.7 1 0.7], [0.7 0.7 1], [1 0.7 0.7], [1 0.7 1]};  % 個別試行用の薄い色
+condColors = {'g', 'b', 'r', 'm'};
 
-figRawByCondition  = 2 + (1:nCondition);              % 正規化前（N）：条件ごとに1枚
-figNormByCondition = 2 + nCondition + (1:nCondition); % 正規化後（BW）：条件ごとに1枚
+figNormByCondition = 2 + (1:nCondition);   % 正規化後（BW）：条件ごとに1枚
+nShownByCondition  = zeros(1, nCondition);
 
-for iFig = [figRawByCondition, figNormByCondition]
+for iFig = figNormByCondition
     figure(iFig); clf
 end
 
 for iCondition = 1:nCondition
 
-    condName = ConditionNameArray{iCondition};
-
-    Fz1_raw_cell  = {};
-    Fz2_raw_cell  = {};
-    Fz1_norm_cell = {};
-    Fz2_norm_cell = {};
+    figNorm = figNormByCondition(iCondition);
+    nShown  = 0;
 
     for iTrial = 1:nTrial
 
@@ -227,6 +253,10 @@ for iCondition = 1:nCondition
             continue
         end
 
+        if isBadBW(iTrial, iCondition)
+            continue
+        end
+
         bw = mean(Fz1(1:tCueAnalog-1)) + mean(Fz2(1:tCueAnalog-1));
         if bw <= 0
             continue
@@ -239,108 +269,53 @@ for iCondition = 1:nCondition
             continue
         end
 
-        % 正規化前（N）
-        Fz1_raw_cell{end+1}  = Data.Force1(iStart:iEnd, 3);
-        Fz2_raw_cell{end+1}  = Data.Force2(iStart:iEnd, 3);
+        Fz1_norm = Fz1(iStart:iEnd) / bw;   % 正規化後（BW）
+        Fz2_norm = Fz2(iStart:iEnd) / bw;
 
-        % 正規化後（BW）
-        Fz1_norm_cell{end+1} = Data.Force1(iStart:iEnd, 3) / bw;
-        Fz2_norm_cell{end+1} = Data.Force2(iStart:iEnd, 3) / bw;
+        nShown = nShown + 1;
 
-    end
+        % 凡例は各条件の1本目にだけ付ける
+        if nShown == 1
+            visArg = {'DisplayName', ConditionNameArray{iCondition}};
+        else
+            visArg = {'HandleVisibility', 'off'};
+        end
 
-    if isempty(Fz1_raw_cell)
-        continue
-    end
+        figure(figNorm)
+        subplot(2, 1, 1); hold on
+        plot(tPlot, Fz1_norm, '-', 'Color', condColors{iCondition}, ...
+            'LineWidth', 0.8, visArg{:});
 
-    nValid  = length(Fz1_raw_cell);
-    figRaw  = figRawByCondition(iCondition);
-    figNorm = figNormByCondition(iCondition);
+        subplot(2, 1, 2); hold on
+        plot(tPlot, Fz2_norm, '-', 'Color', condColors{iCondition}, ...
+            'LineWidth', 0.8, visArg{:});
 
-    % 各試行のFzを薄く描画（背面）
-    figure(figRaw)
-    subplot(2, 1, 1); hold on
-    for iTrial = 1:nValid
-        plot(tPlot, Fz1_raw_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
-            'LineWidth', 0.5, 'HandleVisibility', 'off');
-    end
-    subplot(2, 1, 2); hold on
-    for iTrial = 1:nValid
-        plot(tPlot, Fz2_raw_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
-            'LineWidth', 0.5, 'HandleVisibility', 'off');
-    end
+    end % iTrial
 
-    figure(figNorm)
-    subplot(2, 1, 1); hold on
-    for iTrial = 1:nValid
-        plot(tPlot, Fz1_norm_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
-            'LineWidth', 0.5, 'HandleVisibility', 'off');
-    end
-    subplot(2, 1, 2); hold on
-    for iTrial = 1:nValid
-        plot(tPlot, Fz2_norm_cell{iTrial}, 'Color', condColorsLight{iCondition}, ...
-            'LineWidth', 0.5, 'HandleVisibility', 'off');
-    end
+    nShownByCondition(iCondition) = nShown;
 
-    % 全試行の平均Fzを濃く描画（前面）
-    Fz1_raw_mean  = mean(cell2mat(Fz1_raw_cell),  2)';
-    Fz2_raw_mean  = mean(cell2mat(Fz2_raw_cell),  2)';
-    Fz1_norm_mean = mean(cell2mat(Fz1_norm_cell), 2)';
-    Fz2_norm_mean = mean(cell2mat(Fz2_norm_cell), 2)';
+end % iCondition
 
-    figure(figRaw)
-    subplot(2, 1, 1); hold on
-    plot(tPlot, Fz1_raw_mean, condColors{iCondition}, 'LineWidth', 2, ...
-        'DisplayName', sprintf('平均 (n=%d)', nValid));
-    subplot(2, 1, 2); hold on
-    plot(tPlot, Fz2_raw_mean, condColors{iCondition}, 'LineWidth', 2, ...
-        'DisplayName', sprintf('平均 (n=%d)', nValid));
-
-    figure(figNorm)
-    subplot(2, 1, 1); hold on
-    plot(tPlot, Fz1_norm_mean, condColors{iCondition}, 'LineWidth', 2, ...
-        'DisplayName', sprintf('平均 (n=%d)', nValid));
-    subplot(2, 1, 2); hold on
-    plot(tPlot, Fz2_norm_mean, condColors{iCondition}, 'LineWidth', 2, ...
-        'DisplayName', sprintf('平均 (n=%d)', nValid));
-
-end
-
-% 条件ごとの装飾（タイトルに条件名を入れる）
+% 条件ごとの装飾（タイトルに条件名と試行数を入れる）
 for iCondition = 1:nCondition
     condName = ConditionNameArray{iCondition};
-    figRaw   = figRawByCondition(iCondition);
     figNorm  = figNormByCondition(iCondition);
+    nShown   = nShownByCondition(iCondition);
 
-    % 正規化前（N）の装飾（YLimは自動）
-    figure(figRaw)
-    subplot(2, 1, 1)
-    lineplot(0, 'v', 'k--');
-    set(gca, 'XLim', plotRange);
-    xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
-    title(sprintf('Subject %02d  %s条件  プレート１（後ろ足）— 正規化前', iSubject, condName));
-    legend('Location', 'northwest'); grid on
-
-    subplot(2, 1, 2)
-    lineplot(0, 'v', 'k--');
-    set(gca, 'XLim', plotRange);
-    xlabel('LEDからの時間 [s]'); ylabel('Fz [N]');
-    title(sprintf('Subject %02d  %s条件  プレート２（前の足）— 正規化前', iSubject, condName));
-    legend('Location', 'northwest'); grid on
-
-    % 正規化後（BW）の装飾（YLimは固定）
     figure(figNorm)
-    subplot(2, 1, 1)
+    subplot(2, 1, 1); hold off
     lineplot(0, 'v', 'k--');
     set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
     xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
-    title(sprintf('Subject %02d  %s条件  プレート１（後ろ足）— 正規化後', iSubject, condName));
+    title(sprintf('プレート１（後ろ足）— 正規化後（Go %d 試行）', nShown));
     legend('Location', 'northwest'); grid on
 
-    subplot(2, 1, 2)
+    subplot(2, 1, 2); hold off
     lineplot(0, 'v', 'k--');
     set(gca, 'XLim', plotRange, 'YLim', [-0.1, 1.6]);
     xlabel('LEDからの時間 [s]'); ylabel('Fz [BW]');
-    title(sprintf('Subject %02d  %s条件  プレート２（前の足）— 正規化後', iSubject, condName));
+    title(sprintf('プレート２（踏み込み足）— 正規化後（Go %d 試行）', nShown));
     legend('Location', 'northwest'); grid on
+
+    sgtitle(sprintf('Subject %02d  %s条件：床反力 Fz の時系列', iSubject, condName));
 end
