@@ -90,16 +90,20 @@ else
     Result.CueCode     = NaN ;
     Result.CueText     = '' ;
     Result.TCueMarker  = NaN ;
-    Result.Fz1BaseMean = NaN ;
-    Result.Fz1BaseSD   = NaN ;
-    Result.PeakVelHandX    = NaN ;
-    Result.TPeakVelHandX   = NaN ;
+    Result.PeakVelHandX    = NaN ;      % ← Fz1Base* より前に移動
+    Result.TPeakVelHandX   = NaN ;      % ← 追加（元は欠落していた）
     Result.SwingOnsetHand  = NaN ;
     Result.RTHand          = NaN ;
+    Result.Fz1BaseMean = NaN ;          % ← ここに移動
+    Result.Fz1BaseSD   = NaN ;
     Result.SwingOnsetForce = NaN ;
     Result.RTForce         = NaN ;
+    Result.BWBase  = NaN ;
+    Result.PeakFz1 = NaN ;
+    Result.PeakFz2 = NaN ;
     return
 end
+
 
 tCueMarker = round(tCueAnalog / Data.AnalogFs * fs) ;
 Result.CueCode    = cueCode ;
@@ -163,6 +167,45 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1)
             end
 
         end
+    end
+end
+
+% ---- 床反力のピーク鉛直分力（統計用）----
+%  正規化はここでは行わない。分母となる体重の妥当性は被験者内の全試行を
+%  見ないと判定できない（x7_3 の isBadBW）ため、生値 [N] とベースライン
+%  荷重 [N] だけを出し、%BW への変換は x8 側で行う。
+%  NoGo / Stop 試行も含めて全試行で算出する。除外は下流（x8）で決める。
+%
+%  初期化は必ず if の外に置くこと。Force1 を持たない試行でフィールドが
+%  作られないと、x4 の構造体配列への代入が「異なる構造体での添字による
+%  代入です」で落ちる（技術説明 §3.5）。
+Result.BWBase  = NaN ;   % 静止時 Fz1+Fz2 [N]
+Result.PeakFz1 = NaN ;   % 後ろ足   ピーク鉛直分力 [N]
+Result.PeakFz2 = NaN ;   % 踏み込み足 ピーク鉛直分力 [N]
+
+if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
+        && isfield(Data, 'Force2') && ~isempty(Data.Force2) ...
+        && tCueAnalog >= 2
+
+    fsA     = Data.AnalogFs ;
+    Fz1_raw = Data.Force1(:, 3) ;
+    Fz2_raw = Data.Force2(:, 3) ;
+
+    % filtfilt は NaN が1つでもあると全体を NaN にするので、先に弾く
+    if ~any(isnan(Fz1_raw)) && ~any(isnan(Fz2_raw))
+
+        % Methods 2-4-3 に従い、マーカーと同じ 30 Hz・2次でローパスする
+        [bF, aF] = butter(2, fc/(fsA/2)) ;
+        Fz1_filt = filtfilt(bF, aF, Fz1_raw) ;
+        Fz2_filt = filtfilt(bF, aF, Fz2_raw) ;
+
+        Result.BWBase = mean(Fz1_filt(1:tCueAnalog-1)) + mean(Fz2_filt(1:tCueAnalog-1)) ;
+
+        swingEnd   = min(tCueAnalog + round(Prm.GRF.WinSec*fsA), numel(Fz1_filt)) ;
+        swingRange = tCueAnalog : swingEnd ;
+
+        Result.PeakFz1 = max(Fz1_filt(swingRange)) ;
+        Result.PeakFz2 = max(Fz2_filt(swingRange)) ;
     end
 end
 

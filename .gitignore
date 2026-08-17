@@ -12,3 +12,14 @@
 ## ユーザー情報
 userinfo.md
 
+
+
+## エディタ・実行環境が生成する一時ファイル
+# MATLAB の自動バックアップ
+*.asv
+# R のセッション情報（作業履歴・ワークスペースの退避）
+.RData
+.Rhistory
+.Rapp.history
+.Rproj.user/
+

@@ -1,0 +1,64 @@
+
+==================== RTForce_ms ====================
+有効被験者数: n = 1
+被験者数が足りないため、検定は実行しません（記述統計のみ）。
+# A tibble: 3 × 5
+  Condition variable     n  mean    sd
+  <fct>     <fct>    <dbl> <dbl> <dbl>
+1 simple    value        1  483.    NA
+2 gonogo    value        1  460.    NA
+3 gostop    value        1  517     NA
+
+==================== RTHand_ms ====================
+有効被験者数: n = 1
+被験者数が足りないため、検定は実行しません（記述統計のみ）。
+# A tibble: 3 × 5
+  Condition variable     n  mean    sd
+  <fct>     <fct>    <dbl> <dbl> <dbl>
+1 simple    value        1  583.    NA
+2 gonogo    value        1  623.    NA
+3 gostop    value        1  665.    NA
+
+==================== PeakVelTop ====================
+有効被験者数: n = 1
+被験者数が足りないため、検定は実行しません（記述統計のみ）。
+# A tibble: 4 × 5
+  Condition variable     n  mean    sd
+  <fct>     <fct>    <dbl> <dbl> <dbl>
+1 free      value        1  27.8    NA
+2 simple    value        1  32.0    NA
+3 gonogo    value        1  30.5    NA
+4 gostop    value        1  32.1    NA
+
+==================== PeakVelTopX ====================
+有効被験者数: n = 1
+被験者数が足りないため、検定は実行しません（記述統計のみ）。
+# A tibble: 4 × 5
+  Condition variable     n  mean    sd
+  <fct>     <fct>    <dbl> <dbl> <dbl>
+1 free      value        1  21.1    NA
+2 simple    value        1  30.2    NA
+3 gonogo    value        1  27.2    NA
+4 gostop    value        1  30.6    NA
+
+==================== PeakFz1_BW ====================
+有効被験者数: n = 1
+被験者数が足りないため、検定は実行しません（記述統計のみ）。
+# A tibble: 4 × 5
+  Condition variable     n  mean    sd
+  <fct>     <fct>    <dbl> <dbl> <dbl>
+1 free      value        1  1.11    NA
+2 simple    value        1  1.04    NA
+3 gonogo    value        1  1.03    NA
+4 gostop    value        1  1.04    NA
+
+==================== PeakFz2_BW ====================
+有効被験者数: n = 1
+被験者数が足りないため、検定は実行しません（記述統計のみ）。
+# A tibble: 4 × 5
+  Condition variable     n  mean    sd
+  <fct>     <fct>    <dbl> <dbl> <dbl>
+1 free      value        1  1.49    NA
+2 simple    value        1  1.29    NA
+3 gonogo    value        1  1.36    NA
+4 gostop    value        1  1.50    NA

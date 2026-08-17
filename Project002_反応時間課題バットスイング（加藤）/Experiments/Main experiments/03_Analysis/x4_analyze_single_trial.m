@@ -169,6 +169,9 @@ Result.Fz1BaseMean     = NaN ;
 Result.Fz1BaseSD       = NaN ;
 Result.SwingOnsetForce = NaN ;
 Result.RTForce         = NaN ;
+Result.BWBase          = NaN ;
+Result.PeakFz1         = NaN ;
+Result.PeakFz2         = NaN ;
 end
 
 
