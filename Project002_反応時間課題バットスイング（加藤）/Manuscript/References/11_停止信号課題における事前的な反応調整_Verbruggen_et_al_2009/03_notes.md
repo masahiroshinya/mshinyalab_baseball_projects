@@ -72,4 +72,6 @@
 
 ## 引用番号について
 
-`Manuscript/1. Introduction/draft.md` では未引用。Discussion 第3段落で引用する場合、**Discussion で初出となる最初の文献**となるため、`Manuscript/4. Discussion/draft.md` の要確認欄にある「Discussion で初出となる文献の採番方法」（Introduction の連番を引き継いで 11) 以降とするか、Discussion 用の対応表を別に設けるか）を先に決める必要がある。
+**引用番号 11)**（2026-08-16 確定）。`Manuscript/1. Introduction/draft.md` では未引用で、**Discussion で初出となる最初の文献**にあたる。採番方法は「Introduction の連番を引き継ぎ、Discussion 用の対応表は別に設けず `Manuscript/引用番号対応表.md` に追記する」と決定した。
+
+- [ ] `Manuscript/4. Discussion/draft.md` 第3段落の本文に引用マーカー `^11)^` を挿入する（**対応表への採番の記載のみ完了。本文は未挿入**）
