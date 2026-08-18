@@ -101,6 +101,8 @@ else
     Result.BWBase  = NaN ;
     Result.PeakFz1 = NaN ;
     Result.PeakFz2 = NaN ;
+    Result.Fz1Filt = [] ;               % ★追加：正常経路と並び順を揃える
+    Result.Fz2Filt = [] ;               % ★追加
     return
 end
 
@@ -172,9 +174,13 @@ end
 
 % ---- 床反力のピーク鉛直分力（統計用）----
 %  正規化はここでは行わない。分母となる体重の妥当性は被験者内の全試行を
-%  見ないと判定できない（x7_3 の isBadBW）ため、生値 [N] とベースライン
+%  見ないと判定できない（x8 の isBadBW）ため、生値 [N] とベースライン
 %  荷重 [N] だけを出し、%BW への変換は x8 側で行う。
 %  NoGo / Stop 試行も含めて全試行で算出する。除外は下流（x8）で決める。
+%
+%  フィルタ後の波形（Fz1Filt / Fz2Filt）も出力する。x7_3 が時系列を描く際に
+%  生データから再計算せず、この波形をそのまま使うため（x7_2 が NetVelTop を
+%  使うのと同じ方針）。二重計算をなくし、値の食い違いを構造的に防ぐ。
 %
 %  初期化は必ず if の外に置くこと。Force1 を持たない試行でフィールドが
 %  作られないと、x4 の構造体配列への代入が「異なる構造体での添字による
@@ -182,6 +188,8 @@ end
 Result.BWBase  = NaN ;   % 静止時 Fz1+Fz2 [N]
 Result.PeakFz1 = NaN ;   % 後ろ足   ピーク鉛直分力 [N]
 Result.PeakFz2 = NaN ;   % 踏み込み足 ピーク鉛直分力 [N]
+Result.Fz1Filt = [] ;    % ★追加：30 Hz フィルタ後の Fz1 波形 [N]
+Result.Fz2Filt = [] ;    % ★追加：30 Hz フィルタ後の Fz2 波形 [N]
 
 if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
         && isfield(Data, 'Force2') && ~isempty(Data.Force2) ...
@@ -206,6 +214,9 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
 
         Result.PeakFz1 = max(Fz1_filt(swingRange)) ;
         Result.PeakFz2 = max(Fz2_filt(swingRange)) ;
+
+        Result.Fz1Filt = Fz1_filt ;   % ★追加：波形をそのまま下流へ渡す
+        Result.Fz2Filt = Fz2_filt ;   % ★追加
     end
 end
 
