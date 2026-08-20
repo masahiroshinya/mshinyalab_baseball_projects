@@ -95,7 +95,10 @@ for iSubject = subjects
     thrVelHand = Prm.RT.HandThrRatio * meanPeak ;
     fprintf('\n  Nasu 方式の閾値: 平均ピーク %.2f m/s × %.0f%% = %.3f m/s（n=%d 試行）\n', ...
         meanPeak, Prm.RT.HandThrRatio*100, thrVelHand, sum(~isnan(PeakArray(:)))) ;
-
+    
+    % ★追加：検出に使った閾値を、結果と同じ構造体に残す。
+    [SingleTrialResultArray.ThrVelHandX] = deal(thrVelHand) ;
+    
     % Result.RT / SwingOnset は m3 では作らないので、ここで全要素に一括で追加する。
     % 構造体配列は要素ごとにフィールド集合が一致していないと代入できないため、
     % ループの中で新しいフィールドを足すとエラーになる。
