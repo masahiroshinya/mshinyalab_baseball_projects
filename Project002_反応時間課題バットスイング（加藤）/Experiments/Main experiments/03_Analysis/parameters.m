@@ -54,9 +54,14 @@ Prm.GRF.WinSec = 2.0 ;   % ピーク Fz の探索窓（キュー起点）[s]
 %  方式Hand = Nasu et al. (2020) 準拠。手部（骨盤基準）の投手方向速度が
 %             「全試行の平均ピーク速度の10%」を超えた時点を動作開始とする。
 %  方式Force = 後ろ足 Fz1 が平常時から 10SD 逸脱し 30 ms 持続した時点（既存）。
-Prm.RT.HandMarkerNames   = {'Firtst', 'Second', 'Third'} ;         % 手部（Firtst は QTM 側の綴り）
+Prm.RT.HandMarkerNames   = {'first', 'second', 'third'} ;
 Prm.RT.PelvisMarkerNames = {'RASIS', 'LASIS', 'RPSIS', 'LPSIS'} ;  % 骨盤
 Prm.RT.HandThrRatio      = 0.10 ;      % 平均ピーク速度に対する閾値の比
 Prm.RT.PrimaryMethod     = 'Force' ;   % Result.RT に入れる方式（'Force' / 'Hand'）
 
+%% top マーカーの品質チェック（x5 / x8 で不良試行を選別する）
+%  バット先端の実測ピークは 27〜35 m/s。250 Hz では 1 フレーム 110〜140 mm に相当する。
+%  50 m/s 相当（200 mm/frame）を超える変位はスイングでは起こりえず、
+%  マーカーの飛び・ラベル入れ替わりを意味する。
+Prm.QC.TopStepMaxMm = 200 ;
 

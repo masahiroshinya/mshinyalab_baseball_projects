@@ -48,12 +48,16 @@ Result.VelTopXAtPeak = velTopX(idxPeak) ;     % 合成速度ピーク時の Vx [
 %  手部・骨盤とも複数マーカーの幾何学的重心を代表点とし、手部から骨盤を引いて
 %  体幹の並進成分を除く。原法は「補間→重心→フィルタ」の順だが、filtfilt も
 %  平均も線形操作なので、M（補間・フィルタ済み）から重心を取っても数学的に同一。
-hand = meanMarker(M, Prm.RT.HandMarkerNames) ;
-pelv = meanMarker(M, Prm.RT.PelvisMarkerNames) ;
+if all(isfield(M, Prm.RT.HandMarkerNames)) && all(isfield(M, Prm.RT.PelvisMarkerNames))
+    hand = meanMarker(M, Prm.RT.HandMarkerNames) ;
+    pelv = meanMarker(M, Prm.RT.PelvisMarkerNames) ;
 
-relPos   = (hand - pelv) / 1000 ;             % [m]   体幹補正済みの相対位置
-velRel   = diff3p(relPos, 1/fs) ;             % [m/s]
-velHandX = velRel(:, 1) ;                     % +X = 投手方向
+    relPos   = (hand - pelv) / 1000 ;
+    velRel   = diff3p(relPos, 1/fs) ;
+    velHandX = velRel(:, 1) ;
+else
+    velHandX = [] ;      % 手部 RT だけ諦める。top と床反力は通常どおり計算される
+end
 
 Result.VelHandX = velHandX ;                  % 波形（閾値は x4 で確定するため onset はここでは出さない）
 
@@ -115,11 +119,16 @@ Result.TCueMarker = tCueMarker ;
 % ---- 手部速度のピーク（キュー後 2 秒の窓内）----
 %  閾値そのものは全試行の平均に依存するので x4 で決める。ここでは各試行のピークだけ出す。
 %  max(abs(v)) ではなく max(v) に限定する：テイクバックの逆方向ピークを拾わないため。
-wHand = tCueMarker : min(tCueMarker + round(Prm.RT.WinSec*fs), numel(velHandX)) ;
-[peakVelHandX, idxPeakRel] = max(velHandX(wHand)) ;
+if isempty(velHandX)
+    Result.PeakVelHandX  = NaN ;
+    Result.TPeakVelHandX = NaN ;
+else
+    wHand = tCueMarker : min(tCueMarker + round(Prm.RT.WinSec*fs), numel(velHandX)) ;
+    [peakVelHandX, idxPeakRel] = max(velHandX(wHand)) ;
+    Result.PeakVelHandX  = peakVelHandX ;
+    Result.TPeakVelHandX = wHand(1) + idxPeakRel - 1 ;
+end
 
-Result.PeakVelHandX  = peakVelHandX ;                  % [m/s]
-Result.TPeakVelHandX = wHand(1) + idxPeakRel - 1 ;     % 試行先頭からのフレーム番号
 Result.SwingOnsetHand = NaN ;                          % x4 の第2パスで埋める
 Result.RTHand         = NaN ;
 

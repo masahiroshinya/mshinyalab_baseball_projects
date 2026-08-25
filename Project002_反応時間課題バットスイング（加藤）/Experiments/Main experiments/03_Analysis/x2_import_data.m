@@ -16,17 +16,59 @@ clc
 
 ConditionNameArray = {'free', 'simple', 'gonogo', 'gostop'} ; % データに含む条件
 
-subjects = 1 ; % データに含む被験者
+% 解析対象の被験者 ID。
+%   []      → 04_Data にあるフォルダを全て処理する（被験者が増えても書き換え不要）
+%   [3]     → S03 だけをやり直す
+%   [2 4 5] → 指定した被験者だけ
+subjects = [] ;
 
-% 生データの置き場所（被験者 ID をインデックスとするフォルダ名）
-RawDataRoot        = fullfile('..', '04_Data') ;
-SubjectFolderArray = {'2026-0810_S01'} ;
+% 生データの置き場所
+RawDataRoot = fullfile('..', '04_Data') ;
+
+% ---- 04_Data 直下の S** フォルダから被験者を自動で拾う ----
+FolderList = dir(fullfile(RawDataRoot, 'S*')) ;
+FolderList = FolderList([FolderList.isdir]) ;
+
+FoundIDArray   = nan(1, numel(FolderList)) ;
+FoundNameArray = cell(1, numel(FolderList)) ;
+for iFolder = 1:numel(FolderList)
+    FoundIDArray(iFolder)   = str2double(FolderList(iFolder).name(2:end)) ;
+    FoundNameArray{iFolder} = FolderList(iFolder).name ;
+end
+
+% S の後ろが数字でないフォルダ（S_old など）は対象外にする
+isValidFolder  = ~isnan(FoundIDArray) ;
+FoundIDArray   = FoundIDArray(isValidFolder) ;
+FoundNameArray = FoundNameArray(isValidFolder) ;
+
+[FoundIDArray, sortOrder] = sort(FoundIDArray) ;
+FoundNameArray = FoundNameArray(sortOrder) ;
+
+if isempty(FoundIDArray)
+    error('x2_import_data:NoSubjectFolder', ...
+        '被験者フォルダが見つかりません: %s', RawDataRoot) ;
+end
+
+if isempty(subjects)
+    subjects = FoundIDArray ;
+else
+    missingID = setdiff(subjects, FoundIDArray) ;
+    if ~isempty(missingID)
+        error('x2_import_data:FolderNotFound', ...
+            '04_Data に無い被験者が指定されています: %s', mat2str(missingID)) ;
+    end
+end
+
+fprintf('検出した被験者: %s\n', strjoin(FoundNameArray, ', ')) ;
+fprintf('今回の対象    : %s\n\n', mat2str(subjects)) ;
+
 
 % parameters
 Prm = parameters ;
 
 for iSubject = subjects
-    rawDataFolder = fullfile(RawDataRoot, SubjectFolderArray{iSubject}) ;
+    % ID からフォルダ名を引く（添字ではなく ID で対応させる）
+    rawDataFolder = fullfile(RawDataRoot, FoundNameArray{FoundIDArray == iSubject}) ;
     nCondition = length(ConditionNameArray) ; % ConditionNameArrayの要素数（＝条件の数）
 
     for iCondition = 1:nCondition
@@ -49,6 +91,10 @@ for iSubject = subjects
             trialNumber = TrialNumberArray(iTrial) ; % ファイル名上の試行番号
             fileName = [sprintf('S%02d_', iSubject), conditionName, sprintf('%04d', trialNumber)] ; % sprintf：文字列に格納
             X = load_qualisys_mat(rawDataFolder, fileName) ; % load_qualisys_mat.mから帰ってきたデータをXに格納
+            
+            % 被験者間のマーカー名の揺れをここで吸収する（S01/S02 の Firtst → first）
+            X.Markers = normalize_marker_names(X.Markers) ;
+
             X.SubjectID     = iSubject ;
             X.ConditionCode = iCondition ;
             X.ConditionName = conditionName ;

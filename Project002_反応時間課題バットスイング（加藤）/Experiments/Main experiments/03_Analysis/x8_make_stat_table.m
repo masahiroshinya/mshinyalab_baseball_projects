@@ -14,7 +14,7 @@ clear
 close all
 clc
 
-subjects       = 1 ;
+subjects       = 5 ;
 ConditionOrder = {'free', 'simple', 'gonogo', 'gostop'} ;
 Prm            = parameters ;
 
