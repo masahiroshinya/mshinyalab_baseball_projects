@@ -7,7 +7,7 @@ figure(2)
 plot(y,'r') 
 
 figHandle = figure(3)
-axHandle = axes ;ax
+axHandle = axes ;
 h = plot(y)
 hold on
 
