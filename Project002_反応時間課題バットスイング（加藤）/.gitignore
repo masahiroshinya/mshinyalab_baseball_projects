@@ -4,3 +4,6 @@
 # Pandoc の生成物（md を正とし、docx/PDF はそのつど生成する）
 sandbox/6.1_Pandoc/*.docx
 sandbox/6.1_Pandoc/逆変換.md
+
+# MATLAB エディタの自動バックアップ
+*.asv
