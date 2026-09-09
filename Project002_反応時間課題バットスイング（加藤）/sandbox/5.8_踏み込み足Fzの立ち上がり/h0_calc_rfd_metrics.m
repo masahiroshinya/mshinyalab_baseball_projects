@@ -17,6 +17,7 @@
 %   MetricName ... 指標名（h1 の図のタイトルに使う）
 %   SubjectArray / ConditionNameArray / nS / nC / nM
 %   Diag       ... 検出の内訳（除外理由の集計）
+%   Rec        ... 試行ごとの素性と検出時刻（h3_plot_example_trials.m が波形確認に使う）
 %
 % 指標の定義:
 %   [1] RT [ms]（参考）
@@ -110,6 +111,12 @@ BWest = nan(1, nS) ;
 Diag = struct('nGo',0, 'nBadBW',0, 'nNoFootContact',0, 'nShortWin',0, ...
               'nNoPeakFx',0, 'nNoOnset',0, 'nPeakBeforeOnset',0, 'nOK',0, ...
               'nTrimmedNan',0, 'nRTShort',0) ;
+
+% ★ 波形確認（h3）用。5指標すべてを算出できた試行の素性と検出時刻を残す。
+%   ここに残さないと、あとから「どの試行のどのサンプルを測ったか」を再現できない。
+Rec = struct('iS',{}, 'sub',{}, 'ic',{}, 'it',{}, 'tc',{}, 'tOnset',{}, ...
+             'tFC',{}, 'tPeak',{}, 'fs',{}, 'bw',{}, 'rtMs',{}, 'pkBW',{}, ...
+             'onsetBW',{}, 'dtMs',{}, 'rfd',{}, 'baseFx',{}, 'thrFx',{}) ;
 RTAll      = [] ;   % 診断用に RT を全部ためる
 OnsetBWAll = [] ;   % 診断用に RT 時点の Fz2 [%BW] をためる
 RatioAll   = [] ;   % 診断用に (1 - onsetBW/pkBW) をためる
@@ -283,6 +290,12 @@ for iS = 1:nS
             % 診断：上の恒等式がどれだけ 1/dtSec に近いかを見るための材料
             OnsetBWAll = [OnsetBWAll ; onsetBW] ;                            %#ok<AGROW>
             RatioAll   = [RatioAll   ; (rfd/pkBW) * dtSec] ;                 %#ok<AGROW>
+
+            % ★ 波形確認（h3）用の記録。ここに来るのは5指標すべてが算出できた試行だけ。
+            Rec(end+1) = struct('iS',iS, 'sub',SubjectArray(iS), 'ic',ic, 'it',it, ...
+                'tc',tc, 'tOnset',tOnset, 'tFC',tFC, 'tPeak',tPeak, 'fs',fsA, ...
+                'bw',bw, 'rtMs',rtMs, 'pkBW',pkBW, 'onsetBW',onsetBW, ...
+                'dtMs',dtSec*1000, 'rfd',rfd, 'baseFx',baseFx, 'thrFx',thrFx) ; %#ok<SAGROW>
 
             Diag.nOK = Diag.nOK + 1 ;
         end
