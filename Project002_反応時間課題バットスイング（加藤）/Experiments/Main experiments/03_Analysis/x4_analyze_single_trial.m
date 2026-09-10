@@ -58,10 +58,12 @@ for iSubject = subjects
             try
                 Result = m3_analyze_single_trial(Data) ;
             catch ME
-                fprintf('    Trial %2d: エラー "%s" → スキップ\n', iTrial, ME.message) ;
-                Result = makeEmptyResult() ;
-                SingleTrialResultArray(iTrial, iCondition) = Result ;
-                continue
+                % ★変更：例外で試行を捨てない。従来はここで makeEmptyResult() に
+                %   差し替えていたため、1指標の計算が失敗しただけで top も床反力も
+                %   失われていた（技術説明 §3.9）。例外は除外基準ではなく、
+                %   直すべきバグとして扱う（§10.3）。
+                fprintf(2, '    Trial %2d: 予期しないエラー → 中断します\n', iTrial) ;
+                rethrow(ME) ;
             end
 
             SingleTrialResultArray(iTrial, iCondition) = Result ;
@@ -156,6 +158,10 @@ fprintf('=== 全被験者の処理が完了しました ===\n') ;
 %   「異なる構造体での添字による代入です」で落ちる（技術説明 §3.5）。
 % -----------------------------------------------------------------------
 function Result = makeEmptyResult()
+Result.IsNoData        = true ;   % ★追加：存在しない試行（NoData の埋め要素）
+Result.IsBadTop        = true ;   % ★追加
+Result.MaxNanRunTop    = Inf ;    % ★追加
+Result.NNanInWinTop    = NaN ;    % ★追加（m3 と並び順を揃える）
 Result.NetVelTop       = [] ;
 Result.VelTopX         = [] ;
 Result.PeakVelTop      = NaN ;
@@ -175,6 +181,7 @@ Result.Fz1BaseMean     = NaN ;
 Result.Fz1BaseSD       = NaN ;
 Result.SwingOnsetForce = NaN ;
 Result.RTForce         = NaN ;
+Result.BWTail          = NaN ;   % ★追加（BWBase の直前。m3 と並び順を揃える）
 Result.BWBase          = NaN ;
 Result.PeakFz1         = NaN ;
 Result.PeakFz2         = NaN ;

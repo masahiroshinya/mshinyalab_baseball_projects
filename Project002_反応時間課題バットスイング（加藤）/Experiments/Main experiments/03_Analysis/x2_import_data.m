@@ -102,14 +102,26 @@ for iSubject = subjects
             X.ErrorCode     = 0 ;
             X.ErrorText     = '' ;
 
-            % interp nans
-            [Markers_interp, HasLongNan] = interp_nan_spline(X.Markers, Prm.MaxNumNans) ;
-            X.Markers = Markers_interp ;
-
-            if any(cell2mat(struct2cell(HasLongNan)))
-                X.ErrorCode = Prm.ErrorCode.HasLongNan ;
-                X.ErrorText = Prm.ErrorText.HasLongNan ;
+            % ---- top の最長連続NaN（記録全体。参考情報）----
+            %  ★ 補間の前に測る。interp_nan_spline は Prm.MaxNumNans 以下の欠損を
+            %    埋めてしまうため、後から測っても補間済みかどうか区別がつかない。
+            %  ★ 除外の判定そのものは m3 が解析窓内で行う（§10.8 で範囲を確定）。
+            %    ここで測るのは、除外の妥当性を後から追うための参考値。
+            %  ★ 判定対象は top のみ。従来の
+            %    any(cell2mat(struct2cell(HasLongNan))) は全マーカーを見ていたため、
+            %    解析に使わない骨盤・手部の欠損でも試行に不良コードが付いていた
+            %    （しかも下流から参照されておらず除外として機能していなかった）。
+            %  詳細は技術説明 §10。
+            topName = Prm.Excl.TopMarkerName ;
+            if isfield(X.Markers, topName)
+                X.MaxNanRunTop = maxNanRun(X.Markers.(topName)) ;
+            else
+                X.MaxNanRunTop = Inf ;          % top がラベル付けされていない試行
             end
+
+            % interp nans
+            [Markers_interp, ~] = interp_nan_spline(X.Markers, Prm.MaxNumNans) ;
+            X.Markers = Markers_interp ;
 
 
             if isfield(X, 'Analog')
@@ -123,8 +135,8 @@ for iSubject = subjects
             else
                X.LEDData  = [] ;
                X.AnalogFs = NaN ;
-               X.ErrorCode = 99 ;
-               X.ErrorText = 'Analog data missing' ;
+               % ★ ErrorCode 99 の代入は廃止（下流から参照されていなかった）。
+               %   床反力が無い試行は BWTail が NaN になるので x8 の IsBadGRF が拾う。
                fprintf('Warning: Analog なし → %s\n', fileName) ;
             end
 
@@ -154,6 +166,7 @@ for iSubject = subjects
                 DataArray(iTrial, iCondition).TrialNumber   = NaN ;
                 DataArray(iTrial, iCondition).ErrorCode     = Prm.ErrorCode.NoData ;
                 DataArray(iTrial, iCondition).ErrorText     = Prm.ErrorText.NoData ;
+                DataArray(iTrial, iCondition).MaxNanRunTop  = Inf ;
             end
         end
     end
@@ -169,3 +182,23 @@ for iSubject = subjects
     clear DataArray
 
 end % iSubject
+
+
+% -----------------------------------------------------------------------
+% ローカル関数：各次元の最長連続NaN長を返す（記録全体）
+%   判定範囲を解析窓内に変えたい場合は、呼び出し側で x(w,:) を渡す。
+%   ただし x2 はまだ cue を判定していないため、その場合は判定を m3 へ移すこと
+%   （技術説明 §10.4）。
+% -----------------------------------------------------------------------
+function n = maxNanRun(x)
+n = 0 ;
+for col = 1:size(x, 2)
+    v      = double(isnan(x(:, col))) ;
+    d      = diff([0 ; v ; 0]) ;
+    starts = find(d ==  1) ;
+    ends   = find(d == -1) - 1 ;
+    if ~isempty(starts)
+        n = max(n, max(ends - starts + 1)) ;
+    end
+end
+end

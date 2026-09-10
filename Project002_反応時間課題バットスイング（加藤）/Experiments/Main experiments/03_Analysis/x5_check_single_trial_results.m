@@ -20,8 +20,8 @@ clc
 % -----------------------------------------------------------------------
 % 設定
 % -----------------------------------------------------------------------
-iSubject   = 2;
-iCondition = 4;   % 1=free, 2=simple, 3=gonogo, 4=gostop
+iSubject   = 5;
+iCondition = 1;   % 1=free, 2=simple, 3=gonogo, 4=gostop
 ConditionNameArray = {'free', 'simple', 'gonogo', 'gostop'} ;
 condName           = ConditionNameArray{iCondition} ;   % 番号に応じて自動で設定
 
@@ -48,7 +48,7 @@ for iTrial = 1:nTrials
     netVelTop = Result.NetVelTop ;
 
     if isempty(netVelTop)
-        fprintf('  → Trial %d: 解析結果なし（エラー試行）。スキップします。\n', iTrial) ;
+        fprintf('  → Trial %d: 波形なし（存在しない試行 or top 未ラベル）。スキップします。\n', iTrial) ;
         continue
     end
 

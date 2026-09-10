@@ -1,16 +1,20 @@
-% h2_plot_cv_by_condition.m
+% i2_plot_cv_by_condition.m
+%
+% ★ h2_plot_cv_by_condition.m の新しい除外基準版（2026-09-10）。
+%   作図コードは h2 と同一で、呼ぶ算出スクリプトと出力ファイル名だけが違った。
+%   比較を済ませたうえで h2 と旧 PNG は削除した（git 履歴から復元できる）。
 %
 % 目的:
-%   h0_calc_rfd_metrics.m が算出した各指標について、
+%   i0_calc_rfd_metrics.m が算出した各指標について、
 %   「被験者ごと・条件ごとの試行間変動係数（CV）」を算出して条件別に描画する。
-%   ばらつきそのものを比較する図なので、h1（値そのものの図）とは別の1枚にする。
+%   ばらつきそのものを比較する図なので、i1（値そのものの図）とは別の1枚にする。
 %
 % 入力:
-%   h0_calc_rfd_metrics.m が作る V, MetricName,
+%   i0_calc_rfd_metrics.m が作る V, MetricName,
 %   SubjectArray, ConditionNameArray, nS, nC, nM
 %
 % 出力:
-%   条件別_全被験者_変動係数.png（このスクリプトと同じフォルダ）
+%   条件別_全被験者_変動係数_新除外基準.png（このスクリプトと同じフォルダ）
 %   CV      ... [被験者 × 条件 × 指標] の変動係数 [%]（SD / 平均）
 %   CVrobust... 同・ロバスト版（(IQR/1.349) / 中央値）[%]
 %   NTrial  ... [被験者 × 条件 × 指標] の試行数
@@ -30,16 +34,16 @@
 %   - 平均・SD は外れ値に弱いので、ロバスト版も算出してコンソールに並べる。
 %     どちらを本採用にするかは §3-6 の比較を見て決める（未決）。
 %   - 試行数が MinTrial 未満の被験者×条件は NaN にする（CV が不安定なため）。
-%   - パネルの配置は h1 と同じ計算式。指標が増えても行が足される。
+%   - パネルの配置は i1 と同じ計算式。指標が増えても行が足される。
 
 clear ;
 close all
 
-% h0 を先頭で呼ぶ。h0 の中に clear ; close all があるので、
+% i0 を先頭で呼ぶ。i0 の中に clear ; close all があるので、
 % 先に自分で変数を作っても消される。
-h0_calc_rfd_metrics
+i0_calc_rfd_metrics
 
-% h0 が clear するので、出力先はここで取り直す。
+% i0 が clear するので、出力先はここで取り直す。
 thisDir = fileparts( mfilename('fullpath') ) ;
 
 MinTrial = 5 ;   % これ未満の試行数では CV を出さない
@@ -136,7 +140,7 @@ end
 
 
 %% ---- 8. 描画 ----
-% h1 と違い、1点 = 1被験者（試行の散布はない。CV は被験者ごとに1個しか出ない）。
+% i1 と違い、1点 = 1被験者（試行の散布はない。CV は被験者ごとに1個しか出ない）。
 
 lineColor = [0.60 0.60 0.60] ;
 shadeCol  = [0.93 0.93 0.93] ;
@@ -218,7 +222,7 @@ for im = 1:nM
 end
 
 annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
-    '反応時間課題バットスイング：条件別の試行間変動係数（被験者内・5被験者）', ...
+    '反応時間課題バットスイング：条件別の試行間変動係数（被験者内・5被験者・新しい除外基準）', ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
@@ -240,6 +244,6 @@ annotation('textbox', [0 5.25/figH 1 78.75/figH], 'String', ...
 
 %% ---- 9. PNG 出力 ----
 
-outPath = fullfile(thisDir, '条件別_全被験者_変動係数.png') ;
+outPath = fullfile(thisDir, '条件別_全被験者_変動係数_新除外基準.png') ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('\n出力しました: %s\n', outPath) ;

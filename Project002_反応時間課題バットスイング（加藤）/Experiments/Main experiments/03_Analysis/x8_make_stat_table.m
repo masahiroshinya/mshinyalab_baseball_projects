@@ -14,7 +14,7 @@ clear
 close all
 clc
 
-subjects       = 5 ;
+subjects       = 1:5 ;
 ConditionOrder = {'free', 'simple', 'gonogo', 'gostop'} ;
 Prm            = parameters ;
 
@@ -39,26 +39,56 @@ for iSubject = subjects
     T = ResultsTable ;
     fprintf('=== Subject %02d（%d 試行）===\n', iSubject, height(T)) ;
 
-    % ---- ベースライン荷重の妥当性チェック（x7_3 の isBadBW と同じ判定）----
-    %  静止時の Fz1+Fz2 は体重にほぼ一致するはず。大きく外れる試行は
-    %  プレートに正しく乗っていない計測不良で、正規化すると異常値になる。
-    bwRef     = median(T.BWBase_N, 'omitnan') ;
-    T.IsBadBW = isnan(T.BWBase_N) | abs(T.BWBase_N - bwRef) > Prm.GRF.BWTolerance * bwRef ;
+    % ---- 被験者の体重を推定する（記録末端 0.5 s、外れ値除去、中央値）----
+    %  ★ 分母をキュー前の BWBase から末端推定に変えた（技術説明 §8 の最優先方針、§10）。
+    %    S03 は踏み込み足をプレート外に置いて構えるため BWBase が体重を 24% 過小に
+    %    見積もり、%BW が 24% 過大になっていた。末端は全被験者で両足がプレート上に
+    %    あるので構えの違いに依存しない。他4名は BWBase と ±2% 以内で一致する。
+    E = T.BWTail_N(~isnan(T.BWTail_N)) ;
+    if isempty(E)
+        error('S%02d: BWTail_N が全試行 NaN です。m3 から実行し直してください。', iSubject) ;
+    end
+    bwEst = median( E(E > Prm.Excl.BWOutlierRatio * median(E)) ) ;
 
-    fprintf('  体重の代表値: %.1f N（約 %.1f kg）\n', bwRef, bwRef/9.81) ;
-    for k = find(T.IsBadBW)'
-        fprintf('  除外（ベースライン荷重が異常）: %-8s 行%2d  bw = %.1f N\n', ...
-            T.Condition(k), T.Trial(k), T.BWBase_N(k)) ;
+    fprintf('  推定体重: %.1f N（約 %.1f kg、末端 %d 試行から）\n', ...
+        bwEst, bwEst/9.81, numel(E)) ;
+
+    % ---- 除外基準②：床反力が正常に計測できていない試行 ----
+    %  ★ 「床反力に欠損がある」だけで判定する（§10.8 の実行結果で確定）。
+    %    末端荷重が推定体重から外れる試行を落とす案は棄却した。それは
+    %    「記録終端までに被験者がプレートから降りた」ことしか意味せず、
+    %    スイング時の計測が壊れている証拠にならない。実測でも、落とす試行の
+    %    PeakFz2 分布は残す試行とほぼ同一（中央値 130.1 vs 135.9 %BW）で、
+    %    正常データを 247 試行中 53 本（21%）捨てていた。
+    %    BWest は分母としてのみ使う。
+    T.IsBadGRF = isnan(T.BWTail_N) | isnan(T.PeakFz1_N) | isnan(T.PeakFz2_N) ;
+
+    for k = find(T.IsBadGRF)'
+        fprintf('  除外（床反力）: %-8s 行%2d  BWTail = %.1f N\n', ...
+            T.Condition(k), T.Trial(k), T.BWTail_N(k)) ;
+    end
+    for k = find(T.IsBadTop)'
+        fprintf('  除外（top）    : %-8s 行%2d  窓内の欠損 %g フレーム（記録全体の最長連続 %g）\n', ...
+            T.Condition(k), T.Trial(k), T.NNanInWinTop(k), T.MaxNanRunTop(k)) ;
     end
 
-    % ---- 体重正規化。不良試行は NaN にして代表値の平均から外す ----
-    T.PeakFz1_BW = T.PeakFz1_N ./ T.BWBase_N ;
-    T.PeakFz2_BW = T.PeakFz2_N ./ T.BWBase_N ;
-    T.PeakFz1_BW(T.IsBadBW) = NaN ;
-    T.PeakFz2_BW(T.IsBadBW) = NaN ;
+    % ---- 体重正規化（分母は被験者ごとの推定体重）----
+    T.BWest_N    = repmat(bwEst, height(T), 1) ;
+    T.PeakFz1_BW = T.PeakFz1_N ./ bwEst ;
+    T.PeakFz2_BW = T.PeakFz2_N ./ bwEst ;
+
+    % ---- 除外の適用（行は残し、該当する指標だけ NaN にする）----
+    %  ★ 技術説明 §3.9 の教訓。top の不良は top 由来の指標だけを落とし、
+    %    床反力の不良は床反力の指標だけを落とす。片方の失敗で他方を巻き添えに
+    %    しない。除外基準はこの2つだけ（§10.1）。
+    T.PeakFz1_BW(T.IsBadGRF)  = NaN ;
+    T.PeakFz2_BW(T.IsBadGRF)  = NaN ;
+    T.PeakVelTop( T.IsBadTop) = NaN ;
+    T.PeakVelTopX(T.IsBadTop) = NaN ;
 
     % ---- 集計対象フラグ（Methods 2-4「集計対象の試行」）----
     %  NoGo・Stop はスイングの抑制自体が課題なので比較対象にしない。
+    %  これはデータ品質の除外ではなく課題設計上の選別なので、上の2基準とは別軸。
     %  行そのものは残し、フラグで選別できるようにしておく。
     T.IsGo = (T.CueText == "Go") ;
 

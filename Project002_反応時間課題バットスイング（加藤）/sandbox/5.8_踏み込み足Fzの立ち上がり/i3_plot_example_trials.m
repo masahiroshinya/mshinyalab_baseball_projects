@@ -1,21 +1,27 @@
-n% h3_plot_example_trials.m
+% i3_plot_example_trials.m
+%
+% ★ h3_plot_example_trials.m の新しい除外基準版（2026-09-10）。
+%   作図コードは h3 と同一で、呼ぶ算出スクリプト（i0）と出力ファイル名だけが違った。
+%   比較を済ませたうえで h3 と旧 PNG は削除した（git 履歴から復元できる）。
+%   i0 は BWBase 逸脱による除外をやめているので、代表試行に選ばれる試行が
+%   h3 と変わることがある（RFD が条件中央値に最も近い試行を選ぶ仕様のため）。
 %
 % 目的:
-%   h0 が出した指標が波形のどこを測っているのかを目で確かめる（最小版）。
+%   i0 が出した指標が波形のどこを測っているのかを目で確かめる（最小版）。
 %   条件ごとに代表の1試行を選び、踏み込み足 Fz2 の時系列に
 %   onset の縦線とピークの印だけを入れる。
 %
 % 入力:
-%   h0_calc_rfd_metrics.m が作る Rec, ConditionNameArray, nC, dataDir, bG/aG
+%   i0_calc_rfd_metrics.m が作る Rec, ConditionNameArray, nC, dataDir, bG/aG
 %
 % 出力:
 %   代表試行_波形確認.png（このスクリプトと同じフォルダ）
 %   ★ 自動では書き出さない。図を見たうえでコマンドウィンドウで y と答えたときだけ出力する。
 %
 % 備考:
-%   - ★ 波形は h0 が設計した係数（bG/aG）で作り直す。ここで butter を別に
+%   - ★ 波形は i0 が設計した係数（bG/aG）で作り直す。ここで butter を別に
 %     設計するとフィルタが変わり、印の位置と波形がずれて確認にならない。
-%   - ★ 末尾 NaN の切り落としも h0 と同じ手順で行う。切り方が違うと
+%   - ★ 末尾 NaN の切り落としも i0 と同じ手順で行う。切り方が違うと
 %     サンプル番号が1つずれ、tOnset / tPeak が別の場所を指す。
 %   - まずは onset の縦線とピークだけを描く。Fx（RT 検出の根拠）や接地の線は
 %     この図で位置関係を確認してから足す。
@@ -23,10 +29,10 @@ n% h3_plot_example_trials.m
 clear ;
 close all
 
-% h0 を先頭で呼ぶ（h1 と同じ。h0 の中に clear があるので順序は変えられない）。
-h0_calc_rfd_metrics
+% i0 を先頭で呼ぶ（i1 と同じ。i0 の中に clear があるので順序は変えられない）。
+i0_calc_rfd_metrics
 
-% h0 が clear するので、出力先はここで取り直す。
+% i0 が clear するので、出力先はここで取り直す。
 thisDir = fileparts( mfilename('fullpath') ) ;
 
 
@@ -63,7 +69,7 @@ for ic = 1:nC
     end
     D = DataArray(R.it, R.ic) ;
 
-    % --- ★ h0 と同じ前処理（末尾 NaN の切り落とし → 同じ係数でフィルタ）---
+    % --- ★ i0 と同じ前処理（末尾 NaN の切り落とし → 同じ係数でフィルタ）---
     isBad     = any(isnan(D.LEDData),2) | any(isnan(D.Force1),2) | any(isnan(D.Force2),2) ;
     lastValid = find(~isBad, 1, 'last') ;
     F2g       = filtfilt(bG, aG, D.Force2(1:lastValid,:)) ;
@@ -96,7 +102,7 @@ for ic = 1:nC
     tPk = W(ic).tRel(R.tPeak)  ;      % cue からの Fz2 ピーク時刻 [s]
 
     % ★ 区間の塗りは波形より先に描く。後から描くと波形と印を覆ってしまう。
-    %   RT = cue → onset、MT = onset → Fz2 ピーク（h0 の指標3）。
+    %   RT = cue → onset、MT = onset → Fz2 ピーク（i0 の指標3）。
     %   色は薄くする。濃いと波形より塗りが目立ち、確認したいものが見えなくなる。
     patch(ax, [0 tOn tOn 0],       yLim([1 1 2 2]), [0.86 0.91 0.97], 'EdgeColor','none') ;
     patch(ax, [tOn tPk tPk tOn],   yLim([1 1 2 2]), [1.00 0.92 0.83], 'EdgeColor','none') ;
@@ -114,7 +120,7 @@ for ic = 1:nC
         'LabelVerticalAlignment','bottom', 'FontSize', 9) ;
 
     % ピークの印（波形より後に描く。先に描くと線に隠れる）。
-    % 値は h1 の図と表で読めるので、ここには数値を書かない。
+    % 値は i1 の図と表で読めるので、ここには数値を書かない。
     plot(ax, tPk, W(ic).z2(R.tPeak), 'ko', 'MarkerSize', 8, 'LineWidth', 1.5) ;
 
     set(ax, 'XLim', xLim, 'YLim', yLim, 'FontSize', 10, 'Box','off', 'YGrid','on') ;
@@ -124,7 +130,8 @@ for ic = 1:nC
     if ic == 1, ylabel(ax, 'Fz2 踏み込み足 [%BW]') ; end
 end
 
-sgtitle('条件別 代表1試行：RT（青）と MT（橙）の区間', 'FontSize', 14, 'FontWeight','bold') ;
+sgtitle('条件別 代表1試行：RT（青）と MT（橙）の区間（新しい除外基準）', ...
+    'FontSize', 14, 'FontWeight','bold') ;
 
 
 %% ---- 8. PNG 出力（コマンドウィンドウで確認してから）----
@@ -133,23 +140,29 @@ sgtitle('条件別 代表1試行：RT（青）と MT（橙）の区間', 'FontSi
 % ★ drawnow を先に呼ぶ。入力待ちに入る前に図を描き切らせないと、
 %   白いままの図を見て y/n を答えることになる。
 
-outPath = fullfile(thisDir, '代表試行_波形確認.png') ;
+outPath = fullfile(thisDir, '代表試行_波形確認_新除外基準.png') ;
 
 drawnow
 
-if isfile(outPath)
-    fprintf('\n既に出力があります（出力すると上書きになります）: %s\n', outPath) ;
-end
-
-% y 以外（n・空 Enter を含む）はすべて「出力しない」。取り違えても図が
-% 消えるだけで、ファイルは書き換わらない側に倒しておく。
-reply = input('図を確認してください。PNG を出力しますか？ (y/n) : ', 's') ;
-
-if strcmpi(strtrim(reply), 'y')
+% ★ h3 は必ず y/n を尋ねていたが、確認が守っているのは「既にある図を
+%   見ないまま差し替えてしまうこと」である。ファイルが無いときは失うものが
+%   ないので、そのまま書き出す（-batch でも通るようになる）。
+if ~isfile(outPath)
     exportgraphics(fig, outPath, 'Resolution', 200) ;
-    fprintf('出力しました: %s\n', outPath) ;
+    fprintf('\n出力しました（新規作成）: %s\n', outPath) ;
 else
-    fprintf('出力しませんでした。図はウィンドウに残っています。\n') ;
+    fprintf('\n既に出力があります（出力すると上書きになります）: %s\n', outPath) ;
+
+    % y 以外（n・空 Enter を含む）はすべて「出力しない」。取り違えても図が
+    % 消えるだけで、ファイルは書き換わらない側に倒しておく。
+    reply = input('図を確認してください。PNG を上書きしますか？ (y/n) : ', 's') ;
+
+    if strcmpi(strtrim(reply), 'y')
+        exportgraphics(fig, outPath, 'Resolution', 200) ;
+        fprintf('上書きしました: %s\n', outPath) ;
+    else
+        fprintf('出力しませんでした。図はウィンドウに残っています。\n') ;
+    end
 end
 
 % 図で確認すること

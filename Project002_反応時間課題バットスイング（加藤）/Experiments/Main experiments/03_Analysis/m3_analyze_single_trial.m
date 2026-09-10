@@ -5,6 +5,17 @@ fs  = Data.FrameRate ;
 fc  = Prm.Fc ;
 [b, a] = butter(2, fc/(fs/2)) ;
 
+% ---- 除外基準①用：top の欠損マスクを、補間で埋める前に保存する ----
+%  ★ 下の補間ループは NaN の長さに関係なく linear/extrap で全部埋めてしまうので、
+%    ここで取っておかないと「どこが補間の産物か」が永久に分からなくなる。
+%    x2 の interp_nan_spline が Prm.MaxNumNans 以下を既に埋めているため、
+%    ここで NaN として残っているのは「埋めるべきでなかった長い欠損」だけである。
+if isfield(Data.Markers, Prm.Excl.TopMarkerName)
+    isNanTop = any(isnan(Data.Markers.(Prm.Excl.TopMarkerName)), 2) ;
+else
+    isNanTop = true ;                  % top が無い試行は全区間欠損とみなす
+end
+
 % ---- NaN 補間（filtfilt の前に必須）----
 fields = fieldnames(Data.Markers) ;
 for i = 1:numel(fields)
@@ -22,19 +33,48 @@ end
 
 M = filt_all_fields(b, a, Data.Markers) ;
 
+% ---- 試行の識別と品質フラグ（★ 必ず Result の先頭に置く）----
+%  先頭に置くと、下の LED 未検出による早期 return でも自動的に埋まるので、
+%  §3.5 の「3か所同時更新」の対象が1つ減る。
+%  x6 は DataArray を読まないため、x2 が付けた top の判定はここで持ち回る。
+%  古い中間ファイル（x2 修正前の x3_DataChecked）で回すと分かりにくい
+%  「認識できないフィールド名」になるので、ここで明示的に止める。
+if ~isfield(Data, 'MaxNanRunTop')
+    error('m3_analyze_single_trial:StaleData', ...
+        ['DataArray に MaxNanRunTop がありません。' ...
+         'x2_import_data.m から実行し直してください（技術説明 §10.7）。']) ;
+end
+
+%  ★ IsBadTop は保守的に true で初期化する。cue が判定できて初めて
+%    解析窓を切れるので、LED 未検出で早期 return する試行は不良のまま残す。
+%    （その試行は PeakVelTop の時間基準そのものが無く、使えない。）
+Result.IsNoData      = false ;
+Result.IsBadTop      = true ;
+Result.MaxNanRunTop  = Data.MaxNanRunTop ;   % 記録全体（参考情報）
+Result.NNanInWinTop  = NaN ;                 % 解析窓内の欠損フレーム数
+
 % ---- ② バット先端（top）の並進速度 ----
 %  Qualisys の座標は mm なので、1000 で割って m に直してから微分する。
 %  こうすると velTop の単位が最初から m/s になり、以降で単位を意識せずに済む。
-posTop    = M.top / 1000 ;                    % [m]    各列 = x, y, z
-velTop    = diff3p(posTop, 1/fs) ;            % [m/s]  中心差分（3点法）
-netVelTop = sum(velTop.^2, 2).^0.5 ;          % [m/s]  速度ベクトルのノルム（＝速さ）
+%  ★ top が無い試行でも床反力は算出したいので、ここで落とさず NaN にする。
+%    従来は M.top の参照で例外になり、x4 の try/catch が試行ごと捨てていた（§3.9）。
+if isfield(M, Prm.Excl.TopMarkerName)
+    posTop    = M.(Prm.Excl.TopMarkerName) / 1000 ; % [m]    各列 = x, y, z
+    velTop    = diff3p(posTop, 1/fs) ;              % [m/s]  中心差分（3点法）
+    netVelTop = sum(velTop.^2, 2).^0.5 ;            % [m/s]  ノルム（＝速さ）
 
-%  +X = 投手方向（s3b で両被験者・40/40 で確認済み）。
-%  合成速度と違い符号を持つ：正 = 投手方向、負 = 捕手方向（テイクバック）。
-velTopX = velTop(:, 1) ;                      % [m/s]  投手方向成分
+    %  +X = 投手方向（s3b で両被験者・40/40 で確認済み）。
+    %  合成速度と違い符号を持つ：正 = 投手方向、負 = 捕手方向（テイクバック）。
+    velTopX = velTop(:, 1) ;                        % [m/s]  投手方向成分
 
-[peakVelTop,  idxPeak]  = max(netVelTop) ;    % 合成速度のピークとその時刻
-[peakVelTopX, idxPeakX] = max(velTopX) ;      % Vx のピークとその時刻
+    [peakVelTop,  idxPeak]  = max(netVelTop) ;      % 合成速度のピークとその時刻
+    [peakVelTopX, idxPeakX] = max(velTopX) ;        % Vx のピークとその時刻
+    velTopXAtPeak = velTopX(idxPeak) ;              % 合成速度ピーク時の Vx [m/s]
+else
+    netVelTop   = [] ;   velTopX  = [] ;
+    peakVelTop  = NaN ;  idxPeak  = NaN ;
+    peakVelTopX = NaN ;  idxPeakX = NaN ;  velTopXAtPeak = NaN ;
+end
 
 Result.NetVelTop     = netVelTop ;            % 合成速度の波形
 Result.VelTopX       = velTopX ;              % 投手方向成分の波形
@@ -42,7 +82,7 @@ Result.PeakVelTop    = peakVelTop ;           % 合成速度のピーク [m/s]
 Result.TPeakVelTop   = idxPeak ;              % そのフレーム番号（試行先頭から）
 Result.PeakVelTopX   = peakVelTopX ;          % Vx のピーク [m/s]
 Result.TPeakVelTopX  = idxPeakX ;             % そのフレーム番号（試行先頭から）
-Result.VelTopXAtPeak = velTopX(idxPeak) ;     % 合成速度ピーク時の Vx [m/s]
+Result.VelTopXAtPeak = velTopXAtPeak ;        % 合成速度ピーク時の Vx [m/s]
 
 % ---- ③ 手部の投手方向速度（Nasu et al., 2020 準拠）----
 %  手部・骨盤とも複数マーカーの幾何学的重心を代表点とし、手部から骨盤を引いて
@@ -102,6 +142,7 @@ else
     Result.Fz1BaseSD   = NaN ;
     Result.SwingOnsetForce = NaN ;
     Result.RTForce         = NaN ;
+    Result.BWTail  = NaN ;              % ★追加：正常経路と並び順を揃える
     Result.BWBase  = NaN ;
     Result.PeakFz1 = NaN ;
     Result.PeakFz2 = NaN ;
@@ -115,6 +156,14 @@ tCueMarker = round(tCueAnalog / Data.AnalogFs * fs) ;
 Result.CueCode    = cueCode ;
 Result.CueText    = cueText ;
 Result.TCueMarker = tCueMarker ;
+
+% ---- 除外基準①：解析窓内（cue 後 0〜Prm.Excl.WinSec）に top の欠損があるか ----
+%  §9.4 の「判定すべきは欠損の総量ではなく、指標に実害のある位置に欠損があるか」
+%  に対応する。範囲は §10.8 の実測比較を経て解析窓内に確定した。
+wTop = max(1, tCueMarker) : ...
+       min(tCueMarker + round(Prm.Excl.WinSec*fs), numel(isNanTop)) ;
+Result.NNanInWinTop = sum(isNanTop(wTop)) ;
+Result.IsBadTop     = Result.NNanInWinTop > 0 ;
 
 % ---- 手部速度のピーク（キュー後 2 秒の窓内）----
 %  閾値そのものは全試行の平均に依存するので x4 で決める。ここでは各試行のピークだけ出す。
@@ -194,7 +243,8 @@ end
 %  初期化は必ず if の外に置くこと。Force1 を持たない試行でフィールドが
 %  作られないと、x4 の構造体配列への代入が「異なる構造体での添字による
 %  代入です」で落ちる（技術説明 §3.5）。
-Result.BWBase  = NaN ;   % 静止時 Fz1+Fz2 [N]
+Result.BWTail  = NaN ;   % ★追加：記録末端 0.5 s の Fz1+Fz2 [N]（体重推定用）
+Result.BWBase  = NaN ;   % 静止時（キュー前）Fz1+Fz2 [N]（参照用に残す）
 Result.PeakFz1 = NaN ;   % 後ろ足   ピーク鉛直分力 [N]
 Result.PeakFz2 = NaN ;   % 踏み込み足 ピーク鉛直分力 [N]
 Result.Fz1Filt = [] ;    % ★追加：30 Hz フィルタ後の Fz1 波形 [N]
@@ -207,25 +257,43 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
     fsA     = Data.AnalogFs ;
     Fz1_raw = Data.Force1(:, 3) ;
     Fz2_raw = Data.Force2(:, 3) ;
+    nTail   = round(Prm.Excl.BWTailSec * fsA) ;
 
-    % filtfilt は NaN が1つでもあると全体を NaN にするので、先に弾く
-    if ~any(isnan(Fz1_raw)) && ~any(isnan(Fz2_raw))
+    % ★変更：末尾の NaN を切り落としてから使う（sandbox 5.8 h0 と同じ）。
+    %   従来は any(isnan(記録全体)) で弾いていたため、QTM の記録終端に NaN が
+    %   1つ残っているだけで試行ごと床反力を失っていた（§7.9 の
+    %   gonogo Trial 5 / gostop Trial 5 がこれ）。技術説明 §10。
+    lastValid = find(~isnan(Fz1_raw) & ~isnan(Fz2_raw), 1, 'last') ;
 
-        % Methods 2-4-3 に従い、マーカーと同じ 30 Hz・2次でローパスする
-        [bF, aF] = butter(2, fc/(fsA/2)) ;
-        Fz1_filt = filtfilt(bF, aF, Fz1_raw) ;
-        Fz2_filt = filtfilt(bF, aF, Fz2_raw) ;
+    if ~isempty(lastValid) && lastValid > tCueAnalog + nTail
+        Fz1_raw = Fz1_raw(1:lastValid) ;
+        Fz2_raw = Fz2_raw(1:lastValid) ;
 
-        Result.BWBase = mean(Fz1_filt(1:tCueAnalog-1)) + mean(Fz2_filt(1:tCueAnalog-1)) ;
+        % 切っても内部に NaN が残る試行は諦める（filtfilt が全体を NaN にする）
+        if ~any(isnan(Fz1_raw)) && ~any(isnan(Fz2_raw))
 
-        swingEnd   = min(tCueAnalog + round(Prm.GRF.WinSec*fsA), numel(Fz1_filt)) ;
-        swingRange = tCueAnalog : swingEnd ;
+            % Methods 2-4-3 に従い、マーカーと同じ 30 Hz・2次でローパスする
+            [bF, aF] = butter(2, fc/(fsA/2)) ;
+            Fz1_filt = filtfilt(bF, aF, Fz1_raw) ;
+            Fz2_filt = filtfilt(bF, aF, Fz2_raw) ;
 
-        Result.PeakFz1 = max(Fz1_filt(swingRange)) ;
-        Result.PeakFz2 = max(Fz2_filt(swingRange)) ;
+            % ★追加：記録末端 0.5 s の Fz1+Fz2。被験者の体重推定に使う（x8）。
+            %   末端は全被験者で両足がプレート上にあるので構えの違いに依存しない。
+            tot           = Fz1_filt + Fz2_filt ;
+            Result.BWTail = mean(tot(end-nTail+1 : end)) ;
 
-        Result.Fz1Filt = Fz1_filt ;   % ★追加：波形をそのまま下流へ渡す
-        Result.Fz2Filt = Fz2_filt ;   % ★追加
+            Result.BWBase = mean(Fz1_filt(1:tCueAnalog-1)) ...
+                          + mean(Fz2_filt(1:tCueAnalog-1)) ;
+
+            swingEnd   = min(tCueAnalog + round(Prm.GRF.WinSec*fsA), numel(Fz1_filt)) ;
+            swingRange = tCueAnalog : swingEnd ;
+
+            Result.PeakFz1 = max(Fz1_filt(swingRange)) ;
+            Result.PeakFz2 = max(Fz2_filt(swingRange)) ;
+
+            Result.Fz1Filt = Fz1_filt ;   % ★追加：波形をそのまま下流へ渡す
+            Result.Fz2Filt = Fz2_filt ;   % ★追加
+        end
     end
 end
 

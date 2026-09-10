@@ -65,3 +65,20 @@ Prm.RT.PrimaryMethod     = 'Force' ;   % Result.RT に入れる方式（'Force' 
 %  マーカーの飛び・ラベル入れ替わりを意味する。
 Prm.QC.TopStepMaxMm = 200 ;
 
+
+%% 除外基準（2026-09-10 決定：top マーカーと床反力の2つに限定する）
+%  データ品質による除外はこの2つだけとし、判定は x8 のフラグ列に集約する。
+%  ★ Prm.MaxNumNans（=10）は interp_nan_spline が「補間してよい長さ」であり、
+%    ここの MaxNanRunTop は「指標として信用できる長さ」。意味が違うので分ける。
+%  詳細は技術説明 §10。
+%  ★ 判定範囲は「解析窓内（cue 後 0〜2 s）」に確定した（§10.8 の実行結果）。
+%    記録全体で判定すると、構えやスイング後に top が落ちただけの試行まで落ち、
+%    n_PeakVelTop が最小 1 になる条件が3つ出て分散分析に使えなくなる。
+%  ★ 窓内に「残っている」NaN が判定対象。x2 の interp_nan_spline が
+%    Prm.MaxNumNans 以下の欠損を埋めた後に残るのは、それを超える連続欠損
+%    （と記録端の欠損）だけなので、実効的な閾値は Prm.MaxNumNans である。
+Prm.Excl.TopMarkerName  = 'top' ;   % 欠損を判定するマーカー
+Prm.Excl.WinSec         = 2.0 ;     % 判定に使う解析窓の長さ（cue 起点）[s]
+Prm.Excl.MaxNanRunTop   = 10 ;      % 記録全体の最長連続NaN。参考情報の閾値のみ
+Prm.Excl.BWTailSec      = 0.5 ;     % 体重推定に使う記録末端の長さ [s]
+Prm.Excl.BWOutlierRatio = 0.7 ;     % 末端値が中央値のこの比率未満なら体重推定から除く

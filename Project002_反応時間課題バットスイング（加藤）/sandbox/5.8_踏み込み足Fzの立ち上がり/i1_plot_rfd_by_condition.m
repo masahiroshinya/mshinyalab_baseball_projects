@@ -1,18 +1,22 @@
-% h1_plot_rfd_by_condition.m
+% i1_plot_rfd_by_condition.m
+%
+% ★ h1_plot_rfd_by_condition.m の新しい除外基準版（2026-09-10）。
+%   作図コードは h1 と同一で、呼ぶ算出スクリプトと出力ファイル名だけが違った。
+%   比較を済ませたうえで h1 と旧 PNG は削除した（git 履歴から復元できる）。
 %
 % 目的:
-%   h0_calc_rfd_metrics.m が算出した指標を、5.6 / 5.7 の「条件別_全被験者」図と
+%   i0_calc_rfd_metrics.m が算出した指標を、5.6 / 5.7 の「条件別_全被験者」図と
 %   同じ体裁で1枚にまとめて PNG 出力する。
 %
 % 入力:
-%   h0_calc_rfd_metrics.m が作る V, BWest, MetricName,
+%   i0_calc_rfd_metrics.m が作る V, BWest, MetricName,
 %   SubjectArray, ConditionNameArray, nS, nC, nM
 %
 % 出力:
-%   条件別_全被験者_Fz立ち上がり.png（このスクリプトと同じフォルダ）
+%   条件別_全被験者_Fz立ち上がり_新除外基準.png（このスクリプトと同じフォルダ）
 %
 % 備考:
-%   - 算出は h0 に分離した。指標の定義は h0 のヘッダを参照。
+%   - 算出は i0 に分離した。指標の定義は i0 のヘッダを参照。
 %   - free は自己ペース条件なので参考値（網掛け）。
 %     free の RT は「cue からの反応」ではないので、特に参考値である。
 %   - subplot の既定配置では sgtitle とパネルのタイトルが重なるため、
@@ -24,11 +28,11 @@
 clear ;
 close all
 
-% h0 を先頭で呼ぶ。h0 の中に clear ; close all があるので、
+% i0 を先頭で呼ぶ。i0 の中に clear ; close all があるので、
 % 先に自分で変数を作っても消される。
-h0_calc_rfd_metrics
+i0_calc_rfd_metrics
 
-% h0 が clear するので、出力先はここで取り直す。
+% i0 が clear するので、出力先はここで取り直す。
 thisDir = fileparts( mfilename('fullpath') ) ;
 
 
@@ -45,7 +49,7 @@ nRow      = ceil(nM / nCol) ;
 axH_px    = 315 ;      % パネルの高さ
 rowPitch  = 483 ;      % 行の間隔
 topPad_px = 136.5 ;    % 図の上端から1行目のパネル上端まで（表題2行ぶん）
-botPad_px = 115.5 ;    % 最終行のパネル下端から図の下端まで（脚注ぶん）
+botPad_px = 265 ;      % 最終行のパネル下端から図の下端まで（脚注8行ぶん）
 
 figH = topPad_px + axH_px*nRow + (rowPitch - axH_px)*(nRow-1) + botPad_px ;
 
@@ -140,7 +144,8 @@ for im = 1:nM
 end
 
 annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
-    '反応時間課題バットスイング：踏み込み足 Fz の立ち上がり（5被験者）', ...
+    sprintf(['反応時間課題バットスイング：踏み込み足 Fz の立ち上がり' ...
+             '（5被験者・新しい除外基準／Go 試行 %d 本）'], Diag.nGo), ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
@@ -152,20 +157,27 @@ annotation('textbox', [0 (figH-78.75)/figH 1 33.6/figH], 'String', ...
 
 % 定義の断り書きは下端に置く（上に置くとパネルのタイトルと衝突する）。
 % ★ annotation は sprintf の書式を解釈しないので、パーセント記号は %% ではなく % と書く。
-annotation('textbox', [0 5.25/figH 1 78.75/figH], 'String', ...
+annotation('textbox', [0 8/figH 1 245/figH], 'String', ...
     {['RT は 5.6 の定義（Fx がベースライン + 0.20 ×（窓内ピーク − ベース）を 20 ms 超えた時点）。' ...
       '分母は記録末端 0.5 s から推定した体重（S01 74.6・S02 87.4・S03 60.5・S04 72.3・S05 69.9 kg）'], ...
-     ['力の立ち上がり速度 =（Fz2ピーク − RT時点の Fz2）÷ 体重 × 100 ÷（RT → ピーク の秒数）。' ...
+     ['力の立ち上がり速度 =（Fz2ピーク − Onset 時点の Fz2）÷ 体重 × 100 ÷（Onset → ピーク の秒数）。' ...
       'ピークの探索窓は cue から 2 s（5.7 の g0 と同じ）'], ...
      ['立ち上がり速度 ÷ ピーク力 [1/s] は、達成した力の大きさで割った正規化 RFD。' ...
-      'RT 時点の Fz2 がほぼ 0（踏み込み足が空中）なので、実質 1 ÷（RT → ピーク の秒数）になる'], ...
-     'ピーク鉛直GRF の n が他より多いのは、onset が取れなかった試行でもピークだけは算出できるため'}, ...
+      'Onset 時点の Fz2 がほぼ 0（踏み込み足が空中）なので、実質 1 ÷（Onset → ピーク の秒数）になる'], ...
+     'ピーク鉛直GRF の n が他より多いのは、onset が取れなかった試行でもピークだけは算出できるため', ...
+     ['★ 旧図（条件別_全被験者_Fz立ち上がり.png）との違いは除外基準だけ。旧図は BWBase（cue 前の Fz1+Fz2）が' ...
+      '被験者内中央値から ±20% ずれる試行を落としていたが、2026-09-10 に撤回した'], ...
+     ['撤回の理由：落としていた試行の PeakFz2 分布は残す試行とほぼ同一で（03_Analysis §10.8）、' ...
+      '末端でプレートから降りたかどうかはスイング時の計測の妥当性を表さない。除外は床反力の欠損だけにした'], ...
+     ['★ もう1つだけ「ピークが接地から 0.5 s 以上離れている試行は落とす」という位置の判定を入れてある（技術説明 §3-7）。' ...
+      'S02 gonogo 行13 が該当する1試行で、後続動作の山（1.806 s）がスイングのピーク（0.662 s）を 2.8% 上回って選ばれていた'], ...
+     ['値ではなく位置で判定しているのが要点。「1580 ms は長すぎる」と値で切ると、2026-09-10 に廃止した種類の基準に戻ってしまう']}, ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 10, 'Color', [0.30 0.30 0.30], 'EdgeColor', 'none') ;
 
 
 %% ---- 6. PNG 出力 ----
 
-outPath = fullfile(thisDir, '条件別_全被験者_Fz立ち上がり.png') ;
+outPath = fullfile(thisDir, '条件別_全被験者_Fz立ち上がり_新除外基準.png') ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('出力しました: %s\n', outPath) ;
