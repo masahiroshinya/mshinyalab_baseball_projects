@@ -19,6 +19,12 @@
 %     （top マーカーの欠損）は関係しない。②（床反力の欠損）だけが効く。
 %     ②は h0 の時点で既に Trial.ok のゲートとして実装されていた。
 %
+% ★ 2026-09-11 追記：バット先端のピーク速度（tPeakVel）と、それを終点とする
+%   MT を算出して Rec に残すようにした。i3 の図で MT の区間を 5.6_プロット と
+%   同じ定義で描くためで、下の5指標そのものは変えていない（すべて床反力ベース）。
+%   これに伴い、除外基準①（top マーカーの欠損）が本スクリプトでも効くようになった。
+%   ①に掛かる試行は MT だけが NaN になり、5指標は従来どおり算出する。
+%
 % 目的:
 %   踏み込み足の鉛直床反力（Fz2）について、
 %     1. ピーク値                        [%BW]
@@ -38,6 +44,7 @@
 %   Diag       ... 検出の内訳（除外理由の集計）。nBadBWRef は「旧 h0 なら
 %                  除外されていた試行数」で、参考のために数えるだけである
 %   Rec        ... 試行ごとの素性と検出時刻（i3_plot_example_trials.m が波形確認に使う）
+%                  tPeakVel / mtMs / peakVel も入る（5.6 と同じ定義の MT）
 %
 % 指標の定義:
 %   [1] RT [ms]（参考）
@@ -50,13 +57,19 @@
 %
 %   [2] 踏み込み足 ピーク鉛直GRF [%BW]
 %       g0 の指標1と同一。探索窓は cue → cue + Prm.GRF.WinSec（2 s）。
-%       窓を g0 とそろえてあるので、条件中央値は g0 の図と照合できる。
+%       ★ 2026-09-11：onset が取れた試行だけを積むように変えた。5指標の n を
+%          そろえるため（§3-3 の (f) 直前のコメント）。このぶん g0 の図とは
+%          n が合わなくなった。
 %       ★ ただし 2026-09-10 に「ピークが接地から PrmPk.MaxAfterFCSec 以上
 %          離れていたら試行ごと落とす」判定を追加した（§3-7）。該当は1試行のみ
 %          なので g0 との照合はほぼ従来どおりできる。
 %
 %   [3] Onset → Fzピーク の時間 [ms]
 %       (tPeak - tOnset) / fs * 1000。踏み込み足の接地はこの区間の中にある。
+%
+%   ★ スイング速度ピーク時の Fz2（Rec.fzAtPV）もここで算出するが、V には積まない。
+%      top マーカーに依存するので n が他の5指標とそろわず、i1 の図に混ぜると
+%      同じ図の中で母集団が違うパネルができてしまう。作図は i4 が単独で行う。
 %
 %   [4] 力の立ち上がり速度 [%BW/s]
 %       (Fz2ピーク − Onset 時点の Fz2) / 体重 * 100 / 区間の秒数。
@@ -87,6 +100,7 @@ thisDir     = fileparts( mfilename('fullpath') ) ;
 projectRoot = fileparts( fileparts(thisDir) ) ;
 analysisDir = fullfile(projectRoot, 'Experiments', 'Main experiments', '03_Analysis') ;
 dataDir     = fullfile(analysisDir, 'x3_DataChecked') ;
+resultDir   = fullfile(analysisDir, 'x4_SingleTrialAnalysisResults') ;
 
 addpath(analysisDir)
 
@@ -147,13 +161,15 @@ BWest = nan(1, nS) ;
 
 Diag = struct('nGo',0, 'nBadBWRef',0, 'nNoFootContact',0, 'nShortWin',0, ...
               'nNoPeakFx',0, 'nNoOnset',0, 'nPeakBeforeOnset',0, 'nOK',0, ...
-              'nTrimmedNan',0, 'nRTShort',0, 'nPeakFarFromFC',0) ;
+              'nTrimmedNan',0, 'nRTShort',0, 'nPeakFarFromFC',0, ...
+              'nBadTop',0, 'nNoMT',0) ;
 
 % ★ 波形確認（i3）用。5指標すべてを算出できた試行の素性と検出時刻を残す。
 %   ここに残さないと、あとから「どの試行のどのサンプルを測ったか」を再現できない。
 Rec = struct('iS',{}, 'sub',{}, 'ic',{}, 'it',{}, 'tc',{}, 'tOnset',{}, ...
              'tFC',{}, 'tPeak',{}, 'fs',{}, 'bw',{}, 'rtMs',{}, 'pkBW',{}, ...
-             'onsetBW',{}, 'dtMs',{}, 'rfd',{}, 'baseFx',{}, 'thrFx',{}) ;
+             'onsetBW',{}, 'dtMs',{}, 'rfd',{}, 'baseFx',{}, 'thrFx',{}, ...
+             'tPeakVel',{}, 'fsM',{}, 'mtMs',{}, 'peakVel',{}, 'fzAtPV',{}) ;
 RTAll      = [] ;   % 診断用に RT を全部ためる
 OnsetBWAll = [] ;   % 診断用に Onset 時点の Fz2 [%BW] をためる
 RatioAll   = [] ;   % 診断用に (1 - onsetBW/pkBW) をためる
@@ -161,6 +177,10 @@ RatioAll   = [] ;   % 診断用に (1 - onsetBW/pkBW) をためる
 for iS = 1:nS
 
     load( fullfile(dataDir, sprintf('Data%02d.mat', SubjectArray(iS))) )
+    % ★ 除外基準①（top マーカーの欠損）は x4 の判定をそのまま使う。
+    %   MT がバット先端のピーク速度に依存するようになったので、ここから必要になった。
+    load( fullfile(resultDir, sprintf('SingleTrialAnalysisResults%02d.mat', ...
+                                      SubjectArray(iS))) )
     nTrial = size(DataArray, 1) ;
 
     % ==== 3-0. 使える試行だけを先に整形しておく ====
@@ -304,10 +324,29 @@ for iS = 1:nS
                 continue
             end
 
-            % --- (c) 指標2 ---
-            % ★ 指標の追加はここ（2/2）。ピークだけは onset の成否によらず入れる
-            %    （g0 の図と n をそろえて照合できるようにするため）。
-            V{iS,ic,2} = [V{iS,ic,2} ; pkBW] ;
+            % --- (b2) バット先端のピーク速度（5.6_プロット/p0 の §3-5 と同一）---
+            %  MT の終点をここに合わせるために算出する。探索窓は cue → 記録末尾で、
+            %  5.6 と同じにしてある（窓を変えると 5.6 の MT と値が合わなくなる）。
+            %  ★ 除外基準①は x4 が付けた IsBadTop をそのまま使う。判定を二重に
+            %    実装すると、5.6 の図と 5.8 の図で落ちる試行が食い違う。
+            D   = DataArray(it, ic) ;
+            Rx  = SingleTrialResultArray(it, ic) ;
+            fsM = D.FrameRate ;
+
+            tPeakVel = NaN ; peakVel = NaN ;
+            if Rx.IsBadTop
+                Diag.nBadTop = Diag.nBadTop + 1 ;
+            elseif isfield(D.Markers, Prm.Excl.TopMarkerName)
+                topMk   = D.Markers.(Prm.Excl.TopMarkerName) ;
+                velNorm = sum(diff3p(topMk, 1/fsM).^2, 2).^0.5 ;   % [mm/s]
+
+                % ピークは cue 以降に限る（構え直しを拾わないため）。
+                % マーカーは 250 Hz、アナログは 1000 Hz なので番号を直してから探す。
+                iGoFrame   = max(1, round(tc / (fsA/fsM))) ;
+                [pv, iRel] = max( velNorm(iGoFrame:end) ) ;
+                tPeakVel   = iRel + iGoFrame - 1 ;
+                peakVel    = pv / 1000 ;                           % [m/s]
+            end
 
             % --- (d) RT 検出（5.6_プロット/untitled.m と同一）---
             %  探索窓は cue → 踏み込み足の接地。
@@ -346,7 +385,16 @@ for iS = 1:nS
             dFzBW     = pkBW - onsetBW ;                       % [%BW]
             rfd       = dFzBW / dtSec ;                        % [%BW/s]
 
+            % ★ 指標の追加はここ（2/2）。
+            % ★ 2026-09-11：ピーク（指標2）もここで積むようにした。以前は (c) の
+            %   位置、つまり RT 検出のゲートより手前で積んでいたので、onset が
+            %   取れなかった試行でもピークだけ残り、指標2 の n だけ他より多かった
+            %   （73/75/49/49 対 72/66/45/41）。同じ図の中で指標ごとに母集団が
+            %   違うと、条件間の差を読むときに何と何を比べているのか分からない。
+            %   ★ 引き換えに、5.7 の g0 が出したピークの図とは n が合わなくなる。
+            %     照合したいときは、この行を (d) の手前に戻せばよい。
             V{iS,ic,1} = [V{iS,ic,1} ; rtMs] ;
+            V{iS,ic,2} = [V{iS,ic,2} ; pkBW] ;
             V{iS,ic,3} = [V{iS,ic,3} ; dtSec*1000] ;
             V{iS,ic,4} = [V{iS,ic,4} ; rfd] ;
 
@@ -357,15 +405,44 @@ for iS = 1:nS
             %        小さければ 1/dtSec そのものになる。§3-5 で実測して確認すること。
             V{iS,ic,5} = [V{iS,ic,5} ; rfd / pkBW] ;
 
+            % --- スイング速度がピークのときの踏み込み足 Fz2 [%BW]（i4 が使う）---
+            %  ★ V には積まない。top マーカーに依存するので n が他とそろわず、
+            %    i1 の図に混ぜられない（指標定義のコメント参照）。Rec に残す。
+            %  ★ tPeakVel はマーカー（250 Hz）の番号なので、アナログ（1000 Hz）の
+            %    番号に直してから Fz2 を読む。直さずに読むと 4 倍ずれた場所の値を拾う。
+            fzAtPV = NaN ;
+            if ~isnan(tPeakVel)
+                iPV    = min( max(1, round(tPeakVel * fsA/fsM)), n ) ;
+                fzAtPV = T.F2g(iPV,3) / bw * 100 ;
+            end
+
             % 診断：上の恒等式がどれだけ 1/dtSec に近いかを見るための材料
             OnsetBWAll = [OnsetBWAll ; onsetBW] ;                            %#ok<AGROW>
             RatioAll   = [RatioAll   ; (rfd/pkBW) * dtSec] ;                 %#ok<AGROW>
 
+            % --- (f) MT（5.6 の定義：onset → バット先端のピーク速度）---
+            %  ★ マーカー 250 Hz とアナログ 1000 Hz なので、どちらも秒に直してから引く。
+            %    サンプル番号のまま引くと 4 倍ずれる。
+            %  ★ ここは i0 の指標には入れない（5.8 の5指標は床反力ベースのまま）。
+            %    Rec に残して i3 の作図だけが使う。
+            mtMs = NaN ;
+            if ~isnan(tPeakVel)
+                mtMs = (tPeakVel/fsM - tOnset/fsA) * 1000 ;
+                if mtMs <= 0
+                    % ピークが onset より前。区間が負になるので値を出さない。
+                    mtMs = NaN ;
+                end
+            end
+            if isnan(mtMs), Diag.nNoMT = Diag.nNoMT + 1 ; end
+
             % ★ 波形確認（i3）用の記録。ここに来るのは5指標すべてが算出できた試行だけ。
+            %   mtMs だけは NaN のことがある（top マーカーの欠損など）。
             Rec(end+1) = struct('iS',iS, 'sub',SubjectArray(iS), 'ic',ic, 'it',it, ...
                 'tc',tc, 'tOnset',tOnset, 'tFC',tFC, 'tPeak',tPeak, 'fs',fsA, ...
                 'bw',bw, 'rtMs',rtMs, 'pkBW',pkBW, 'onsetBW',onsetBW, ...
-                'dtMs',dtSec*1000, 'rfd',rfd, 'baseFx',baseFx, 'thrFx',thrFx) ; %#ok<SAGROW>
+                'dtMs',dtSec*1000, 'rfd',rfd, 'baseFx',baseFx, 'thrFx',thrFx, ...
+                'tPeakVel',tPeakVel, 'fsM',fsM, 'mtMs',mtMs, ...
+                'peakVel',peakVel, 'fzAtPV',fzAtPV) ; %#ok<SAGROW>
 
             Diag.nOK = Diag.nOK + 1 ;
         end
@@ -392,6 +469,8 @@ fprintf('  onset 未検出               : %d\n', Diag.nNoOnset) ;
 fprintf('  ピークが onset より前      : %d\n', Diag.nPeakBeforeOnset) ;
 fprintf('  ピークが接地から %.1f s 以上離れて除外 : %d\n', ...
     PrmPk.MaxAfterFCSec, Diag.nPeakFarFromFC) ;
+fprintf('  【除外①】top の欠損（窓内）: %d\n', Diag.nBadTop) ;
+fprintf('  MT が出せない（①・ピークが onset より前）: %d\n', Diag.nNoMT) ;
 fprintf('  4指標すべて算出できた試行  : %d\n', Diag.nOK) ;
 fprintf('  うち RT < %d ms            : %d (%.1f%%)\n', ...
     Prm.RT.FloorMs, Diag.nRTShort, Diag.nRTShort/max(1,numel(RTAll))*100) ;
