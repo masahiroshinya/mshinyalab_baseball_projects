@@ -12,8 +12,10 @@
 %   i0_calc_rfd_metrics.m が作る V, BWest, MetricName,
 %   SubjectArray, ConditionNameArray, nS, nC, nM
 %
-% 出力:
-%   条件別_全被験者_Fz立ち上がり_新除外基準.png（このスクリプトと同じフォルダ）
+% 出力（このスクリプトと同じフォルダ）:
+%   条件別_全被験者_Fz立ち上がり_新除外基準.png ... 5指標を1枚にまとめた図
+%   個別グラフ/01_RT.png 〜 05_立ち上がり速度わりピーク力.png
+%     ... 同じパネルを指標ごとに1枚ずつ書き出したもの（スライドや原稿に貼る用）
 %
 % 備考:
 %   - 算出は i0 に分離した。指標の定義は i0 のヘッダを参照。
@@ -56,6 +58,13 @@ figH = topPad_px + axH_px*nRow + (rowPitch - axH_px)*(nRow-1) + botPad_px ;
 fig = figure('Color', 'w', 'Position', [80 80 1500 figH]) ;
 
 rng(0)   % ジッタを再現可能にする
+
+% ★ 個別 PNG は、描き終えたパネルを copyobj で新しい図に移して書き出す。
+%   同じ描画コードを2回書くと、片方だけ直して見た目がずれる。
+%   ファイル名は %・÷・→ を避けた別名にする（そのままだとパスに使えない）。
+AxList   = gobjects(1, nM) ;
+FileName = {'RT', 'ピーク鉛直GRF', 'OnsetからFzピークまでの時間', ...
+            '力の立ち上がり速度', '立ち上がり速度わりピーク力'} ;
 
 for im = 1:nM
 
@@ -141,6 +150,8 @@ for im = 1:nM
         'GridAlpha', 1, 'Layer', 'bottom', 'Box', 'off') ;
     title(ax, MetricName{im}, 'FontSize', 13, 'FontWeight', 'bold', ...
         'HorizontalAlignment', 'left', 'Units', 'normalized', 'Position', [0 1.13 0]) ;
+
+    AxList(im) = ax ;
 end
 
 annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
@@ -176,7 +187,26 @@ annotation('textbox', [0 8/figH 1 245/figH], 'String', ...
     'FontSize', 10, 'Color', [0.30 0.30 0.30], 'EdgeColor', 'none') ;
 
 
-%% ---- 6. PNG 出力 ----
+%% ---- 6. 指標ごとの個別 PNG ----
+
+% ★ 高さは上に 0.15 ぶん空ける。パネルのタイトルと中央値の数字は軸の外
+%   （normalized で 1.13、データ座標で yHi）に置いてあるので、詰めると切れる。
+outDir = fullfile(thisDir, '個別グラフ') ;
+if ~isfolder(outDir), mkdir(outDir) ; end
+
+for im = 1:nM
+    figOne = figure('Color', 'w', 'Position', [80 80 760 470], 'Visible', 'off') ;
+    axOne  = copyobj(AxList(im), figOne) ;
+    set(axOne, 'Position', [0.10 0.10 0.86 0.75]) ;
+
+    onePath = fullfile(outDir, sprintf('%02d_%s.png', im, FileName{im})) ;
+    exportgraphics(figOne, onePath, 'Resolution', 200) ;
+    fprintf('出力しました: %s\n', onePath) ;
+    close(figOne)
+end
+
+
+%% ---- 7. PNG 出力 ----
 
 outPath = fullfile(thisDir, '条件別_全被験者_Fz立ち上がり_新除外基準.png') ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;

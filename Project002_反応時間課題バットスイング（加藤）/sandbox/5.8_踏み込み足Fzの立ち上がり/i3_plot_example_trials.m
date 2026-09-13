@@ -55,6 +55,13 @@ thisDir = fileparts( mfilename('fullpath') ) ;
 
 PickSubject = [0, 1:nS] ;
 
+% ★ 中央値に何番目に近い試行を代表にするか（2026-09-13）。
+%   1 なら最も近い試行。2 にすると次に近い試行になる。
+%   simple の代表（S05 試行12）が二峰性でピークが読みにくかったため 2 にした。
+%   「中央値に近い」という選び方は変えずに順位だけずらすので、選定の理屈は
+%   そのまま説明できる。★ 4条件・全被験者ぶんに一律で効く。
+PickRank = 2 ;
+
 xLim     = [-0.5 1.5] ;     % cue からの表示範囲 [s]
 lastSub  = -1 ;             % 読み込み済みの .mat（同じものを何度も読まない）
 FigList  = gobjects(0) ;    % 出力する図。★ 全部描いてから、まとめて1回だけ確認する
@@ -91,9 +98,11 @@ for ip = 1:numel(PickSubject)
         %   混ぜると、縦軸をそろえた4枚組という図の読み方が崩れる。
         if isempty(idx), hasAll = false ; break, end
 
-        v       = [Rec(idx).rfd] ;
-        [~, k]  = min( abs(v - median(v)) ) ;
-        Sel(ic) = Rec(idx(k)) ;
+        % ★ 該当が PickRank より少ない条件では、いちばん遠い試行で打ち止めにする。
+        %   min を外すと添字が範囲外になって落ちる。
+        v        = [Rec(idx).rfd] ;
+        [~, ord] = sort( abs(v - median(v)) ) ;
+        Sel(ic)  = Rec( idx( ord(min(PickRank, numel(ord))) ) ) ;
     end
 
     if ~hasAll
