@@ -20,8 +20,9 @@
 %   i0_calc_rfd_metrics.m が作る Rec, ConditionNameArray, nC, dataDir, bG/aG
 %
 % 出力（このスクリプトと同じフォルダ）:
-%   代表試行_波形確認_新除外基準.png  ... 全被験者からまとめて代表を選んだ図
-%   代表試行_波形確認_S01.png 〜 S05.png ... 被験者ごとに代表を選んだ図
+%   代表試行波形_全被験者.png  ... 全被験者からまとめて代表を選んだ図
+%   代表試行プロット/代表試行波形_S01.png 〜 S05.png
+%     ... 被験者ごとに代表を選んだ図（5枚をフォルダにまとめてある）
 %   ★ 自動では書き出さない。図を見たうえでコマンドウィンドウで y と答えたときだけ
 %     出力する。確認は枚数ぶん尋ねず、まとめて1回だけ聞く。
 %
@@ -71,12 +72,18 @@ for ip = 1:numel(PickSubject)
 
     iPick = PickSubject(ip) ;
 
+    % ★ 被験者ごとの5枚は 代表試行プロット/ にまとめる（2026-09-14）。
+    %   全被験者の1枚だけはフォルダ直下に残す。5枚と性格が違う図なので、
+    %   同じ場所に置くと「6枚組の1枚」に見えてしまう。
     if iPick == 0
         tagText = '全被験者' ;
-        outName = '代表試行_波形確認_新除外基準.png' ;
+        % ★ ファイル名は図の中身を先頭に置く（2026-09-14。i1 と同じ方針）。
+        %   「新除外基準」は旧基準の図がもう無いので落とした。
+        outName = '代表試行波形_全被験者.png' ;
     else
         tagText = sprintf('S%02d', SubjectArray(iPick)) ;
-        outName = sprintf('代表試行_波形確認_S%02d.png', SubjectArray(iPick)) ;
+        outName = fullfile('代表試行プロット', ...
+            sprintf('代表試行波形_S%02d.png', SubjectArray(iPick))) ;
     end
 
 
@@ -214,6 +221,11 @@ for ip = 1:numel(PickSubject)
 
     FigList(end+1)  = fig ;                                                 %#ok<SAGROW>
     PathList{end+1} = fullfile(thisDir, outName) ;                          %#ok<SAGROW>
+
+    % ★ 出力先のフォルダが無ければ作る。exportgraphics は親フォルダを
+    %   作ってくれないので、無いと書き出しの段階で落ちる。
+    outParent = fileparts(PathList{end}) ;
+    if ~isfolder(outParent), mkdir(outParent) ; end
 end
 
 

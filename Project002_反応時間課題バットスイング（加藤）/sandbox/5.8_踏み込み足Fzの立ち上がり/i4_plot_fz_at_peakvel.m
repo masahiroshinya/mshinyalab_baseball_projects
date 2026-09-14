@@ -11,7 +11,7 @@
 %   SubjectArray, ConditionNameArray, nS, nC, Diag
 %
 % 出力:
-%   条件別_全被験者_スイング速度ピーク時Fz.png（このスクリプトと同じフォルダ）
+%   スイング速度ピーク時Fz_条件別_全被験者.png（このスクリプトと同じフォルダ）
 %
 % 指標の定義:
 %   スイング速度ピーク時の踏み込み足Fz [%BW]
@@ -110,9 +110,10 @@ for iS = 1:nS
     for ic = 1:nC
         if ~isempty(Vfz{iS,ic}), subjMed(iS,ic) = median(Vfz{iS,ic}) ; end
     end
-    plot(ax, 1:nC, subjMed(iS,:), '-', 'Color', lineColor, 'LineWidth', 1.0, ...
+    % ★ 色は i0 の SubjColor（図をまたいで同じ被験者が同じ色になる）。
+    plot(ax, 1:nC, subjMed(iS,:), '-', 'Color', SubjColor(iS,:), 'LineWidth', 1.6, ...
         'Marker', 'o', 'MarkerSize', 5, 'MarkerFaceColor', 'w', ...
-        'MarkerEdgeColor', lineColor*0.8) ;
+        'MarkerEdgeColor', SubjColor(iS,:)) ;
 end
 
 % 条件の中央値（黒の太い横線）と四分位範囲（縦線）
@@ -137,7 +138,8 @@ end
 for k = 1:numel(order)
     iS = order(k) ;
     text(ax, nC+0.16, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
-        'FontSize', 10, 'Color', [0.35 0.35 0.35], 'VerticalAlignment', 'middle') ;
+        'FontSize', 10, 'FontWeight', 'bold', 'Color', SubjColor(iS,:), ...
+        'VerticalAlignment', 'middle') ;
 end
 
 set(ax, 'XLim', [0.5 nC+0.55], 'YLim', [yLo yHi], ...
@@ -152,7 +154,7 @@ annotation('textbox', [0 (figH-42)/figH 1 34/figH], 'String', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
 annotation('textbox', [0 (figH-72)/figH 1 30/figH], 'String', ...
-    ['黒い横線 = 条件の中央値（縦線は四分位範囲） / 灰の折れ線 = 被験者ごとの中央値 / ' ...
+    ['黒い横線 = 条件の中央値（縦線は四分位範囲） / 色つきの折れ線 = 被験者ごとの中央値（色は被験者に対応） / ' ...
      '青点 = 個々の試行   ※ free は自己ペース条件のため参考値（網掛け）'], ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 10.5, 'Color', [0.30 0.30 0.30], 'EdgeColor', 'none') ;
@@ -171,6 +173,7 @@ annotation('textbox', [0 8/figH 1 100/figH], 'String', ...
 
 %% ---- 7. PNG 出力 ----
 
-outPath = fullfile(thisDir, '条件別_全被験者_スイング速度ピーク時Fz.png') ;
+% ★ ファイル名は指標名を先頭に置く（2026-09-14。i1 と同じ方針）。
+outPath = fullfile(thisDir, 'スイング速度ピーク時Fz_条件別_全被験者.png') ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('出力しました: %s\n', outPath) ;
