@@ -40,8 +40,21 @@ thisDir = fileparts( mfilename('fullpath') ) ;
 
 %% ---- 5. 描画（5.7 の条件別図と同じ体裁）----
 
-dotColor  = [0.45 0.62 0.85] ;
 lineColor = [0.60 0.60 0.60] ;
+
+% ★ 条件の横位置（2026-09-15）。x 座標はすべて xC を経由させる（直に ic を
+%   使うと、間隔を変えたときに片方だけ取り残されてずれる）。
+% ★ 間隔を広げても、被験者ごとのずらし幅を同じ比率で広げると、軸が自動で
+%   合わせにくるので絵は1ミリも変わらない。隙間を作りたいなら
+%   「条件の間隔だけ」を広げ、ずらし幅は据え置く。
+CondPitch  = 1.6 ;
+xC         = 1 + ((1:nC) - 1) * CondPitch ;
+
+% ★ 条件の中での被験者ごとの横位置。SubjColor と同じ並び。
+%   ずらし幅は間隔に比例させない（上のとおり）。両端 ± 0.38、ジッタ ± 0.06 で
+%   合計 ± 0.44 なので、条件どうしの間に 0.72 の隙間が空く。
+SubjOffset = linspace(-0.38, 0.38, nS) ;
+JitterW    = 0.12 ;
 shadeCol  = [0.93 0.93 0.93] ;
 
 % ---- パネルの配置を nM から決める ----
@@ -55,7 +68,9 @@ botPad_px = 265 ;      % 最終行のパネル下端から図の下端まで（�
 
 figH = topPad_px + axH_px*nRow + (rowPitch - axH_px)*(nRow-1) + botPad_px ;
 
-fig = figure('Color', 'w', 'Position', [80 80 1500 figH]) ;
+% ★ 条件の間隔を広げたぶん、図の幅も広げる。幅を据え置くと
+%   1条件あたりの px が減り、点の塊が細くなるだけで読みやすくならない。
+fig = figure('Color', 'w', 'Position', [80 80 1900 figH]) ;
 
 rng(0)   % ジッタを再現可能にする
 
@@ -94,15 +109,23 @@ for im = 1:nM
     yHi = hi + pad*0.6 ;
 
     % free の網掛け（参考値）— 波形より先に描く
-    patch(ax, [0.5 1.5 1.5 0.5], [yLo yLo yHi yHi], shadeCol, ...
+    patch(ax, xC(1) + CondPitch*[-0.5 0.5 0.5 -0.5], [yLo yLo yHi yHi], shadeCol, ...
         'EdgeColor', 'none') ;
 
-    % 個々の試行（ジッタ散布）
+    % 個々の試行（被験者ごとに色を変え、横にずらして描く）
+    % ★ 2026-09-15：全被験者ぶんを1色・同じ位置に重ねていたので、点の塊が
+    %   どの被験者のものか読めなかった。折れ線と同じ色にし、条件の中で
+    %   被験者ごとに横位置を分ける。
+    % ★ ずらし幅は条件の中央値の横線（ic ± 0.30）に収まる範囲にする。
+    %   はみ出すと隣の条件の点と混ざって、どちらの条件か分からなくなる。
     for ic = 1:nC
-        a = allByCond{ic} ;
-        xj = ic + (rand(numel(a),1) - 0.5) * 0.36 ;
-        scatter(ax, xj, a, 16, dotColor, 'filled', 'MarkerFaceAlpha', 0.55, ...
-            'MarkerEdgeColor', 'none') ;
+        for iS = 1:nS
+            a = V{iS,ic,im} ;
+            if isempty(a), continue, end
+            xj = xC(ic) + SubjOffset(iS) + (rand(numel(a),1) - 0.5) * JitterW ;
+            scatter(ax, xj, a, 16, SubjColor(iS,:), 'filled', ...
+                'MarkerFaceAlpha', 0.60, 'MarkerEdgeColor', 'none') ;
+        end
     end
 
     % 被験者ごとの中央値（灰の折れ線）
@@ -114,7 +137,7 @@ for im = 1:nM
         % ★ 灰一色だと折れ線の交差で被験者を追えない。i0 が決めた色を使う
         %   （図をまたいで同じ被験者が同じ色になる）。線を太くしないと
         %   細線では色が判別しにくい。
-        plot(ax, 1:nC, subjMed(iS,:), '-', 'Color', SubjColor(iS,:), 'LineWidth', 1.6, ...
+        plot(ax, xC, subjMed(iS,:), '-', 'Color', SubjColor(iS,:), 'LineWidth', 1.6, ...
             'Marker', 'o', 'MarkerSize', 5, 'MarkerFaceColor', 'w', ...
             'MarkerEdgeColor', SubjColor(iS,:)) ;
     end
@@ -123,14 +146,16 @@ for im = 1:nM
     for ic = 1:nC
         a = allByCond{ic} ;
         m = median(a) ; q1 = quantile(a,0.25) ; q3 = quantile(a,0.75) ;
-        plot(ax, [ic ic], [q1 q3], 'k-', 'LineWidth', 1.2) ;
-        plot(ax, ic + [-0.30 0.30], [m m], 'k-', 'LineWidth', 3.0) ;
+        plot(ax, [xC(ic) xC(ic)], [q1 q3], 'k-', 'LineWidth', 1.2) ;
+        % ★ 横線の幅は点の広がりに合わせる。点だけ広げると、横線が
+        %   中央の被験者のものに見えてしまう。
+        plot(ax, xC(ic) + [-0.46 0.46], [m m], 'k-', 'LineWidth', 3.0) ;
         % 上部に中央値、下部に n
         % 1/s の指標は 1〜2 のオーダーなので、小数1桁だと条件差が潰れる
         if abs(m) < 10, medFmt = '%.2f' ; else, medFmt = '%.1f' ; end
-        text(ax, ic, yHi, sprintf(medFmt, m), 'HorizontalAlignment', 'center', ...
+        text(ax, xC(ic), yHi, sprintf(medFmt, m), 'HorizontalAlignment', 'center', ...
             'VerticalAlignment', 'bottom', 'FontSize', 15, 'FontWeight', 'bold') ;
-        text(ax, ic, yLo + 0.02*(yHi-yLo), sprintf('n=%d', numel(a)), ...
+        text(ax, xC(ic), yLo + 0.02*(yHi-yLo), sprintf('n=%d', numel(a)), ...
             'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', ...
             'FontSize', 9, 'Color', [0.45 0.45 0.45]) ;
     end
@@ -145,13 +170,13 @@ for im = 1:nM
         iS = order(k) ;
         % ★ ラベルも線と同じ色にする。重なり回避で位置をずらしているので、
         %   色がないとどの線のラベルか分からなくなる。
-        text(ax, nC+0.16, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
+        text(ax, xC(nC) + 0.16*CondPitch, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
             'FontSize', 10, 'FontWeight', 'bold', 'Color', SubjColor(iS,:), ...
             'VerticalAlignment', 'middle') ;
     end
 
-    set(ax, 'XLim', [0.5 nC+0.55], 'YLim', [yLo yHi], ...
-        'XTick', 1:nC, 'XTickLabel', ConditionNameArray, ...
+    set(ax, 'XLim', [xC(1)-CondPitch*0.5, xC(nC)+CondPitch*0.55], 'YLim', [yLo yHi], ...
+        'XTick', xC, 'XTickLabel', ConditionNameArray, ...
         'FontSize', 11, 'YGrid', 'on', 'GridColor', [0.85 0.85 0.85], ...
         'GridAlpha', 1, 'Layer', 'bottom', 'Box', 'off') ;
     title(ax, MetricName{im}, 'FontSize', 13, 'FontWeight', 'bold', ...
@@ -168,7 +193,7 @@ annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
 
 annotation('textbox', [0 (figH-78.75)/figH 1 33.6/figH], 'String', ...
     ['黒い横線 = 条件の中央値（縦線は四分位範囲） / 色つきの折れ線 = 被験者ごとの中央値（色は被験者に対応） / ' ...
-     '青点 = 個々の試行   ※ free は自己ペース条件のため参考値（網掛け）'], ...
+     '点 = 個々の試行（被験者ごとに横にずらしてある）   ※ free は自己ペース条件のため参考値（網掛け）'], ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 10.5, 'Color', [0.30 0.30 0.30], 'EdgeColor', 'none') ;
 
@@ -201,7 +226,7 @@ outDir = fullfile(thisDir, '個別グラフ') ;
 if ~isfolder(outDir), mkdir(outDir) ; end
 
 for im = 1:nM
-    figOne = figure('Color', 'w', 'Position', [80 80 760 470], 'Visible', 'off') ;
+    figOne = figure('Color', 'w', 'Position', [80 80 1150 480], 'Visible', 'off') ;
     axOne  = copyobj(AxList(im), figOne) ;
     set(axOne, 'Position', [0.10 0.10 0.86 0.75]) ;
 
