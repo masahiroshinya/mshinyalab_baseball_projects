@@ -1,11 +1,15 @@
-# 論文メモ: Orishimo et al. (2023)
+# 論文メモ: Orishimo et al. (2024)
 
 ## 文献情報
 - **タイトル**: Lower extremity kinematic and kinetic factors associated with bat speed at ball contact during the baseball swing
 - **著者**: Karl F. Orishimo, Ian J. Kremenic, Edward Modica Jr., Takumi Fukunaga, Malachy P. McHugh, Srino Bharam
-- **発行年**: 2023年
-- **掲載誌**: Sports Biomechanics
+- **発行年**: **2024年**（オンライン先行公開は2023年10月18日）
+- **掲載誌**: Sports Biomechanics **23(12)：3406-3417**
 - **DOI**: 10.1080/14763141.2023.2269418
+- **PMID**: 37853750
+
+> **書誌情報の更新（2026-09-16）**　本フォルダの原典PDFはオンライン先行公開版のため巻・号・ページが印字されておらず、従来は発行年を 2023年としていた。PubMed（PMID 37853750）で最終掲載情報 `Sports Biomech. 2024 Dec;23(12):3406-3417` を確認したため、**発行年を 2024年に改めた**。あわせて本フォルダ名を `..._Orishimo_et_al_2023` から `..._Orishimo_et_al_2024` に変更し、原稿本文・`引用番号対応表.md` の表記も 2024 に統一した。
+> なお **DOI に含まれる 2023 は発行年ではなく識別子の一部**であるため、そのままである。フォルダ内のPDFファイル名（`01_Orishimo et al. - 2023 - ...pdf` 等）は、入手時のファイル名を保持する方針で変更していない。
 
 ## 概要
 
