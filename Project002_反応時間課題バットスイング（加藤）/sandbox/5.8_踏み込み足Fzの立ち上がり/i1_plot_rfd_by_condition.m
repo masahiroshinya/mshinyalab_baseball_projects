@@ -27,7 +27,11 @@
 %     2 行決め打ちから変更）。列数は 2 のままで、指標が増えると行が足される。
 %     余白は px で決めてから正規化しているので、行が増えても見た目が変わらない。
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; i1_plot_rfd_by_condition）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 % i0 を先頭で呼ぶ。i0 の中に clear ; close all があるので、
@@ -170,7 +174,9 @@ for im = 1:nM
         iS = order(k) ;
         % ★ ラベルも線と同じ色にする。重なり回避で位置をずらしているので、
         %   色がないとどの線のラベルか分からなくなる。
-        text(ax, xC(nC) + 0.16*CondPitch, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
+    % ★ 2026-09-18：ラベルの x を中央値の横線の右端より外に出した。被験者が
+    %   1人だと、その中央値が条件の中央値と一致して黒い横線にラベルが重なる。
+        text(ax, xC(nC) + 0.34*CondPitch, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
             'FontSize', 10, 'FontWeight', 'bold', 'Color', SubjColor(iS,:), ...
             'VerticalAlignment', 'middle') ;
     end
@@ -187,7 +193,7 @@ end
 
 annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
     sprintf(['反応時間課題バットスイング：踏み込み足 Fz の立ち上がり' ...
-             '（5被験者・新しい除外基準／Go 試行 %d 本）'], Diag.nGo), ...
+             '（%s・新しい除外基準／Go 試行 %d 本）'], GroupLabel, Diag.nGo), ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
@@ -197,11 +203,17 @@ annotation('textbox', [0 (figH-78.75)/figH 1 33.6/figH], 'String', ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 10.5, 'Color', [0.30 0.30 0.30], 'EdgeColor', 'none') ;
 
+% ★ 2026-09-18：体重の一覧は BWest から組み立てる。以前は S01〜S05 の値を
+%   文字列で直書きしていたので、一部の被験者だけを解析すると脚注だけが
+%   別人の値を示していた。
+bwText = strjoin( arrayfun(@(k) sprintf('S%02d %.1f', SubjectArray(k), BWest(k)/9.81), ...
+                           1:nS, 'UniformOutput', false), '・' ) ;
+
 % 定義の断り書きは下端に置く（上に置くとパネルのタイトルと衝突する）。
 % ★ annotation は sprintf の書式を解釈しないので、パーセント記号は %% ではなく % と書く。
 annotation('textbox', [0 8/figH 1 245/figH], 'String', ...
     {['RT は 5.6 の定義（Fx がベースライン + 0.20 ×（窓内ピーク − ベース）を 20 ms 超えた時点）。' ...
-      '分母は記録末端 0.5 s から推定した体重（S01 74.6・S02 87.4・S03 60.5・S04 72.3・S05 69.9 kg）'], ...
+      '分母は記録末端 0.5 s から推定した体重（' bwText ' kg）'], ...
      ['力の立ち上がり速度 =（Fz2ピーク − Onset 時点の Fz2）÷ 体重 × 100 ÷（Onset → ピーク の秒数）。' ...
       'ピークの探索窓は cue から 2 s（5.7 の g0 と同じ）'], ...
      ['立ち上がり速度 ÷ ピーク力 [1/s] は、達成した力の大きさで割った正規化 RFD。' ...
@@ -230,7 +242,7 @@ for im = 1:nM
     axOne  = copyobj(AxList(im), figOne) ;
     set(axOne, 'Position', [0.10 0.10 0.86 0.75]) ;
 
-    onePath = fullfile(outDir, sprintf('%02d_%s.png', im, FileName{im})) ;
+    onePath = fullfile(outDir, sprintf('%02d_%s%s.png', im, FileName{im}, NameSuffix)) ;
     exportgraphics(figOne, onePath, 'Resolution', 200) ;
     fprintf('出力しました: %s\n', onePath) ;
     close(figOne)
@@ -242,6 +254,6 @@ end
 % ★ ファイル名は指標名を先頭に置く（2026-09-14）。フォルダを開いたときに
 %   何のグラフか一目で分かるようにするため。「新除外基準」は旧基準の図が
 %   もう無いので落とした。
-outPath = fullfile(thisDir, 'Fz立ち上がり_条件別_全被験者.png') ;
+outPath = fullfile(thisDir, sprintf('Fz立ち上がり_条件別_%s.png', GroupTag)) ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('出力しました: %s\n', outPath) ;

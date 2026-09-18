@@ -91,7 +91,11 @@
 %   - ★ addpath は parameters を呼ぶ前に済ませる（5.7 の技術説明 §4-4）。
 %   - 指標を増やすときは「★ 指標の追加はここ」の 2 か所（MetricName と算出）だけ触る。
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; i1_plot_rfd_by_condition）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 
@@ -112,19 +116,40 @@ fprintf('parameters.m の場所: %s\n', which('parameters')) ;
 
 Prm = parameters ;
 
-SubjectArray       = 1:5 ;
+if exist('TargetSubjects', 'var') && ~isempty(TargetSubjects)
+    SubjectArray = TargetSubjects ;
+else
+    SubjectArray = 1:5 ;
+end
+
+% ★ 出力ファイル名と表題に使う呼び名（2026-09-18）。
+%   被験者が1人なら「S06」のように個人名にする。全被験者の図を
+%   個人の図で上書きしないための仕掛けでもある。
+if isscalar(SubjectArray)
+    GroupTag   = sprintf('S%02d', SubjectArray) ;
+    GroupLabel = GroupTag ;
+    NameSuffix = ['_' GroupTag] ;      % 個別グラフのファイル名に足す接尾辞
+else
+    GroupTag   = '全被験者' ;
+    GroupLabel = sprintf('%d被験者', numel(SubjectArray)) ;
+    NameSuffix = '' ;
+end
 ConditionNameArray = {'free', 'simple', 'gonogo', 'gostop'} ;
 
 % ★ 被験者ごとの色（2026-09-14）。i1・i2・i4 が共通で使う。
 %   同じ被験者が図をまたいで同じ色になるように、算出側で一度だけ決める。
 %   色は Okabe & Ito のカラーユニバーサルデザイン推奨色から5色。
 %   グレースケール印刷でも明度が分かれ、2型・3型色覚でも区別できる。
-%   ★ 行の順序は SubjectArray に対応する。被験者を増やすときはここに足す。
-SubjColor = [0.000 0.447 0.698 ;    % S01  青
-             0.835 0.369 0.000 ;    % S02  朱
-             0.000 0.620 0.451 ;    % S03  緑
-             0.800 0.475 0.655 ;    % S04  紫
-             0.902 0.624 0.000] ;   % S05  橙
+%   ★ 2026-09-18：行を被験者 ID で引くように変えた。以前は SubjectArray の
+%     並び順で引いていたので、一部の被験者だけを解析すると別人の色になった。
+%     被験者を増やすときはここに 1 行足す。
+SubjColorAll = [0.000 0.447 0.698 ;    % S01  青
+                0.835 0.369 0.000 ;    % S02  朱
+                0.000 0.620 0.451 ;    % S03  緑
+                0.800 0.475 0.655 ;    % S04  紫
+                0.902 0.624 0.000 ;    % S05  橙
+                0.337 0.706 0.914] ;   % S06  空色
+SubjColor = SubjColorAll(SubjectArray, :) ;
 
 % ★ 指標の追加はここ（1/2）。名前を足したら 3-3 に算出を足す。
 MetricName = { ...

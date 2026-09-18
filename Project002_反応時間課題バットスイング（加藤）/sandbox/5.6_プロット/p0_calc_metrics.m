@@ -55,7 +55,11 @@
 %
 % 2026-09-10
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; p1_plot_by_condition）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 
@@ -76,7 +80,25 @@ fprintf('parameters.m の場所: %s\n', which('parameters')) ;
 
 Prm = parameters ;
 
-SubjectArray       = 1:5 ;
+if exist('TargetSubjects', 'var') && ~isempty(TargetSubjects)
+    SubjectArray = TargetSubjects ;
+else
+    SubjectArray = 1:5 ;
+end
+
+% ★ 出力ファイル名と表題に使う呼び名（2026-09-18）。
+%   被験者が1人なら「S06」のように個人名にする。全被験者の図を
+%   個人の図で上書きしないための仕掛けでもある。
+if isscalar(SubjectArray)
+    GroupTag   = sprintf('S%02d', SubjectArray) ;
+    GroupLabel = GroupTag ;
+    NameSuffix = ['_' GroupTag] ;      % 個別グラフのファイル名に足す接尾辞
+else
+    GroupTag   = '全被験者' ;
+    GroupLabel = sprintf('%d被験者', numel(SubjectArray)) ;
+    NameSuffix = '' ;
+end
+
 ConditionNameArray = {'free', 'simple', 'gonogo', 'gostop'} ;
 
 MetricName = { ...
@@ -320,6 +342,9 @@ end
 
 % 旧図（2026-08-26、値の範囲で事後フィルタ）との比較。
 % 定義は同じなので、差はまるごと除外基準の違いによるもの。
+% ★ 旧図は S01〜S05 の図なので、対象がそれと違うときは比較しない（2026-09-18）。
+%   母集団が違う数字を並べても差の意味が読めない。
+if isequal(SubjectArray, 1:5)
 fprintf('\n--- 旧図との比較（旧 = 値の範囲による事後フィルタ、217試行）---\n') ;
 OldMed = [258.0 710.0 32.22 43.2 ;      % free
           190.0 553.0 32.66 58.2 ;      % simple
@@ -336,4 +361,5 @@ for im = 1:nM
             ConditionNameArray{ic}, OldMed(ic,im), OldN(ic), ...
             median(a), numel(a), median(a) - OldMed(ic,im)) ;
     end
+end
 end

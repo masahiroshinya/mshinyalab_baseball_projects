@@ -74,8 +74,28 @@ for iSubject = subjects
     for iCondition = 1:nCondition
         conditionName = ConditionNameArray{iCondition} ;
 
+        % ---- S06 の命名ミスを読み込み時に補正する ----
+        %  S06 は計測時に free と simple のファイル名を取り違えて保存した。
+        %  根拠: foreperiod（白LED点灯 → 緑LED点灯）は
+        %        free   = 1.5 s 固定（02_Script/demo_5_4_free_main_experiments.m）
+        %        simple = 1.2〜1.8 s 変動（CSV プロトコルで試行ごとに指定）
+        %        S06 は free*.mat が変動、simple*.mat が 1.5 s 固定で、
+        %        S01〜S05 と逆になっていた（2026-09-17 に全60試行で確認）。
+        %  ここではディスク上のファイル名だけを読み替え、条件の中身
+        %  （ConditionCode / ConditionName）には正しい条件を入れる。
+        %  生データ（04_Data/S06/*.mat）には手を加えない。
+        fileConditionName = conditionName ;
+        if iSubject == 6
+            switch conditionName
+                case 'free'
+                    fileConditionName = 'simple' ;
+                case 'simple'
+                    fileConditionName = 'free' ;
+            end
+        end
+
         % 実在するファイルから試行番号を取得する（欠番があるため決め打ちしない）
-        TrialFileList  = dir(fullfile(rawDataFolder, sprintf('S%02d_%s*.mat', iSubject, conditionName))) ;
+        TrialFileList  = dir(fullfile(rawDataFolder, sprintf('S%02d_%s*.mat', iSubject, fileConditionName))) ;
         TrialNumberArray = nan(1, numel(TrialFileList)) ;
         for iFile = 1:numel(TrialFileList)
             [~, baseName] = fileparts(TrialFileList(iFile).name) ;
@@ -84,12 +104,17 @@ for iSubject = subjects
         TrialNumberArray = sort(TrialNumberArray) ;
 
         nTrial = numel(TrialNumberArray) ; % 試行数
-        fprintf('S%02d %-7s: %d 試行（ファイル番号 %s）\n', ...
-            iSubject, conditionName, nTrial, mat2str(TrialNumberArray)) ;
+        if strcmp(fileConditionName, conditionName)
+            fprintf('S%02d %-7s: %d 試行（ファイル番号 %s）\n', ...
+                iSubject, conditionName, nTrial, mat2str(TrialNumberArray)) ;
+        else
+            fprintf('S%02d %-7s: %d 試行 ← ファイル名 %s（命名ミス補正）（ファイル番号 %s）\n', ...
+                iSubject, conditionName, nTrial, fileConditionName, mat2str(TrialNumberArray)) ;
+        end
 
         for iTrial = 1:nTrial
             trialNumber = TrialNumberArray(iTrial) ; % ファイル名上の試行番号
-            fileName = [sprintf('S%02d_', iSubject), conditionName, sprintf('%04d', trialNumber)] ; % sprintf：文字列に格納
+            fileName = [sprintf('S%02d_', iSubject), fileConditionName, sprintf('%04d', trialNumber)] ; % sprintf：文字列に格納
             X = load_qualisys_mat(rawDataFolder, fileName) ; % load_qualisys_mat.mから帰ってきたデータをXに格納
             
             % 被験者間のマーカー名の揺れをここで吸収する（S01/S02 の Firtst → first）
@@ -98,6 +123,7 @@ for iSubject = subjects
             X.SubjectID     = iSubject ;
             X.ConditionCode = iCondition ;
             X.ConditionName = conditionName ;
+            X.SourceFileName = fileName ;   % 実際に読んだファイル名（追跡用）
             X.TrialNumber   = trialNumber ;
             X.ErrorCode     = 0 ;
             X.ErrorText     = '' ;

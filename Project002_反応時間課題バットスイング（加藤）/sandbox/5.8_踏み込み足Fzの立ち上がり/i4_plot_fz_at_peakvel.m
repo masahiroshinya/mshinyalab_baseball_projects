@@ -27,7 +27,11 @@
 %
 % 2026-09-11
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; i4_plot_fz_at_peakvel）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 % i0 を先頭で呼ぶ（i1・i3 と同じ。i0 の中に clear があるので順序は変えられない）。
@@ -156,7 +160,9 @@ for k = 2:numel(sv)
 end
 for k = 1:numel(order)
     iS = order(k) ;
-    text(ax, xC(nC) + 0.16*CondPitch, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
+    % ★ 2026-09-18：ラベルの x を中央値の横線の右端より外に出した。被験者が
+    %   1人だと、その中央値が条件の中央値と一致して黒い横線にラベルが重なる。
+    text(ax, xC(nC) + 0.34*CondPitch, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
         'FontSize', 10, 'FontWeight', 'bold', 'Color', SubjColor(iS,:), ...
         'VerticalAlignment', 'middle') ;
 end
@@ -168,7 +174,7 @@ set(ax, 'XLim', [xC(1)-CondPitch*0.5, xC(nC)+CondPitch*0.55], 'YLim', [yLo yHi],
 ylabel(ax, 'スイング速度ピーク時の踏み込み足Fz [%BW]', 'FontSize', 12) ;
 
 annotation('textbox', [0 (figH-42)/figH 1 34/figH], 'String', ...
-    'バット先端の速度が最大になった瞬間の踏み込み足 Fz（5被験者・新しい除外基準）', ...
+    sprintf('バット先端の速度が最大になった瞬間の踏み込み足 Fz（%s・新しい除外基準）', GroupLabel), ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
@@ -193,6 +199,6 @@ annotation('textbox', [0 8/figH 1 100/figH], 'String', ...
 %% ---- 7. PNG 出力 ----
 
 % ★ ファイル名は指標名を先頭に置く（2026-09-14。i1 と同じ方針）。
-outPath = fullfile(thisDir, 'スイング速度ピーク時Fz_条件別_全被験者.png') ;
+outPath = fullfile(thisDir, sprintf('スイング速度ピーク時Fz_条件別_%s.png', GroupTag)) ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('出力しました: %s\n', outPath) ;

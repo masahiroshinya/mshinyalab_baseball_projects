@@ -34,7 +34,11 @@
 %   - まずは onset の縦線とピークだけを描く。Fx（RT 検出の根拠）や接地の線は
 %     この図で位置関係を確認してから足す。
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; i3_plot_example_trials）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 % i0 を先頭で呼ぶ（i1 と同じ。i0 の中に clear があるので順序は変えられない）。
@@ -54,7 +58,14 @@ thisDir = fileparts( mfilename('fullpath') ) ;
 %   0    ... 全被験者の試行からまとめて選ぶ（従来の図）
 %   1〜nS ... その被験者の試行だけから選ぶ
 
-PickSubject = [0, 1:nS] ;
+% ★ 2026-09-18：被験者が1人のときは「全被験者」の図を作らない。
+%   中身が被験者ごとの図と同一になるうえ、S01〜S05 で作った
+%   代表試行波形_全被験者.png を1人ぶんの図で上書きしてしまう。
+if isscalar(SubjectArray)
+    PickSubject = 1 ;
+else
+    PickSubject = [0, 1:nS] ;
+end
 
 % ★ 中央値に何番目に近い試行を代表にするか（2026-09-13）。
 %   1 なら最も近い試行。2 にすると次に近い試行になる。

@@ -36,7 +36,11 @@
 %   - 試行数が MinTrial 未満の被験者×条件は NaN にする（CV が不安定なため）。
 %   - パネルの配置は i1 と同じ計算式。指標が増えても行が足される。
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; i2_plot_cv_by_condition）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 % i0 を先頭で呼ぶ。i0 の中に clear ; close all があるので、
@@ -208,9 +212,11 @@ for im = 1:nM
     for k = 2:numel(sv)
         if sv(k-1) - sv(k) < minGap, sv(k) = sv(k-1) - minGap ; end
     end
+    % ★ 2026-09-18：ラベルの x を中央値の横線の右端より外に出した。被験者が
+    %   1人だと、その中央値が条件の中央値と一致して黒い横線にラベルが重なる。
     for k = 1:numel(order)
         if isnan(sv(k)), continue, end
-        text(ax, nC+0.16, sv(k), sprintf('S%02d', SubjectArray(order(k))), ...
+        text(ax, nC+0.36, sv(k), sprintf('S%02d', SubjectArray(order(k))), ...
             'FontSize', 10, 'FontWeight', 'bold', ...
             'Color', SubjColor(order(k),:), 'VerticalAlignment', 'middle') ;
     end
@@ -225,7 +231,7 @@ for im = 1:nM
 end
 
 annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
-    '反応時間課題バットスイング：条件別の試行間変動係数（被験者内・5被験者・新しい除外基準）', ...
+    sprintf('反応時間課題バットスイング：条件別の試行間変動係数（被験者内・%s・新しい除外基準）', GroupLabel), ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
@@ -248,6 +254,6 @@ annotation('textbox', [0 5.25/figH 1 78.75/figH], 'String', ...
 %% ---- 9. PNG 出力 ----
 
 % ★ ファイル名は指標名を先頭に置く（2026-09-14。i1 と同じ方針）。
-outPath = fullfile(thisDir, '変動係数_条件別_全被験者.png') ;
+outPath = fullfile(thisDir, sprintf('変動係数_条件別_%s.png', GroupTag)) ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('\n出力しました: %s\n', outPath) ;

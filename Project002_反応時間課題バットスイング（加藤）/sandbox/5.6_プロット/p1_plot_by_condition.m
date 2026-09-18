@@ -21,7 +21,11 @@
 %
 % 2026-09-10
 
-clear ;
+% ★ 呼び出し側で TargetSubjects を定義しておくと、その被験者だけを解析する。
+%   （例: TargetSubjects = 6 ; p1_plot_by_condition）
+%   何も定義しなければ従来どおり全被験者を解析する。clearvars -except に
+%   しておかないと、この先頭で呼び出し側の指定ごと消えてしまう。
+clearvars -except TargetSubjects
 close all
 
 % p0 を先頭で呼ぶ。p0 の中に clear ; close all があるので、
@@ -151,9 +155,11 @@ for im = 1:nM
     for k = 2:numel(sv)
         if sv(k-1) - sv(k) < minGap, sv(k) = sv(k-1) - minGap ; end
     end
+    % ★ 2026-09-18：ラベルの x を中央値の横線の右端より外に出した。被験者が
+    %   1人だと、その中央値が条件の中央値と一致して黒い横線にラベルが重なる。
     for k = 1:numel(order)
         iS = idxOK(order(k)) ;
-        text(ax, nC+0.16, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
+        text(ax, nC+0.36, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
             'FontSize', 10, 'Color', [0.35 0.35 0.35], 'VerticalAlignment', 'middle') ;
     end
 
@@ -179,8 +185,8 @@ for im = 1:nM
 end
 
 annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
-    sprintf(['反応時間課題バットスイング：条件別の全試行（5被験者・' ...
-             '新しい除外基準／Go 試行 %d 本）'], Diag.nGo), ...
+    sprintf(['反応時間課題バットスイング：条件別の全試行（%s・' ...
+             '新しい除外基準／Go 試行 %d 本）'], GroupLabel, Diag.nGo), ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
@@ -209,6 +215,6 @@ annotation('textbox', [0 8/figH 1 185/figH], 'String', ...
 
 %% ---- 6. PNG 出力 ----
 
-outPath = fullfile(thisDir, '条件別_全被験者_RT-MT-PeakVel-Slope_新除外基準.png') ;
+outPath = fullfile(thisDir, sprintf('条件別_%s_RT-MT-PeakVel-Slope_新除外基準.png', GroupTag)) ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('\n出力しました: %s\n', outPath) ;
