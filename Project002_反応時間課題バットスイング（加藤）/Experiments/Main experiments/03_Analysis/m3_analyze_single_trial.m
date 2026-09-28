@@ -84,24 +84,6 @@ Result.PeakVelTopX   = peakVelTopX ;          % Vx のピーク [m/s]
 Result.TPeakVelTopX  = idxPeakX ;             % そのフレーム番号（試行先頭から）
 Result.VelTopXAtPeak = velTopXAtPeak ;        % 合成速度ピーク時の Vx [m/s]
 
-% ---- ③ 手部の投手方向速度（Nasu et al., 2020 準拠）----
-%  手部・骨盤とも複数マーカーの幾何学的重心を代表点とし、手部から骨盤を引いて
-%  体幹の並進成分を除く。原法は「補間→重心→フィルタ」の順だが、filtfilt も
-%  平均も線形操作なので、M（補間・フィルタ済み）から重心を取っても数学的に同一。
-if all(isfield(M, Prm.RT.HandMarkerNames)) && all(isfield(M, Prm.RT.PelvisMarkerNames))
-    hand = meanMarker(M, Prm.RT.HandMarkerNames) ;
-    pelv = meanMarker(M, Prm.RT.PelvisMarkerNames) ;
-
-    relPos   = (hand - pelv) / 1000 ;
-    velRel   = diff3p(relPos, 1/fs) ;
-    velHandX = velRel(:, 1) ;
-else
-    velHandX = [] ;      % 手部 RT だけ諦める。top と床反力は通常どおり計算される
-end
-
-Result.VelHandX = velHandX ;                  % 波形（閾値は x4 で確定するため onset はここでは出さない）
-
-
 % ---- LED タイミング（ch2 = cue チャンネル。正=Go（緑）, 負=NoGo/Stop（赤）。ch1 は ready cue）----
 %  gonogo 課題: 正か負のどちらか一方のパルスだけが出る。
 %  gostop 課題: stop 試行でも必ず先に go（正）が出て、0.35 s 後に stop（負）が出る。
@@ -134,12 +116,8 @@ else
     Result.CueCode     = NaN ;
     Result.CueText     = '' ;
     Result.TCueMarker  = NaN ;
-    Result.PeakVelHandX    = NaN ;      % ← Fz1Base* より前に移動
-    Result.TPeakVelHandX   = NaN ;      % ← 追加（元は欠落していた）
-    Result.SwingOnsetHand  = NaN ;
-    Result.RTHand          = NaN ;
-    Result.Fz1BaseMean = NaN ;          % ← ここに移動
-    Result.Fz1BaseSD   = NaN ;
+    Result.FxBase  = NaN ;              % ★変更：Fz1BaseMean から改名（Fx 方式へ移行）
+    Result.FxThr   = NaN ;              % ★変更：Fz1BaseSD から改名
     Result.SwingOnsetForce = NaN ;
     Result.RTForce         = NaN ;
     Result.BWTail  = NaN ;              % ★追加：正常経路と並び順を揃える
@@ -165,67 +143,73 @@ wTop = max(1, tCueMarker) : ...
 Result.NNanInWinTop = sum(isNanTop(wTop)) ;
 Result.IsBadTop     = Result.NNanInWinTop > 0 ;
 
-% ---- 手部速度のピーク（キュー後 2 秒の窓内）----
-%  閾値そのものは全試行の平均に依存するので x4 で決める。ここでは各試行のピークだけ出す。
-%  max(abs(v)) ではなく max(v) に限定する：テイクバックの逆方向ピークを拾わないため。
-if isempty(velHandX)
-    Result.PeakVelHandX  = NaN ;
-    Result.TPeakVelHandX = NaN ;
-else
-    wHand = tCueMarker : min(tCueMarker + round(Prm.RT.WinSec*fs), numel(velHandX)) ;
-    [peakVelHandX, idxPeakRel] = max(velHandX(wHand)) ;
-    Result.PeakVelHandX  = peakVelHandX ;
-    Result.TPeakVelHandX = wHand(1) + idxPeakRel - 1 ;
-end
-
-Result.SwingOnsetHand = NaN ;                          % x4 の第2パスで埋める
-Result.RTHand         = NaN ;
-
-% ---- スイング開始検出（後ろ足 Fz1）----
-%  00 §0.1 の確定仕様。キュー前 0.5 秒を平常時とみなして平均 mu と
-%  ばらつき sd を求め、|Fz1 - mu| > k*sd が 30 ms 続いた最初の時点を
-%  動作開始とする。角速度 300 deg/s による検出は廃止した（00 §2）。
+% ---- スイング開始検出（前後方向の合成床反力 Fx）----
+%  sandbox/5.6_プロット 00_技術説明 §3 で検証した方式（2026-09-28 本番へ移植）。
+%  Fx = Force1(:,1) + Force2(:,1) をローパスし、キュー前 0.5 s の中央値 base を基準に
+%    閾値 = base + 0.20 ×（キュー → 踏み込み足接地 の窓内ピーク − base）
+%  を 20 ms 続けて超えた最初の時点を動作開始とする。
+%  SD 基準（旧 Fz1 方式）をやめたのは、キュー前の揺れで閾値が届かなくなるため
+%  （技術説明 §12）。
 %  時刻はアナログのサンプル番号のまま扱い、ms への変換は出力時だけ行う。
-%  NoGo / Stop 試行も含めて全試行で算出する。抑制試行でも姿勢制御による
-%  荷重変化は生じるため、検出値そのものを見て判断できるようにしておく。
-%  報告時にどの試行を反応時間として扱うかは、下流（x6 以降）で決める。
+%  NoGo / Stop 試行も含めて全試行で算出する。報告時にどの試行を
+%  反応時間として扱うかは、下流（x6 以降）で決める。
+%  ★ キューの前から踏み込み足が乗っている試行は、接地がすぐ成立して探索窓が
+%    短くなり NaN になる（sandbox 5.6 技術説明 §12.2、未解決）。
 
-Result.Fz1BaseMean = NaN ;
-Result.Fz1BaseSD   = NaN ;
+Result.FxBase          = NaN ;   % キュー前 0.5 s の Fx 中央値 [N]
+Result.FxThr           = NaN ;   % onset の閾値 [N]
 Result.SwingOnsetForce = NaN ;   % アナログのサンプル番号（試行先頭から）
 Result.RTForce         = NaN ;   % [ms] キュー → 動作開始
 
-if isfield(Data, 'Force1') && ~isempty(Data.Force1)
+if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
+        && isfield(Data, 'Force2') && ~isempty(Data.Force2) ...
+        && tCueAnalog >= 2
 
-    fsA   = Data.AnalogFs ;
-    Fz1   = Data.Force1(:, 3) ;
-    nA    = numel(Fz1) ;
-    nBase = round(Prm.RT.BaseSec * fsA) ;
+    fsA = Data.AnalogFs ;
+    F1  = Data.Force1 ;
+    F2  = Data.Force2 ;
 
-    % 平常時を測る区間がキューの手前に確保できる場合のみ処理する
-    if tCueAnalog - nBase >= 1
+    % 末尾の NaN を切り落とす（filtfilt は NaN を受け付けない）
+    lastValid = find(~any(isnan(F1), 2) & ~any(isnan(F2), 2), 1, 'last') ;
 
-        base = Fz1(tCueAnalog-nBase : tCueAnalog-1) ;
+    if ~isempty(lastValid) && lastValid > tCueAnalog
+        F1 = F1(1:lastValid, :) ;
+        F2 = F2(1:lastValid, :) ;
 
-        if ~any(isnan(base))
+        % 切っても内部に NaN が残る試行は諦める
+        if ~any(isnan(F1(:))) && ~any(isnan(F2(:)))
 
-            mu = mean(base) ;
-            sd = std(base) ;
-            Result.Fz1BaseMean = mu ;
-            Result.Fz1BaseSD   = sd ;
+            [bR, aR] = butter(2, Prm.RT.FxFc/(fsA/2)) ;
+            F1f = filtfilt(bR, aR, F1) ;
+            F2f = filtfilt(bR, aR, F2) ;
+            fx  = F1f(:,1) + F2f(:,1) ;          % 前後方向の合成床反力 [N]
+            nA  = numel(fx) ;
 
-            % キューから 2 秒先までを探索範囲とする
-            w     = tCueAnalog : min(tCueAnalog + round(Prm.RT.WinSec*fsA), nA) ;
-            over  = abs(Fz1(w) - mu) > Prm.RT.FzK * sd ;
-            holdN = round(Prm.RT.DurMs/1000 * fsA) ;
-            idx   = firstSustained(over, holdN) ;   % 探索範囲 w の中での位置
+            nBase = round(Prm.RT.BaseSec * fsA) ;
+            Result.FxBase = median( fx(max(1, tCueAnalog-nBase) : tCueAnalog-1) ) ;
 
-            if ~isempty(idx)
-                Result.SwingOnsetForce = tCueAnalog + idx - 1 ;   % 試行先頭からの位置に直す
-                Result.RTForce         = (idx-1) / fsA * 1000 ;   % [ms]（idx=1 なら RT=0）
+            % 踏み込み足の接地：キュー後に Fz2 が初めて閾値を超えた点
+            tFC = find(F2f(tCueAnalog:nA, 3) > Prm.RT.FootContactN, 1, 'first') ;
 
+            if ~isempty(tFC) && (tFC - 1) >= round(Prm.RT.MinWinMs/1000 * fsA)
+                tFC    = tFC + tCueAnalog - 1 ;      % 試行先頭からの位置に直す
+                peakFx = max( fx(tCueAnalog:tFC) - Result.FxBase ) ;
+
+                if peakFx > 0
+                    Result.FxThr = Result.FxBase + Prm.RT.FxRatio * peakFx ;
+                    isOver = fx > Result.FxThr ;
+                    nDur   = round(Prm.RT.DurMs/1000 * fsA) ;
+
+                    % 下から閾値を跨ぎ、nDur サンプル続いた最初の点
+                    for k = tCueAnalog+1 : (tFC - nDur + 1)
+                        if ~isOver(k-1) && all(isOver(k : k+nDur-1))
+                            Result.SwingOnsetForce = k ;
+                            Result.RTForce = (k - tCueAnalog) / fsA * 1000 ;   % [ms]
+                            break
+                        end
+                    end
+                end
             end
-
         end
     end
 end
@@ -297,23 +281,4 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
     end
 end
 
-end
-
-
-% ---- 閾値超えが holdN サンプル続いた最初の位置を返す（s2f と同じロジック）----
-function idx = firstSustained(over, holdN)
-idx = [] ;
-d = diff([0; over(:); 0]) ;
-starts = find(d==1) ; ends = find(d==-1)-1 ;
-run = find((ends-starts+1) >= holdN, 1, 'first') ;
-if ~isempty(run), idx = starts(run) ; end
-end
-
-% ---- 指定マーカーの幾何学的重心（各マーカーは補間・フィルタ済みの前提）----
-function y = meanMarker(M, names)
-x = nan(size(M.(names{1}), 1), 3, numel(names)) ;
-for i = 1:numel(names)
-    x(:,:,i) = M.(names{i}) ;
-end
-y = mean(x, 3) ;
 end

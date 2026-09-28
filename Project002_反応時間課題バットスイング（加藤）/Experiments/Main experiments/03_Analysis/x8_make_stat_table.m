@@ -19,7 +19,7 @@ ConditionOrder = {'free', 'simple', 'gonogo', 'gostop'} ;
 Prm            = parameters ;
 
 % 代表値を算出する従属変数（Methods 2-5 の表に対応）
-DVNameArray = {'RTHand_ms', 'RTForce_ms', 'PeakVelTop', 'PeakVelTopX', ...
+DVNameArray = {'RTForce_ms', 'PeakVelTop', 'PeakVelTopX', ...
                'PeakFz1_BW', 'PeakFz2_BW'} ;
 
 TrialTable = table() ;

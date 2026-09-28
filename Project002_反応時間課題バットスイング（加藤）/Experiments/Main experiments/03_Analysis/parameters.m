@@ -37,27 +37,25 @@ Prm.CueCode.Stop = 3 ;
 Prm.ErrorCode.LEDTimingNotDetected = 2 ;
 Prm.ErrorText.LEDTimingNotDetected = 'LED illumination was not detected' ;
 
-%% m3_analyze_single_trial: RT 検出（後ろ足 Fz1）
-Prm.RT.FzK     = 10 ;    % 閾値 = ベースライン SD の何倍か（≒ 15%BW）
-Prm.RT.DurMs   = 30 ;    % 閾値超えの持続時間 [ms]
-Prm.RT.BaseSec = 0.5 ;   % ベースライン窓（キュー直前）[s]
-Prm.RT.WinSec  = 2.0 ;   % 探索窓（キュー起点）[s]
-Prm.RT.FloorMs = 150 ;   % 生理的下限。目視照合の基準（強制 NaN 化はしない）
+%% m3_analyze_single_trial: RT 検出（前後方向の合成床反力 Fx）
+%  sandbox/5.6_プロット 00_技術説明 §3 で検証した方式（2026-09-28 本番へ移植）。
+%  Fx = Force1(:,1) + Force2(:,1) が
+%    閾値 = キュー前の中央値 + 0.20 ×（キュー → 踏み込み足接地 の窓内ピーク − 中央値）
+%  を 20 ms 続けて超えた最初の時点を動作開始とする。
+Prm.RT.FxFc         = 50 ;    % Fx のローパス遮断周波数 [Hz]（sandbox の検証値）
+Prm.RT.BaseSec      = 0.5 ;   % ベースライン窓（キュー直前）[s]
+Prm.RT.FxRatio      = 0.20 ;  % 閾値 = ベース + 比率 ×（窓内ピーク − ベース）
+Prm.RT.DurMs        = 20 ;    % 閾値超えの持続時間 [ms]
+Prm.RT.FootContactN = 50 ;    % 踏み込み足の接地とみなす Fz2 [N]
+Prm.RT.MinWinMs     = 50 ;    % キュー → 接地 がこれ未満なら探索窓が短すぎる [ms]
+Prm.RT.WinSec       = 2.0 ;   % 解析窓（キュー起点）[s]。s_check_top_* が使う
+Prm.RT.FloorMs      = 150 ;   % 生理的下限。目視照合の基準（強制 NaN 化はしない）
 
 %% x7_3 / x7_4: 床反力の体重正規化に用いるベースラインの妥当性チェック
 %  静止時の Fz1+Fz2 は体重にほぼ一致するはずである。大きく外れる試行は
 %  プレートに正しく乗っていない計測不良なので、正規化すると異常値になる。
 Prm.GRF.BWTolerance = 0.2 ;   % 被験者中央値からの許容ずれ（±20%）
 Prm.GRF.WinSec = 2.0 ;   % ピーク Fz の探索窓（キュー起点）[s]
-
-%% m3 / x4: RT 算出（2方式を併記する）
-%  方式Hand = Nasu et al. (2020) 準拠。手部（骨盤基準）の投手方向速度が
-%             「全試行の平均ピーク速度の10%」を超えた時点を動作開始とする。
-%  方式Force = 後ろ足 Fz1 が平常時から 10SD 逸脱し 30 ms 持続した時点（既存）。
-Prm.RT.HandMarkerNames   = {'first', 'second', 'third'} ;
-Prm.RT.PelvisMarkerNames = {'RASIS', 'LASIS', 'RPSIS', 'LPSIS'} ;  % 骨盤
-Prm.RT.HandThrRatio      = 0.10 ;      % 平均ピーク速度に対する閾値の比
-Prm.RT.PrimaryMethod     = 'Force' ;   % Result.RT に入れる方式（'Force' / 'Hand'）
 
 %% top マーカーの品質チェック（x5 / x8 で不良試行を選別する）
 %  バット先端の実測ピークは 27〜35 m/s。250 Hz では 1 フレーム 110〜140 mm に相当する。
