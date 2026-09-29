@@ -13,8 +13,8 @@
 %   SubjectArray, ConditionNameArray, nS, nC, nM
 %
 % 出力（このスクリプトと同じフォルダ）:
-%   Fz立ち上がり_条件別_全被験者.png ... 5指標を1枚にまとめた図
-%   個別グラフ/01_RT.png 〜 05_立ち上がり速度わりピーク力.png
+%   02_全被験者データ/Fz立ち上がり_条件別_全被験者.png ... 4指標を1枚にまとめた図
+%   02_全被験者データ/個別グラフ/01_RT.png 〜 04_力の立ち上がり速度.png
 %     ... 同じパネルを指標ごとに1枚ずつ書き出したもの（スライドや原稿に貼る用）
 %
 % 備考:
@@ -40,6 +40,10 @@ i0_calc_rfd_metrics
 
 % i0 が clear するので、出力先はここで取り直す。
 thisDir = fileparts( mfilename('fullpath') ) ;
+% ★ 2026-09-29：出力先を 01_個別データ/Sxx / 02_全被験者データ に直接書き出すようにした
+if isscalar(SubjectArray), outBase = fullfile(thisDir, '01_個別データ', GroupTag) ;
+else,                      outBase = fullfile(thisDir, '02_全被験者データ') ; end
+if ~isfolder(outBase), mkdir(outBase) ; end
 
 
 %% ---- 5. 描画（5.7 の条件別図と同じ体裁）----
@@ -57,8 +61,8 @@ xC         = 1 + ((1:nC) - 1) * CondPitch ;
 % ★ 条件の中での被験者ごとの横位置。SubjColor と同じ並び。
 %   ずらし幅は間隔に比例させない（上のとおり）。両端 ± 0.38、ジッタ ± 0.06 で
 %   合計 ± 0.44 なので、条件どうしの間に 0.72 の隙間が空く。
-SubjOffset = linspace(-0.38, 0.38, nS) ;
-JitterW    = 0.12 ;
+SubjOffset = linspace(-0.40, 0.40, nS) ;
+JitterW    = 0.06 ;   % ★10名に増えたので、隣の被験者と混ざらないよう狭めた
 shadeCol  = [0.93 0.93 0.93] ;
 
 % ---- パネルの配置を nM から決める ----
@@ -68,7 +72,7 @@ nRow      = ceil(nM / nCol) ;
 axH_px    = 315 ;      % パネルの高さ
 rowPitch  = 483 ;      % 行の間隔
 topPad_px = 136.5 ;    % 図の上端から1行目のパネル上端まで（表題2行ぶん）
-botPad_px = 265 ;      % 最終行のパネル下端から図の下端まで（脚注8行ぶん）
+botPad_px = 268 ;      % 最終行のパネル下端から図の下端まで（脚注8行ぶん）
 
 figH = topPad_px + axH_px*nRow + (rowPitch - axH_px)*(nRow-1) + botPad_px ;
 
@@ -166,7 +170,7 @@ for im = 1:nM
 
     % 被験者ラベル（右端）。重なりを最小間隔で解消する
     [sv, order] = sort(subjMed(:,nC), 'descend') ;
-    minGap = 0.058*(yHi-yLo) ;
+    minGap = 0.050*(yHi-yLo) ;
     for k = 2:numel(sv)
         if sv(k-1) - sv(k) < minGap, sv(k) = sv(k-1) - minGap ; end
     end
@@ -211,14 +215,14 @@ bwText = strjoin( arrayfun(@(k) sprintf('S%02d %.1f', SubjectArray(k), BWest(k)/
 
 % 定義の断り書きは下端に置く（上に置くとパネルのタイトルと衝突する）。
 % ★ annotation は sprintf の書式を解釈しないので、パーセント記号は %% ではなく % と書く。
-annotation('textbox', [0 8/figH 1 245/figH], 'String', ...
+annotation('textbox', [0 8/figH 1 250/figH], 'String', ...
     {['RT は 5.6 の定義（Fx がベースライン + 0.20 ×（窓内ピーク − ベース）を 20 ms 超えた時点）。' ...
       '分母は記録末端 0.5 s から推定した体重（' bwText ' kg）'], ...
      ['力の立ち上がり速度 =（Fz2ピーク − Onset 時点の Fz2）÷ 体重 × 100 ÷（Onset → ピーク の秒数）。' ...
       'ピークの探索窓は cue から 2 s（5.7 の g0 と同じ）'], ...
-     ['立ち上がり速度 ÷ ピーク力 [1/s] は、達成した力の大きさで割った正規化 RFD。' ...
-      'Onset 時点の Fz2 がほぼ 0（踏み込み足が空中）なので、実質 1 ÷（Onset → ピーク の秒数）になる'], ...
-     '5指標とも onset が取れた試行だけを使うので n はそろう（2026-09-11 にピークもこの条件に合わせた）', ...
+     '4指標とも onset が取れた試行だけを使うので n はそろう（2026-09-11 にピークもこの条件に合わせた）', ...
+     ['★ 2026-09-29：5.6 の図と除外をそろえた。踏み込み足の接地は「cue 前 0.5 s の Fz2 中央値 + 50 N」、' ...
+      '除外は床反力の欠損・Fz2 のゼロ点ずれ（ベースライン < −50 N）・フライング（cue 時点で Fx が閾値超え）。S07 gonogo は Go 10 本に間引き'], ...
      ['★ 旧図（条件別_全被験者_Fz立ち上がり.png）との違いは除外基準だけ。旧図は BWBase（cue 前の Fz1+Fz2）が' ...
       '被験者内中央値から ±20% ずれる試行を落としていたが、2026-09-10 に撤回した'], ...
      ['撤回の理由：落としていた試行の PeakFz2 分布は残す試行とほぼ同一で（03_Analysis §10.8）、' ...
@@ -234,7 +238,7 @@ annotation('textbox', [0 8/figH 1 245/figH], 'String', ...
 
 % ★ 高さは上に 0.15 ぶん空ける。パネルのタイトルと中央値の数字は軸の外
 %   （normalized で 1.13、データ座標で yHi）に置いてあるので、詰めると切れる。
-outDir = fullfile(thisDir, '個別グラフ') ;
+if isscalar(SubjectArray), outDir = outBase ; else, outDir = fullfile(outBase, '個別グラフ') ; end
 if ~isfolder(outDir), mkdir(outDir) ; end
 
 for im = 1:nM
@@ -254,6 +258,6 @@ end
 % ★ ファイル名は指標名を先頭に置く（2026-09-14）。フォルダを開いたときに
 %   何のグラフか一目で分かるようにするため。「新除外基準」は旧基準の図が
 %   もう無いので落とした。
-outPath = fullfile(thisDir, sprintf('Fz立ち上がり_条件別_%s.png', GroupTag)) ;
+outPath = fullfile(outBase, sprintf('Fz立ち上がり_条件別_%s.png', GroupTag)) ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('出力しました: %s\n', outPath) ;

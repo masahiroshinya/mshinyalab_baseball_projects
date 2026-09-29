@@ -83,8 +83,22 @@ Prm = parameters ;
 if exist('TargetSubjects', 'var') && ~isempty(TargetSubjects)
     SubjectArray = TargetSubjects ;
 else
-    SubjectArray = 1:5 ;
+    SubjectArray = 1:10 ;
 end
+
+% ★ 被験者ごとの色（2026-09-29）。5.8 の i0 と同じ配色表で、被験者 ID で引く。
+%   S07〜S10 は既存の個別図と同じ色。
+SubjColorAll = [0.000 0.447 0.698 ;    % S01  青
+                0.835 0.369 0.000 ;    % S02  朱
+                0.000 0.620 0.451 ;    % S03  緑
+                0.800 0.475 0.655 ;    % S04  紫
+                0.902 0.624 0.000 ;    % S05  橙
+                0.337 0.706 0.914 ;    % S06  空色
+                0.941 0.894 0.259 ;    % S07  黄（個別図と同じ）
+                0.000 0.000 0.000 ;    % S08  黒（個別図と同じ）
+                0.500 0.500 0.500 ;    % S09  灰（個別図と同じ）
+                0.600 0.300 0.100] ;   % S10  茶（個別図と同じ）
+SubjColor = SubjColorAll(SubjectArray, :) ;
 
 % ★ 出力ファイル名と表題に使う呼び名（2026-09-18）。
 %   被験者が1人なら「S06」のように個人名にする。全被験者の図を
@@ -127,7 +141,11 @@ PrmRT.MinWinSample = 50 ;    % cue → 接地 がこれ未満なら探索窓が�
 
 V = cell(nS, nC, nM) ;
 
-Diag = struct('nGo',0, 'nTrimmedNan',0, 'nAnalogNan',0, ...
+% 代表試行の図（q3）用に、4指標すべてを算出できた試行の素性と時刻を残す
+Rec = struct('iS',{}, 'sub',{}, 'ic',{}, 'it',{}, 'tc',{}, 'tOnset',{}, 'fsA',{}, ...
+             'tPeakVel',{}, 'fs',{}, 'rtMs',{}, 'mtMs',{}, 'peakVel',{}, 'slope',{}) ;
+
+Diag = struct('nGo',0, 'nPeakFarFromFC',0, 'nProtocolTrim',0, 'nFalseStart',0, 'nFz2Offset',0, 'nTrimmedNan',0, 'nAnalogNan',0, ...
               'nNoFootContact',0, 'nShortWin',0, 'nNoPeakFx',0, 'nNoOnset',0, ...
               'nBadTop',0, 'nPeakOutOfWin',0, 'nCueMismatch',0, ...
               'nOKrt',0, 'nOKvel',0, 'nOKmt',0) ;
@@ -141,6 +159,21 @@ for iS = 1:nS
     nTrial = size(DataArray, 1) ;
 
     for ic = 1:nC
+
+        % ---- 本数を揃えるための間引き（2026-09-24、log/2026-09-24_01.md §5）----
+        TrialKeep = [] ;
+        if SubjectArray(iS) == 7 && strcmp(ConditionNameArray{ic}, 'gonogo')
+            isGoTrial = false(nTrial, 1) ;
+            for jt = 1:nTrial
+                isGoTrial(jt) = strcmp(SingleTrialResultArray(jt, ic).CueText, 'Go') ;
+            end
+            GoTrialArray = find(isGoTrial) ;
+            nKeep        = 10 ;
+            if numel(GoTrialArray) > nKeep
+                TrialKeep = GoTrialArray( round(linspace(1, numel(GoTrialArray), nKeep)) ) ;
+            end
+        end
+
         for it = 1:nTrial
 
             D = DataArray(it, ic) ;
@@ -153,6 +186,12 @@ for iS = 1:nS
 
             % ---- NoGo・Stop の除外（課題設計上の選別。データ品質とは別軸）----
             if ~strcmp(R.CueText, 'Go'), continue, end
+
+            if ~isempty(TrialKeep) && ~ismember(it, TrialKeep)
+                Diag.nProtocolTrim = Diag.nProtocolTrim + 1 ;
+                continue
+            end
+
             Diag.nGo = Diag.nGo + 1 ;
 
             % ==== 3-1. アナログの整形 ====
@@ -202,9 +241,31 @@ for iS = 1:nS
             fx  = F1f(:,1) + F2f(:,1) ;      % 前後方向の合成床反力 [N]
 
             nA  = size(F2f, 1) ;
-            tFC = find(F2f(tGoStim:nA, 3) > PrmRT.FootContactN, 1, 'first') ;
+            % ★ 接地は「cue 前 0.5 s の Fz2 中央値 + 50 N」を超えた点（2026-09-29。03_Analysis 技術説明 §16）
+            iBaseFz = max(1, tGoStim-round(PrmRT.BaseSec*fsA)) : tGoStim-1 ;
+            baseFz2 = median( F2f(iBaseFz, 3) ) ;
+            tFC = find(F2f(tGoStim:nA, 3) > baseFz2 + PrmRT.FootContactN, 1, 'first') ;
 
-            if isempty(tFC)
+            % ---- Fz2 ピークの位置の判定（5.8 の i0 §3-7 と同じ。2026-09-29 に 5.6 にも適用）----
+            %  ★ 5.8 と試行をそろえるため。接地から 0.5 s 以上離れた Fz2 ピークは後続動作のもの。
+            %    接地が cue から 0.25 s 未満の試行は接地が信用できないので判定しない。
+            if ~isempty(tFC) && (tFC - 1) >= round(0.25*fsA)
+                [bG, aG] = butter(2, Prm.Fc/(fsA/2), 'low') ;
+                F2g      = filtfilt(bG, aG, F2(:,3)) ;
+                swingEnd = min(tGoStim + round(Prm.GRF.WinSec*fsA), nA) ;
+                [~, iPk] = max( F2g(tGoStim:swingEnd) ) ;
+                if iPk > tFC + round(0.5*fsA)
+                    Diag.nPeakFarFromFC = Diag.nPeakFarFromFC + 1 ;
+                    continue
+                end
+            end
+
+            % ---- 【除外②】踏み込み足 Fz2 のゼロ点ずれ（2026-09-25、log/2026-09-25_02.md §3）----
+
+            if baseFz2 < -PrmRT.FootContactN
+                Diag.nFz2Offset = Diag.nFz2Offset + 1 ;
+                tOnset = NaN ;
+            elseif isempty(tFC)
                 Diag.nNoFootContact = Diag.nNoFootContact + 1 ;
                 tOnset = NaN ;
             else
@@ -227,6 +288,12 @@ for iS = 1:nS
                     else
                         thrFx  = baseFx + peakFx * PrmRT.RatioFx ;
                         isOver = fx > thrFx ;
+
+                        % ---- 【除外③】フライング（2026-09-24、log/2026-09-24_01.md §7）----
+                        if isOver(tGoStim)
+                            Diag.nFalseStart = Diag.nFalseStart + 1 ;
+                            continue
+                        end
 
                         tOnset = NaN ;
                         for k = tGoStim+1 : (tFC - nDur + 1)
@@ -293,6 +360,12 @@ for iS = 1:nS
             if ~isnan(peakVel), V{iS,ic,3} = [V{iS,ic,3} ; peakVel] ; end
             if ~isnan(slope),   V{iS,ic,4} = [V{iS,ic,4} ; slope  ] ; end
 
+            if ~isnan(slope)
+                Rec(end+1) = struct('iS',iS, 'sub',SubjectArray(iS), 'ic',ic, 'it',it, ...
+                    'tc',tGoStim, 'tOnset',tOnset, 'fsA',fsA, 'tPeakVel',tPeak, 'fs',fs, ...
+                    'rtMs',rtMs, 'mtMs',mtMs, 'peakVel',peakVel, 'slope',slope) ; %#ok<SAGROW>
+            end
+
         end
     end
 
@@ -305,6 +378,10 @@ end
 
 fprintf('\n--- 試行の内訳 ---\n') ;
 fprintf('  Go 試行                        : %d\n', Diag.nGo) ;
+fprintf('  本数を揃えるため間引いた試行   : %d\n', Diag.nProtocolTrim) ;
+fprintf('  【除外③】フライング           : %d\n', Diag.nFalseStart) ;
+fprintf('  【除外②】Fz2 ゼロ点ずれ        : %d\n', Diag.nFz2Offset) ;
+fprintf('  Fz2 ピークが接地から 0.5 s 以上 : %d\n', Diag.nPeakFarFromFC) ;
 fprintf('  末尾 NaN を切った試行          : %d\n', Diag.nTrimmedNan) ;
 fprintf('  【除外②】床反力が使えない     : %d\n', Diag.nAnalogNan) ;
 fprintf('  【除外①】top の欠損（窓内）   : %d\n', Diag.nBadTop) ;

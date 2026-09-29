@@ -119,7 +119,7 @@ Prm = parameters ;
 if exist('TargetSubjects', 'var') && ~isempty(TargetSubjects)
     SubjectArray = TargetSubjects ;
 else
-    SubjectArray = 1:5 ;
+    SubjectArray = 1:10 ;
 end
 
 % ★ 出力ファイル名と表題に使う呼び名（2026-09-18）。
@@ -148,7 +148,11 @@ SubjColorAll = [0.000 0.447 0.698 ;    % S01  青
                 0.000 0.620 0.451 ;    % S03  緑
                 0.800 0.475 0.655 ;    % S04  紫
                 0.902 0.624 0.000 ;    % S05  橙
-                0.337 0.706 0.914] ;   % S06  空色
+                0.337 0.706 0.914 ;    % S06  空色
+                0.941 0.894 0.259 ;    % S07  黄（個別図と同じ）
+                0.000 0.000 0.000 ;    % S08  黒（個別図と同じ）
+                0.500 0.500 0.500 ;    % S09  灰（個別図と同じ）
+                0.600 0.300 0.100] ;   % S10  茶（個別図と同じ）
 SubjColor = SubjColorAll(SubjectArray, :) ;
 
 % ★ 指標の追加はここ（1/2）。名前を足したら 3-3 に算出を足す。
@@ -156,8 +160,8 @@ MetricName = { ...
     'RT（5.6 の定義） [ms]', ...
     '踏み込み足  ピーク鉛直GRF [%BW]', ...
     'Onset → Fzピーク の時間 [ms]', ...
-    '力の立ち上がり速度 [%BW/s]', ...
-    '立ち上がり速度 ÷ ピーク力 [1/s]'} ;
+    '力の立ち上がり速度 [%BW/s]'} ;
+% ★ 2026-09-29：「立ち上がり速度 ÷ ピーク力 [1/s]」は外した（実質 1 ÷ 区間の秒数で、指標3 と重複するため）
 
 nS = numel(SubjectArray) ;
 nC = numel(ConditionNameArray) ;
@@ -196,7 +200,7 @@ PrmPk.MinFCSec      = 0.25 ;  % 接地がこれより早い試行は、接地が
 V     = cell(nS, nC, nM) ;
 BWest = nan(1, nS) ;
 
-Diag = struct('nGo',0, 'nBadBWRef',0, 'nNoFootContact',0, 'nShortWin',0, ...
+Diag = struct('nGo',0, 'nProtocolTrim',0, 'nFalseStart',0, 'nFz2Offset',0, 'nBadBWRef',0, 'nNoFootContact',0, 'nShortWin',0, ...
               'nNoPeakFx',0, 'nNoOnset',0, 'nPeakBeforeOnset',0, 'nOK',0, ...
               'nTrimmedNan',0, 'nRTShort',0, 'nPeakFarFromFC',0, ...
               'nBadTop',0, 'nNoMT',0) ;
@@ -309,10 +313,29 @@ for iS = 1:nS
     % ==== 3-3. 指標の算出（Go かつ除外されていない試行のみ）====
     % ★ 「Go である」という肯定形で選ぶ。否定形だと cue 未検出の試行が通る。
     for ic = 1:nC
+
+        % ---- 本数を揃えるための間引き（5.6 の p0 と同じ。log/2026-09-24_01.md §5）----
+        TrialKeep = [] ;
+        if SubjectArray(iS) == 7 && strcmp(ConditionNameArray{ic}, 'gonogo')
+            isGoTrial = false(nTrial, 1) ;
+            for jt = 1:nTrial
+                isGoTrial(jt) = strcmp(SingleTrialResultArray(jt, ic).CueText, 'Go') ;
+            end
+            GoTrialArray = find(isGoTrial) ;
+            nKeep        = 10 ;
+            if numel(GoTrialArray) > nKeep
+                TrialKeep = GoTrialArray( round(linspace(1, numel(GoTrialArray), nKeep)) ) ;
+            end
+        end
+
         for it = 1:nTrial
 
             if ~Trial(it,ic).ok, continue, end
             if ~strcmp(Trial(it,ic).cueText, 'Go'), continue, end
+            if ~isempty(TrialKeep) && ~ismember(it, TrialKeep)
+                Diag.nProtocolTrim = Diag.nProtocolTrim + 1 ;
+                continue
+            end
             Diag.nGo = Diag.nGo + 1 ;
             % ★ ここで continue しないのが h0 との唯一の違い。数だけ数える。
             if isBadBWRef(it,ic), Diag.nBadBWRef = Diag.nBadBWRef + 1 ; end
@@ -329,7 +352,17 @@ for iS = 1:nS
             %  ★ 見つからなくてもここでは試行を捨てない。指標2（ピーク）は onset の
             %    成否によらず入れる設計なので（(c)）、接地はゲートに使わず、
             %    (b) の位置の判定と (d) の RT 検出のためだけに先に求めておく。
-            iFC       = find( T.F2r(tc:n, 3) > PrmRT.FootContactN, 1, 'first') ;
+            % ★ 接地は「cue 前 0.5 s の Fz2 中央値 + 50 N」を超えた点（2026-09-29。5.6 と同じ）
+            baseFz2   = median( T.F2r(max(1, tc - round(PrmRT.BaseSec*fsA)) : tc-1, 3) ) ;
+
+            % ---- 【除外②】踏み込み足 Fz2 のゼロ点ずれ（5.6 と同じ）----
+            %  5.8 の指標はすべて Fz2 と onset に依存するので、試行ごと落とす
+            if baseFz2 < -PrmRT.FootContactN
+                Diag.nFz2Offset = Diag.nFz2Offset + 1 ;
+                continue
+            end
+
+            iFC       = find( T.F2r(tc:n, 3) > baseFz2 + PrmRT.FootContactN, 1, 'first') ;
             tFC       = NaN ;
             isFCforRT = false ;   % RT 検出の探索窓として使えるか（従来の判定）
             isFCforPk = false ;   % ピークの位置の判定に使えるか（より厳しい）
@@ -400,6 +433,12 @@ for iS = 1:nS
             isOver = fx > thrFx ;
             nDur   = round(PrmRT.DurMs/1000 * fsA) ;
 
+            % ---- 【除外③】フライング（5.6 と同じ）----
+            if isOver(tc)
+                Diag.nFalseStart = Diag.nFalseStart + 1 ;
+                continue
+            end
+
             tOnset = NaN ;      % 見つからなければ NaN。1 にすると偽の RT が出る
             for k = tc+1 : (tFC - nDur + 1)
                 if ~isOver(k-1) && all( isOver(k : k+nDur-1) )
@@ -440,7 +479,6 @@ for iS = 1:nS
             %     ★ 分子は (pkBW - onsetBW)/dtSec なので、この指標は恒等的に
             %        (1 - onsetBW/pkBW) / dtSec に等しい。onsetBW が pkBW に比べて
             %        小さければ 1/dtSec そのものになる。§3-5 で実測して確認すること。
-            V{iS,ic,5} = [V{iS,ic,5} ; rfd / pkBW] ;
 
             % --- スイング速度がピークのときの踏み込み足 Fz2 [%BW]（i4 が使う）---
             %  ★ V には積まない。top マーカーに依存するので n が他とそろわず、
@@ -497,6 +535,9 @@ fprintf('\n') ;
 
 fprintf('\n--- 試行の内訳 ---\n') ;
 fprintf('  Go 試行                    : %d\n', Diag.nGo) ;
+fprintf('  本数を揃えるため間引いた試行 : %d\n', Diag.nProtocolTrim) ;
+fprintf('  【除外③】フライング         : %d\n', Diag.nFalseStart) ;
+fprintf('  【除外②】Fz2 ゼロ点ずれ      : %d\n', Diag.nFz2Offset) ;
 fprintf('  末尾 NaN を切った試行      : %d\n', Diag.nTrimmedNan) ;
 fprintf('  BWBase 逸脱（★参考。除外せず）: %d\n', Diag.nBadBWRef) ;
 fprintf('  接地が見つからない         : %d\n', Diag.nNoFootContact) ;

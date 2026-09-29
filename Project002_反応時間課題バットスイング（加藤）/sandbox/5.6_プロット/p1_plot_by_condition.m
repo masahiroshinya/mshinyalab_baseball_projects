@@ -38,7 +38,8 @@ thisDir = fileparts( mfilename('fullpath') ) ;
 
 %% ---- 5. 描画 ----
 
-dotColor  = [0.45 0.62 0.85] ;
+SubjOffset = linspace(-0.27, 0.27, nS) ;   % ★被験者ごとの横位置（5.8 の i1 と同じ考え方）
+JitterW    = 0.05 ;
 lineColor = [0.60 0.60 0.60] ;
 shadeCol  = [0.93 0.93 0.93] ;
 
@@ -47,11 +48,11 @@ nRow      = ceil(nM / nCol) ;
 axH_px    = 315 ;      % パネルの高さ
 rowPitch  = 483 ;      % 行の間隔
 topPad_px = 136.5 ;    % 図の上端から1行目のパネル上端まで（表題2行ぶん）
-botPad_px = 205 ;      % 最終行のパネル下端から図の下端まで（脚注6行ぶん）
+botPad_px = 318 ;      % 最終行のパネル下端から図の下端まで（脚注6行ぶん）
 
 figH = topPad_px + axH_px*nRow + (rowPitch - axH_px)*(nRow-1) + botPad_px ;
 
-fig = figure('Color', 'w', 'Position', [80 80 1500 figH]) ;
+fig = figure('Color', 'w', 'Position', [80 80 1700 figH]) ;
 
 rng(0)   % ジッタを再現可能にする
 
@@ -99,12 +100,14 @@ for im = 1:nM
     % 個々の試行（ジッタ散布）。軸外の点は境界に置く
     nOver = 0 ; nUnder = 0 ;
     for ic = 1:nC
-        a  = allByCond{ic} ;
-        xj = ic + (rand(numel(a),1) - 0.5) * 0.36 ;
+      for iS = 1:nS
+        a  = V{iS,ic,im} ;
+        if isempty(a), continue, end
+        xj = ic + SubjOffset(iS) + (rand(numel(a),1) - 0.5) * JitterW ;
 
         isIn = a >= yLo & a <= yHi ;
-        scatter(ax, xj(isIn), a(isIn), 16, dotColor, 'filled', ...
-            'MarkerFaceAlpha', 0.55, 'MarkerEdgeColor', 'none') ;
+        scatter(ax, xj(isIn), a(isIn), 16, SubjColor(iS,:), 'filled', ...
+            'MarkerFaceAlpha', 0.60, 'MarkerEdgeColor', 'none') ;
 
         isUp = a > yHi ;
         isDn = a < yLo ;
@@ -118,6 +121,7 @@ for im = 1:nM
         end
         nOver  = nOver  + sum(isUp) ;
         nUnder = nUnder + sum(isDn) ;
+      end
     end
 
     % 被験者ごとの中央値（灰の折れ線）
@@ -126,9 +130,9 @@ for im = 1:nM
         for ic = 1:nC
             if ~isempty(V{iS,ic,im}), subjMed(iS,ic) = median(V{iS,ic,im}) ; end
         end
-        plot(ax, 1:nC, subjMed(iS,:), '-', 'Color', lineColor, 'LineWidth', 1.0, ...
+        plot(ax, 1:nC, subjMed(iS,:), '-', 'Color', SubjColor(iS,:), 'LineWidth', 1.6, ...
             'Marker', 'o', 'MarkerSize', 5, 'MarkerFaceColor', 'w', ...
-            'MarkerEdgeColor', lineColor*0.8) ;
+            'MarkerEdgeColor', SubjColor(iS,:)) ;
     end
 
     % 条件の中央値（黒の太い横線）と四分位範囲（縦線）
@@ -137,7 +141,7 @@ for im = 1:nM
         if isempty(a), continue, end
         m = median(a) ; q1 = quantile(a,0.25) ; q3 = quantile(a,0.75) ;
         plot(ax, [ic ic], [q1 q3], 'k-', 'LineWidth', 1.2) ;
-        plot(ax, ic + [-0.30 0.30], [m m], 'k-', 'LineWidth', 3.0) ;
+        plot(ax, ic + [-0.34 0.34], [m m], 'k-', 'LineWidth', 3.0) ;
         if abs(m) < 10, medFmt = '%.2f' ; else, medFmt = '%.1f' ; end
         text(ax, ic, yHi, sprintf(medFmt, m), 'HorizontalAlignment', 'center', ...
             'VerticalAlignment', 'bottom', 'FontSize', 15, 'FontWeight', 'bold') ;
@@ -151,7 +155,7 @@ for im = 1:nM
     ok      = ~isnan(lastCol) ;
     [sv, order] = sort(lastCol(ok), 'descend') ;
     idxOK   = find(ok) ;
-    minGap  = 0.058*(yHi-yLo) ;
+    minGap  = 0.050*(yHi-yLo) ;
     for k = 2:numel(sv)
         if sv(k-1) - sv(k) < minGap, sv(k) = sv(k-1) - minGap ; end
     end
@@ -160,7 +164,7 @@ for im = 1:nM
     for k = 1:numel(order)
         iS = idxOK(order(k)) ;
         text(ax, nC+0.36, sv(k), sprintf('S%02d', SubjectArray(iS)), ...
-            'FontSize', 10, 'Color', [0.35 0.35 0.35], 'VerticalAlignment', 'middle') ;
+            'FontSize', 10, 'FontWeight', 'bold', 'Color', SubjColor(iS,:), 'VerticalAlignment', 'middle') ;
     end
 
     % 軸外の点の注記（△▽ が何本で、実際の値がどこまで行っているか）
@@ -191,20 +195,25 @@ annotation('textbox', [0 (figH-47.25)/figH 1 44.1/figH], 'String', ...
     'FontSize', 15, 'FontWeight', 'bold', 'EdgeColor', 'none') ;
 
 annotation('textbox', [0 (figH-78.75)/figH 1 33.6/figH], 'String', ...
-    ['黒い横線 = 条件の中央値（縦線は四分位範囲） / 灰の折れ線 = 被験者ごとの中央値 / ' ...
-     '青点 = 個々の試行   ※ free は自己ペース条件のため参考値（網掛け）'], ...
+    ['黒い横線 = 条件の中央値（縦線は四分位範囲） / 色つきの折れ線 = 被験者ごとの中央値（色は被験者に対応） / ' ...
+     '点 = 個々の試行（被験者ごとに横にずらしてある）   ※ free は自己ペース条件のため参考値（網掛け）'], ...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
     'FontSize', 10.5, 'Color', [0.30 0.30 0.30], 'EdgeColor', 'none') ;
 
 % ★ annotation は sprintf の書式を解釈しないので、パーセント記号は %% ではなく % と書く。
-annotation('textbox', [0 8/figH 1 185/figH], 'String', ...
-    {['指標の定義は旧図（2026-08-26）と同一。RT = Fx がベースライン中央値 + 0.20 ×（窓内ピーク − ベース）を 20 ms 超えた時点、' ...
+annotation('textbox', [0 8/figH 1 300/figH], 'String', ...
+    {['RT = Fx がベースライン中央値 + 0.20 ×（窓内ピーク − ベース）を 20 ms 超えた時点（窓 = cue → 踏み込み足接地）、' ...
       'MT = 最大速度の時点 − RT、Slope = 最大速度 ÷ MT'], ...
+     ['★ 2026-09-29：踏み込み足の接地を「Fz2 > 50 N」から「cue 前 0.5 s の Fz2 中央値 + 50 N」に変えた。' ...
+      '足を乗せて構える試行で RT が出なかったため（03_Analysis 技術説明 §16）'], ...
      ['★ 旧図との違いは除外基準だけ。旧図は値の範囲による事後フィルタ（PeakVel 5〜40 m/s・MT>0・RT 100〜600 ms）で 258→217 試行に絞っていた'], ...
-     ['この図はそれを廃止し、03_Analysis 技術説明 §10.1 の2基準だけを使う。' ...
+     ['この図はそれを廃止し、03_Analysis 技術説明 §10.1 の2基準と、フライングの除外（③）を使う。' ...
       '① top マーカーの欠損（解析窓 = cue 後 0〜2 s、x4 の IsBadTop）→ Peak velocity・MT・Slope を除外'], ...
-     ['② 床反力が正常に計測できていない → RT・MT・Slope を除外。' ...
-      'MT と Slope は両方に依存するので、①②のどちらかに掛かれば落ちる（そのため n が最も少ない）'], ...
+     ['② 床反力が正常に計測できていない（欠損、または踏み込み足 Fz2 のベースラインが −50 N 未満＝ゼロ点のずれ）→ RT・MT・Slope を除外。' ...
+      'MT と Slope は両方に依存するので、①②のどちらかに掛かれば落ちる'], ...
+     ['③ フライング（cue の時点で Fx がすでに閾値を超えている＝ cue より前に動き出している）→ 全指標を除外。' ...
+      'S07 gonogo は Go 13 本から時系列で等間隔に 10 本を残して他被験者と本数をそろえた'], ...
+     ['★ 5.8 の図と試行をそろえるため、踏み込み足 Fz2 のピークが接地から 0.5 s 以上離れている試行（後続動作の山を拾っている）も全指標から除外した'], ...
      ['★ 残る外れ値：スイングを止めた試行（gostop）と、top マーカーの座標が飛んだ試行。' ...
       'S03 gonogo 行6 は 117.9 m/s（フレーム間変位 936 mm）で、欠損ではなく誤った座標が入っている（§9.4）'], ...
      ['橙の △▽ は軸の外にある点を境界に置いたもの。軸は四分位範囲の3倍で切ってあるが、' ...
@@ -215,6 +224,9 @@ annotation('textbox', [0 8/figH 1 185/figH], 'String', ...
 
 %% ---- 6. PNG 出力 ----
 
-outPath = fullfile(thisDir, sprintf('条件別_%s_RT-MT-PeakVel-Slope_新除外基準.png', GroupTag)) ;
+% ★ 2026-09-29：出力先を 01_個別データ / 02_全被験者データ に直接書き出すようにした
+if isscalar(SubjectArray), outDir = fullfile(thisDir, '01_個別データ') ;
+else,                      outDir = fullfile(thisDir, '02_全被験者データ') ; end
+outPath = fullfile(outDir, sprintf('条件別_%s_RT-MT-PeakVel-Slope_新除外基準.png', GroupTag)) ;
 exportgraphics(fig, outPath, 'Resolution', 200) ;
 fprintf('\n出力しました: %s\n', outPath) ;
