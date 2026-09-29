@@ -120,6 +120,7 @@ else
     Result.FxThr   = NaN ;              % ★変更：Fz1BaseSD から改名
     Result.SwingOnsetForce = NaN ;
     Result.RTForce         = NaN ;
+    Result.FxFilt          = [] ;
     Result.BWTail  = NaN ;              % ★追加：正常経路と並び順を揃える
     Result.BWBase  = NaN ;
     Result.PeakFz1 = NaN ;
@@ -160,6 +161,7 @@ Result.FxBase          = NaN ;   % キュー前 0.5 s の Fx 中央値 [N]
 Result.FxThr           = NaN ;   % onset の閾値 [N]
 Result.SwingOnsetForce = NaN ;   % アナログのサンプル番号（試行先頭から）
 Result.RTForce         = NaN ;   % [ms] キュー → 動作開始
+Result.FxFilt          = [] ;
 
 if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
         && isfield(Data, 'Force2') && ~isempty(Data.Force2) ...
@@ -184,12 +186,15 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
             F2f = filtfilt(bR, aR, F2) ;
             fx  = F1f(:,1) + F2f(:,1) ;          % 前後方向の合成床反力 [N]
             nA  = numel(fx) ;
+            Result.FxFilt = fx ;
 
             nBase = round(Prm.RT.BaseSec * fsA) ;
             Result.FxBase = median( fx(max(1, tCueAnalog-nBase) : tCueAnalog-1) ) ;
 
-            % 踏み込み足の接地：キュー後に Fz2 が初めて閾値を超えた点
-            tFC = find(F2f(tCueAnalog:nA, 3) > Prm.RT.FootContactN, 1, 'first') ;
+            % 踏み込み足の接地：キュー後に Fz2 が初めて「キュー前の中央値 + 閾値」を超えた点
+            %  中央値を基準にするので、足を乗せて構える試行や Fz2 のゼロ点ずれにも左右されない
+            fz2Base = median( F2f(max(1, tCueAnalog-nBase) : tCueAnalog-1, 3) ) ;
+            tFC = find(F2f(tCueAnalog:nA, 3) > fz2Base + Prm.RT.FootContactN, 1, 'first') ;
 
             if ~isempty(tFC) && (tFC - 1) >= round(Prm.RT.MinWinMs/1000 * fsA)
                 tFC    = tFC + tCueAnalog - 1 ;      % 試行先頭からの位置に直す

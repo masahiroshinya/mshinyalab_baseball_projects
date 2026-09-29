@@ -122,6 +122,7 @@ Result.FxBase          = NaN ;   % ★変更：Fz1BaseMean から改名（Fx 方
 Result.FxThr           = NaN ;   % ★変更：Fz1BaseSD から改名
 Result.SwingOnsetForce = NaN ;
 Result.RTForce         = NaN ;
+Result.FxFilt          = [] ;
 Result.BWTail          = NaN ;   % ★追加（BWBase の直前。m3 と並び順を揃える）
 Result.BWBase          = NaN ;
 Result.PeakFz1         = NaN ;
