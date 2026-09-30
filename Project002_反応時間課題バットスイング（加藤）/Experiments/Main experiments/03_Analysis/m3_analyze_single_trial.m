@@ -52,6 +52,12 @@ Result.IsNoData      = false ;
 Result.IsBadTop      = true ;
 Result.MaxNanRunTop  = Data.MaxNanRunTop ;   % 記録全体（参考情報）
 Result.NNanInWinTop  = NaN ;                 % 解析窓内の欠損フレーム数
+%  ★追加（2026-09-30）：記録全体での Fz1 / Fz2 の最小値 [N]（30 Hz ローパス後）。
+%    鉛直分力は負にならないので、大きく負ならゼロ点がずれている（x8 の除外基準②、技術説明 §18）。
+%    cue 前の中央値では、体重が乗っている Fz1 のずれを見逃すので最小値で見る。
+%    先頭に置くので、早期 return でも NaN が入る。
+Result.Fz1Min        = NaN ;
+Result.Fz2Min        = NaN ;
 
 % ---- ② バット先端（top）の並進速度 ----
 %  Qualisys の座標は mm なので、1000 で割って m に直してから微分する。
@@ -282,6 +288,8 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
 
             Result.Fz1Filt = Fz1_filt ;   % ★追加：波形をそのまま下流へ渡す
             Result.Fz2Filt = Fz2_filt ;   % ★追加
+            Result.Fz1Min  = min(Fz1_filt) ;   % ★追加（2026-09-30）
+            Result.Fz2Min  = min(Fz2_filt) ;
         end
     end
 end
