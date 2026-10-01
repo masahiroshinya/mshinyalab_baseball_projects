@@ -126,6 +126,7 @@ else
     Result.FxThr   = NaN ;              % ★変更：Fz1BaseSD から改名
     Result.SwingOnsetForce = NaN ;
     Result.RTForce         = NaN ;
+    Result.MTForce         = NaN ;
     Result.FxFilt          = [] ;
     Result.BWTail  = NaN ;              % ★追加：正常経路と並び順を揃える
     Result.BWBase  = NaN ;
@@ -167,6 +168,7 @@ Result.FxBase          = NaN ;   % キュー前 0.5 s の Fx 中央値 [N]
 Result.FxThr           = NaN ;   % onset の閾値 [N]
 Result.SwingOnsetForce = NaN ;   % アナログのサンプル番号（試行先頭から）
 Result.RTForce         = NaN ;   % [ms] キュー → 動作開始
+Result.MTForce         = NaN ;   % [ms] 動作開始 → top 合成速度ピーク
 Result.FxFilt          = [] ;
 
 if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
@@ -223,6 +225,14 @@ if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
             end
         end
     end
+end
+
+% ---- 動作時間 MT（動作開始 → top 合成速度ピーク）----
+%  onset はアナログ番号、ピークはマーカー番号なので、秒に直してから引く。
+%  ピークが onset より前に来る試行は定義が崩れるので NaN のままにする。
+if ~isnan(Result.SwingOnsetForce) && ~isnan(Result.TPeakVelTop)
+    mt = (Result.TPeakVelTop/fs - Result.SwingOnsetForce/Data.AnalogFs) * 1000 ;
+    if mt > 0, Result.MTForce = mt ; end
 end
 
 % ---- 床反力のピーク鉛直分力（統計用）----

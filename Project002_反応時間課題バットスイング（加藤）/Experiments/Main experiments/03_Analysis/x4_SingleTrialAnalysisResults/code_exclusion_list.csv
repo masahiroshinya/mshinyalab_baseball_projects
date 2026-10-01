@@ -109,6 +109,7 @@ Subject,Condition,Trial,Target,Reason,Mark,Note
 4,gostop,7,top,解析窓内に top の欠損（78 フレーム）,,
 4,gostop,8,top,解析窓内に top の欠損（24 フレーム）,k,
 4,gostop,9,top,解析窓内に top の欠損（22 フレーム）,,
+4,simple,2,top,,exclude,目視で top を除外
 5,simple,1,all,onset 未検出（RTForce = NaN）,,
 5,simple,2,all,onset 未検出（RTForce = NaN）,,
 5,simple,3,all,onset 未検出（RTForce = NaN）,,
@@ -127,6 +128,7 @@ Subject,Condition,Trial,Target,Reason,Mark,Note
 7,simple,8,all,onset 未検出（RTForce = NaN）,,
 7,simple,12,RT,RT が生理的下限（150 ms）を下回る（146 ms）,,
 7,simple,15,RT,RT が生理的下限（150 ms）を下回る（38 ms）,,
+7,gostop,4,all,,exclude,ミス試行（Go でスイングを止めた。Peak 9.6 m/s）
 8,gostop,14,all,onset 未検出（RTForce = NaN）,,
 9,free,3,Fz,Fz のゼロ点ずれ（最小値 Fz1 107 N / Fz2 -279 N）,,
 9,simple,9,Fz,Fz のゼロ点ずれ（最小値 Fz1 46 N / Fz2 -601 N）,,
@@ -148,5 +150,3 @@ Subject,Condition,Trial,Target,Reason,Mark,Note
 10,gonogo,6,RT,RT が生理的下限（150 ms）を下回る（135 ms）,,
 10,gonogo,13,RT,RT が生理的下限（150 ms）を下回る（109 ms）,,
 10,gostop,13,Fz,Fz のゼロ点ずれ（最小値 Fz1 -390 N / Fz2 2 N）,,
-4,simple,2,top,,exclude,目視で top を除外
-7,gostop,4,all,,exclude,ミス試行（Go でスイングを止めた。Peak 9.6 m/s）
