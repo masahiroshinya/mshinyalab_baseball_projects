@@ -21,6 +21,18 @@ userinfo.md は git 管理していません。ローカルのプロジェクト
 ユーザーロールが、student の場合は、AIは、コードの修正の際に、修正案を提示するだけにして、ファイルの更新を行わないこと。
 student の場合は、エラーの原因や、アルゴリズムについて、詳しく説明すること。
 
+## Word（.docx）の作成
+
+- docx を作成する場合は、**すべて `sandbox/6.1_Pandoc/技術説明.md` に記載の方法（Markdown → Pandoc → docx）で進めること。** docx を直接編集・生成（python-docx 等）しない。
+- 成果物ごとのフォルダに、次の作業ファイルを置く（例：`Manuscript/修士論文/01_研究概要/`、`Manuscript/2026野球学会/01抄録/`）。
+  - `draft.md`：原稿（**md を正とし、docx は生成物**として扱う）
+  - `convert.sh`：変換コマンド（Pandoc・`--citeproc`・`.bib`・CSL・`--reference-doc` を指定）
+  - `reference.docx`：書式テンプレート（Word のスタイル指定用）
+  - `figure/`：図
+- 文献は Zotero（Better BibTeX）が自動書き出しする `sandbox/6.1_Pandoc/reference/選択反応課題　参考文献.bib` を使う。
+- PDF が必要な場合は、生成した docx を Word で開いて PDF に保存する。
+- 変換で問題が起きた場合は、原因と対処を `sandbox/6.1_Pandoc/技術説明.md` に追記する。
+
 ## 2. ログ管理について
 
 AIエージェントとユーザーとのやり取りのログは、00_logging_policy.md に従って記録・保存すること。
