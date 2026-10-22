@@ -1,0 +1,11 @@
+{
+  "columnWidthMm": { "single": 90, "double": 190 },
+  "figureSizeCm": [8, 6],
+  "innerPositionCm": [1.6, 1.1, 6.0, 4.5],
+  "fontName": "Arial",
+  "fontSizePt": { "panelLabel": 9.75, "axisLabel": 9.0, "tickLabel": 7.5 },
+  "lineWidthPt": 1,
+  "markerSizePt": 4,
+  "pngResolution": 300,
+  "colours": [[0, 114, 178], [213, 94, 0], [0, 158, 115], [230, 159, 0]]
+}
