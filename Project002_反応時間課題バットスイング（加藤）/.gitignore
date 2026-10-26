@@ -7,3 +7,7 @@ sandbox/6.1_Pandoc/逆変換.md
 
 # MATLAB エディタの自動バックアップ
 *.asv
+
+# 本実験の生データ（被験者ごとの .mat、約 2.7 GB）。Git 管理外の場所に別に保管している
+# 被験者情報（00_SubjectInfo/subject_info.csv）は管理を続ける
+Experiments/Main experiments/04_Data/S*/
