@@ -127,6 +127,9 @@ else
     Result.SwingOnsetForce = NaN ;
     Result.RTForce         = NaN ;
     Result.MTForce         = NaN ;
+    Result.HookTime        = NaN ;   % ★追加（2026-10-28）
+    Result.LoopTime        = NaN ;
+    Result.AccelTime       = NaN ;
     Result.FxFilt          = [] ;
     Result.BWTail  = NaN ;              % ★追加：正常経路と並び順を揃える
     Result.BWBase  = NaN ;
@@ -169,6 +172,9 @@ Result.FxThr           = NaN ;   % onset の閾値 [N]
 Result.SwingOnsetForce = NaN ;   % アナログのサンプル番号（試行先頭から）
 Result.RTForce         = NaN ;   % [ms] キュー → 動作開始
 Result.MTForce         = NaN ;   % [ms] 動作開始 → top 合成速度ピーク
+Result.HookTime        = NaN ;   % [ms] ① フック局面：動作開始 → フック頂点（top が最も投手側に出た時点）
+Result.LoopTime        = NaN ;   % [ms] ② ループ局面：フック頂点 → ループ最深点（top が最も捕手側に来た時点）
+Result.AccelTime       = NaN ;   % [ms] ③ 加速局面：ループ最深点 → top 合成速度ピーク
 Result.FxFilt          = [] ;
 
 if isfield(Data, 'Force1') && ~isempty(Data.Force1) ...
@@ -233,6 +239,23 @@ end
 if ~isnan(Result.SwingOnsetForce) && ~isnan(Result.TPeakVelTop)
     mt = (Result.TPeakVelTop/fs - Result.SwingOnsetForce/Data.AnalogFs) * 1000 ;
     if mt > 0, Result.MTForce = mt ; end
+end
+
+% ---- MT の局面分け（① フック・② ループ・③ 加速）★追加（2026-10-28）----
+%  top の投手方向（X）の位置から、動作開始 → ピークを 3 つに分ける
+%  （sandbox/7.1_解析結果/2026-10-28/top_phase_viewer）。
+%    ループ最深点 = 動作開始〜ピークで X が最小の時点（最も捕手側）
+%    フック頂点   = 動作開始〜ループ最深点で X が最大の時点（最も投手側。ここから先端が捕手側へ回る）
+%  動作開始はアナログのサンプル番号なので、マーカーのフレーム番号に直す（MT と同じ対応のさせ方）。
+%  フレーム（4 ms）単位なので、① + ② + ③ は MT と最大 1 フレームずれる。
+if ~isnan(Result.MTForce) && isfield(M, Prm.Excl.TopMarkerName)
+    iOnsetTop = max(1, round(Result.SwingOnsetForce / Data.AnalogFs * fs)) ;
+    xTop      = M.(Prm.Excl.TopMarkerName)(iOnsetTop:Result.TPeakVelTop, 1) ;   % 動作開始 → ピークの X
+    [~, iBack] = min(xTop) ;               % ループ最深点
+    [~, iHook] = max(xTop(1:iBack)) ;      % フック頂点
+    Result.HookTime     = (iHook - 1)            / fs * 1000 ;
+    Result.LoopTime     = (iBack - iHook)        / fs * 1000 ;
+    Result.AccelTime    = (numel(xTop) - iBack)  / fs * 1000 ;
 end
 
 % ---- 床反力のピーク鉛直分力（統計用）----

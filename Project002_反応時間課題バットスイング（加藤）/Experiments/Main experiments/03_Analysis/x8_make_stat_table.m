@@ -19,7 +19,8 @@ ConditionOrder = {'free', 'simple', 'gonogo', 'gostop'} ;
 Prm            = parameters ;
 
 % 代表値を算出する従属変数（Methods 2-5 の表に対応）
-DVNameArray = {'RTForce_ms', 'MT_ms', 'PeakVelTop', 'PeakVelTopX', ...
+DVNameArray = {'RTForce_ms', 'MT_ms', 'HookTime_ms', 'LoopTime_ms', 'AccelTime_ms', ...
+               'PeakVelTop', 'PeakVelTopX', ...
                'PeakFz1_BW', 'PeakFz2_BW'} ;
 
 % x4 が書き出した「解析から外す対象」の一覧と、目視の判断（Mark 列、技術説明 §21）。
@@ -168,6 +169,9 @@ for iSubject = subjects
     T.PeakFz2_BW( isOutGRF) = NaN ;
     T.RTForce_ms( isOutRT)  = NaN ;
     T.MT_ms(isOutTop | isOutRT) = NaN ;   % MT は onset と top の両方に依存する
+    T.HookTime_ms(    isOutTop | isOutRT) = NaN ;   % MT の局面分けも MT と同じ（2026-10-28）
+    T.LoopTime_ms(    isOutTop | isOutRT) = NaN ;
+    T.AccelTime_ms(   isOutTop | isOutRT) = NaN ;
 
     % ---- 集計対象フラグ（Methods 2-4「集計対象の試行」）----
     %  NoGo・Stop はスイングの抑制自体が課題なので比較対象にしない。
