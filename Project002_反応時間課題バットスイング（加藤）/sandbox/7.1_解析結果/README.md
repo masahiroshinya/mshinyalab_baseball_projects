@@ -7,9 +7,9 @@
 | `01_主要指標_条件別/` | RT・MT・PeakVelTop（ピーク速度）・PeakFz の条件別の図 | |
 | 　`plot_by_condition.m` と `*_条件別_全被験者.png` | 全被験者の条件別の図（初めの版） | 2026-10-22 |
 | 　`by_condition/` | 全試行を描いた条件別の図（figure-toolkit） | 2026-10-26 |
-| 　`subject_mean_by_condition/` | 被験者平均の条件別の図（統計と同じ単位）。10 名版 | 2026-10-26 |
+| 　`subject_mean_by_condition/` | 被験者平均の条件別の図（統計と同じ単位）。10 名版。2026-11-03 に、S03 を再測定した 10 名のデータと RM-ANOVA_2026-1103 の有意差で描き直し、HookTime を加えた | 2026-10-26 |
 | 　　`make_subject_mean_by_condition_n8.m` | 同じ図の 8 名版（S03・S04 を除く。図の名前の末尾に `_n8`） | 2026-10-30 |
-| 　　`make_hooktime_subject_mean.m` | ① フック局面の時間（HookTime）の被験者平均の図（8 名） | 2026-10-30 |
+| 　　`make_hooktime_subject_mean_n8.m` | ① フック局面の時間（HookTime）の被験者平均の図（8 名）。2026-11-03 に、名前の末尾に `_n8` を付けた（10 名の HookTime は 10 名版のスクリプトに入れた） | 2026-10-30 |
 | `02_Onset_Fx/` | スイング開始（Onset）と、検出に使う前後方向の床反力 Fx | |
 | 　`fx_onset_viewer/` | Fx で Onset を見直すツール、閾値の感度の確認 | 2026-10-29 |
 | `03_top軌道_MT局面/` | バット先端（top）の軌道と、MT の局面分け（① フック・② ループ・③ 加速） | |

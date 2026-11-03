@@ -1,4 +1,7 @@
-% ① フック局面の時間（HookTime）の被験者ごとの平均の条件比較を、論文用の図にする（figure-toolkit の流れに従う）
+% ① フック局面の時間（HookTime）の被験者ごとの平均の条件比較を、S03・S04 を除いた 8 名で、論文用の図にする（figure-toolkit の流れに従う）
+%
+% 2026-11-03：10 名の HookTime の図は make_subject_mean_by_condition.m に加えたので、この 8 名の版は図の名前の末尾に _n8 を付けた
+%   （ファイル名も make_hooktime_subject_mean.m から変えた。ほかの 8 名の図と同じ付け方）。
 %
 % 図の種類：bar-points（figure-toolkit/figure-types/bar-points/recipe.md）。体裁は同じフォルダの make_subject_mean_by_condition.m と同じ。
 %   棒 = 条件の平均（被験者 8 人の平均）、誤差棒 = SD（棒の背面）、灰色の線 = 被験者ごとの値を条件間で結ぶ、点 = 被験者ごとの平均
@@ -16,10 +19,10 @@
 %
 % 手順（figure-toolkit のフォルダで実行する。figure-toolkit/AGENTS.md の 4 節）：
 %   1. matlab -batch "run('<このスクリプト>')"
-%      → デスクトップの affinity_mcp_work/input/hooktime_subject_mean/ に、PNG・SVG・PDF・_components.pdf・JSON・_data.mat を書き出す
-%   2. python3 tools/stack_component_pages.py hooktime_subject_mean
-%   3. AFFINITY_COLLECT_DIR=<このフォルダ>/output node tools/affinity-mcp.mjs run affinity/compose/compose_single_panels.js --set inputFolder=hooktime_subject_mean
-%   4. 確認：node tools/affinity-mcp.mjs run affinity/compose/check_figure.js --set checkFigureTitles=HookTime_subject_mean
+%      → デスクトップの affinity_mcp_work/input/hooktime_subject_mean_n8/ に、PNG・SVG・PDF・_components.pdf・JSON・_data.mat を書き出す
+%   2. python3 tools/stack_component_pages.py hooktime_subject_mean_n8
+%   3. AFFINITY_COLLECT_DIR=<このフォルダ>/output node tools/affinity-mcp.mjs run affinity/compose/compose_single_panels.js --set inputFolder=hooktime_subject_mean_n8
+%   4. 確認：node tools/affinity-mcp.mjs run affinity/compose/check_figure.js --set checkFigureTitles=HookTime_subject_mean_n8
 %
 % 2026-10-30
 
@@ -27,7 +30,7 @@
 figureFolder = fileparts(mfilename('fullpath')) ; % このスクリプトのフォルダ
 projectFolder = fullfile(figureFolder, '..', '..', '..', '..') ; % Project002 のフォルダ
 addpath(fullfile(projectFolder, '..', 'figure-toolkit', 'matlab')) ;
-outDir = fullfile(toolkitPaths().input, 'hooktime_subject_mean') ;
+outDir = fullfile(toolkitPaths().input, 'hooktime_subject_mean_n8') ;
 
 %% データ（x8_StatTable の SubjectTable。S03・S04 を除く）
 load(fullfile(projectFolder, 'Experiments', 'Main experiments', '03_Analysis', 'x8_StatTable', 'StatTable.mat'), 'SubjectTable')
@@ -148,7 +151,7 @@ dataComponents = [{'error bars', errorBarHandle} ; ...
     {'lines participants', participantLineHandles} ; ...
     cellfun(@(c) sprintf('markers %s', c), CondNames(:), 'UniformOutput', false), num2cell(markerHandles(:))] ;
 spec = struct() ;
-spec.name = sprintf('%s_subject_mean', Metric.Tag) ;
+spec.name = sprintf('%s_subject_mean_n8', Metric.Tag) ;
 spec.panel = 'A' ;
 spec.outDir = outDir ;
 spec.style = style ;

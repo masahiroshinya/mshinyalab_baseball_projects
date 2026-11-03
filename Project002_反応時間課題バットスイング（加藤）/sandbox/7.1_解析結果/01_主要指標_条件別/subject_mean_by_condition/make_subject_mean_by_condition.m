@@ -1,12 +1,16 @@
-% 被験者ごとの平均の条件比較（RT・MT・PeakVelTop・PeakFz）を、1 指標 1 枚の論文用の図にする（figure-toolkit の流れに従う）
+% 被験者ごとの平均の条件比較（RT・MT・PeakVelTop・PeakFz・HookTime）を、1 指標 1 枚の論文用の図にする（figure-toolkit の流れに従う）
+%
+% 2026-11-03：S03 を再測定した 10 名のデータ（x8 で作り直した StatTable.mat）で描き直し、有意差を RM-ANOVA_2026-1103 の結果に替え、
+%   HookTime（① フック局面の時間）を加えた。2026-10-26 の版（古い S03 のデータ）の図は git の履歴に残る。8 名の版は *_n8.m。
 %
 % 図の種類：bar-points（figure-toolkit/figure-types/bar-points/recipe.md）。
 %   棒 = 条件の平均（被験者 10 人の平均）、誤差棒 = SD（棒の背面）、灰色の線 = 被験者ごとの値を条件間で結ぶ、点 = 被験者ごとの平均
 % データ：Experiments/Main experiments/03_Analysis/x8_StatTable/StatTable.mat の SubjectTable
-%   （x8_make_stat_table.m で、除外の後の Go 試行の値を被験者 × 条件ごとに平均したもの。stat_table_subject.csv と同じ）。S01〜S10。
+%   （x8_make_stat_table.m で、除外の後の Go 試行の値を被験者 × 条件ごとに平均したもの。stat_table_subject.csv と同じ）。S01〜S10（S03 は 2026-11-03 の再測定）。
 %   このスクリプトで行う計算は、条件ごとの被験者間の平均と SD だけ。
 % 統計（JASP）と同じ単位（被験者ごとの平均、n = 10）で描く。全試行を描いた図は ../by_condition/。
-% 有意差記号は、統計の結果（下の Stats）を Affinity の注釈で加える。2026-10-26 時点で結果があるのは RT と MT。
+% 有意差記号は、統計の結果（下の Stats）を Affinity の注釈で加える。
+% ① フック局面：Onset からフック頂点（引き始め）まで（sandbox/7.1_解析結果/03_top軌道_MT局面/top_phase_viewer/技術説明.md）。
 %
 % 体裁で判断したこと：
 %   - RT は free を描かない（x10_plot_by_condition.m と同じ。自己ペース条件で cue からの反応ではないため）
@@ -20,9 +24,9 @@
 %      → デスクトップの affinity_mcp_work/input/subject_mean_by_condition/ に、図ごとの PNG・SVG・PDF・_components.pdf・JSON・_data.mat を書き出す
 %   2. python3 tools/stack_component_pages.py subject_mean_by_condition
 %   3. AFFINITY_COLLECT_DIR=<このフォルダ>/output node tools/affinity-mcp.mjs run affinity/compose/compose_single_panels.js --set inputFolder=subject_mean_by_condition
-%   4. 確認：node tools/affinity-mcp.mjs run affinity/compose/check_figure.js --set checkFigureTitles=RT_subject_mean,MT_subject_mean,PeakVelTop_subject_mean,PeakFz_subject_mean
+%   4. 確認：node tools/affinity-mcp.mjs run affinity/compose/check_figure.js --set checkFigureTitles=RT_subject_mean,MT_subject_mean,PeakVelTop_subject_mean,PeakFz_subject_mean,HookTime_subject_mean
 %
-% 2026-10-26
+% 2026-10-26（2026-11-03 に 10 名の最終版のデータで更新。HookTime の縦軸の名前は、ポスターの呼び方 Hook Time（HT）に合わせて Hook time (ms)）
 
 %% 準備
 figureFolder = fileparts(mfilename('fullpath')) ; % このスクリプトのフォルダ
@@ -38,25 +42,39 @@ ConditionLabelArray = {'Free', 'Simple', 'Go/No-go', 'Go/Stop'} ; % 横軸の目
 
 % 指標名（ファイル名の接頭語）・列名・縦軸のラベル・描く条件（ConditionNameArray の番号）・縦軸
 Metric = struct( ...
-    'Tag',    {'RT', 'MT', 'PeakVelTop', 'PeakFz'}, ...
-    'Col',    {'RTForce_ms', 'MT_ms', 'PeakVelTop', 'PeakFz2_BW'}, ...
-    'YLabel', {'Reaction time (ms)', 'Movement time (ms)', 'Peak bat-tip speed (m/s)', 'Peak Fz, lead leg (BW)'}, ...
-    'Conds',  {2:4, 1:4, 1:4, 1:4}, ...
-    'YLim',   {[0, 400], [0, 1200], [0, 40], [0, 2]}, ... % MT は有意差記号（3 段）が入るよう 1200 ms まで
-    'YTick',  {0:100:400, 0:200:1200, 0:10:40, 0:0.5:2}) ;
+    'Tag',    {'RT', 'MT', 'PeakVelTop', 'PeakFz', 'HookTime'}, ...
+    'Col',    {'RTForce_ms', 'MT_ms', 'PeakVelTop', 'PeakFz2_BW', 'HookTime_ms'}, ...
+    'YLabel', {'Reaction time (ms)', 'Movement time (ms)', 'Peak bat-tip speed (m/s)', 'Peak Fz, lead leg (BW)', 'Hook time (ms)'}, ...
+    'Conds',  {2:4, 1:4, 1:4, 1:4, 1:4}, ...
+    'YLim',   {[0, 400], [0, 1200], [0, 40], [0, 2], [0, 1000]}, ... % MT は有意差記号（3 段）、HookTime は 4 段が入るよう広げる
+    'YTick',  {0:100:400, 0:200:1200, 0:10:40, 0:0.5:2, 0:200:1000}) ;
 
-% 統計の結果（JASP の反復測定分散分析の事後検定、Holm の補正。2026-10-26 にユーザーから受け取った値）。
+% 統計の結果（stat_table_subject_wide.jasp・.pdf、2026-11-03。反復測定分散分析の事後検定、Holm の補正。10 名）。
+% 結果の整理は x8_StatTable/RM-ANOVA_2026-1103_結果まとめ.md。
 % 有意差記号は有意かどうかだけを示す（p < 0.05 で *。figure-types/bar-points/recipe.md の 4）。
 % 有意でない比較（n.s.）は描かない（2026-10-26、ユーザーの指定：記号が多く見づらいため）。キャプションに「表示していない比較は有意差なし」と書く。
-% 比較は条件名の組、pHolm の < .001 は 0.001 と書く。統計の結果がまだない指標は空
-%   RT：Condition の主効果 F(1.296, 11.67) = 10.29、p = .005（Greenhouse-Geisser。Mauchly で球面性が棄却されたため）
-%   MT：Condition の主効果 F(1.433, 12.90) = 31.63、p < .001（同）
+% 比較は条件名の組、pHolm の < .001 は 0.001 と書く。
+% Condition の主効果（Greenhouse-Geisser。全指標で GG の値をそろえて報告する方針）：
+%   RT：F(1.40, 12.60) = 13.09、p = .002
+%   MT：F(1.90, 17.06) = 38.32、p < .001
+%   PeakVelTop：F(2.27, 20.39) = 0.98、p = .402
+%   PeakFz（PeakFz2_BW）：F(2.28, 20.51) = 4.34、p = .023（有意な組はない）
+%   HookTime：F(1.80, 16.17) = 28.06、p < .001
 Stats = struct() ;
 Stats.RT = struct('Pairs', {{'simple', 'gonogo' ; 'simple', 'gostop' ; 'gonogo', 'gostop'}}, ...
-                  'PHolm', [0.451 ; 0.001 ; 0.049]) ;
+                  'PHolm', [0.069 ; 0.001 ; 0.069]) ;
 Stats.MT = struct('Pairs', {{'simple', 'gonogo' ; 'simple', 'gostop' ; 'simple', 'free' ; ...
                              'gonogo', 'gostop' ; 'gonogo', 'free' ; 'gostop', 'free'}}, ...
-                  'PHolm', [0.086 ; 0.004 ; 0.001 ; 0.086 ; 0.001 ; 0.001]) ;
+                  'PHolm', [0.085 ; 0.001 ; 0.001 ; 0.130 ; 0.001 ; 0.001]) ;
+Stats.PeakVelTop = struct('Pairs', {{'simple', 'gonogo' ; 'simple', 'gostop' ; 'simple', 'free' ; ...
+                                     'gonogo', 'gostop' ; 'gonogo', 'free' ; 'gostop', 'free'}}, ...
+                          'PHolm', [1 ; 0.687 ; 1 ; 0.721 ; 1 ; 1]) ;
+Stats.PeakFz = struct('Pairs', {{'simple', 'gonogo' ; 'simple', 'gostop' ; 'simple', 'free' ; ...
+                                 'gonogo', 'gostop' ; 'gonogo', 'free' ; 'gostop', 'free'}}, ...
+                      'PHolm', [0.778 ; 0.778 ; 0.138 ; 0.778 ; 0.055 ; 0.338]) ;
+Stats.HookTime = struct('Pairs', {{'simple', 'gonogo' ; 'simple', 'gostop' ; 'simple', 'free' ; ...
+                                   'gonogo', 'gostop' ; 'gonogo', 'free' ; 'gostop', 'free'}}, ...
+                        'PHolm', [0.031 ; 0.004 ; 0.001 ; 0.031 ; 0.002 ; 0.001]) ;
 
 SubjectArray = unique(SubjectTable.Subject)' ;
 nS = numel(SubjectArray) ;
@@ -174,6 +192,6 @@ for im = 1:numel(Metric)
     spec.annotations = annotations ;
     spec.column = 'single' ;
     exportPanel(fig, ax, spec) ;
-    fprintf('%s mean (SD): %s\n', Metric(im).Tag, sprintf('%.3g (%.3g)  ', [meanY; sdY])) ;
+    fprintf('%s mean (SD), n = %d: %s\n', Metric(im).Tag, nS, sprintf('%.4g (%.3g)  ', [meanY; sdY])) ;
     close(fig) ;
 end
