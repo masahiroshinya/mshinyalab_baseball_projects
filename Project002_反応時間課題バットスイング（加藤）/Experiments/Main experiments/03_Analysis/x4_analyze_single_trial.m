@@ -22,7 +22,7 @@ clc
 % -----------------------------------------------------------------------
 % 設定
 % -----------------------------------------------------------------------
-subjects           = 1:10 ;
+subjects           = 3 ;
 ConditionNameArray = {'free', 'simple', 'gonogo', 'gostop'} ;
 nCondition         = length(ConditionNameArray) ;
 

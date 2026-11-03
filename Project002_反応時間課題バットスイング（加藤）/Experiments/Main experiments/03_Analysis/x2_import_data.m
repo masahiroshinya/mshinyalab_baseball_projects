@@ -20,7 +20,7 @@ ConditionNameArray = {'free', 'simple', 'gonogo', 'gostop'} ; % データに含�
 %   []      → 04_Data にあるフォルダを全て処理する（被験者が増えても書き換え不要）
 %   [3]     → S03 だけをやり直す
 %   [2 4 5] → 指定した被験者だけ
-subjects = [] ;
+subjects = [3] ;
 
 % 生データの置き場所
 RawDataRoot = fullfile('..', '04_Data') ;
