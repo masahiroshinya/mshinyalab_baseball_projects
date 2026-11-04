@@ -1,0 +1,1 @@
+MT = t_{\mathrm{peak}} - t_{\mathrm{onset}}
