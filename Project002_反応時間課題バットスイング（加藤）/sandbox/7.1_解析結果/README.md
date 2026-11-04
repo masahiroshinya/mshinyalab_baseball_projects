@@ -16,6 +16,7 @@
 | 　`top_trajectory_3d/` | top の軌道を 3 次元で見るツール | 2026-10-28 |
 | 　`top_phase_viewer/` | MT を局面に分けて見るツール（`../top_trajectory_3d/cache` を読む） | 2026-10-28 |
 | 　`s06_top_trajectory/` | S06 の top 軌道の図（Affinity） | 2026-10-29 |
+| 　`phase_time_stack/` | MT を HT・LT・AT（フック・ループ・加速局面）に分けた時間の積み上げ横棒。10 名の平均、ポスターのグラフと同じ配色（figure-toolkit） | 2026-11-04 |
 | `04_重心_Fx/` | 前後方向の床反力 Fx から求めた重心の前後の動き | |
 | 　`com_fx_analysis/` | Fx を 2 回積分した重心の移動と、top の「最も捕手側」を比べる（突っ込みかバットの回り方か） | 2026-11-03 |
 
