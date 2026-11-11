@@ -27,7 +27,6 @@ Subject,Trial,CueText,RTForce_ms,HookTime_ms,TDiv_ms
 2,15,Go,169,468,NaN
 3,1,Go,229,436,NaN
 3,2,Go,242,456,NaN
-3,3,Stop,27,488,864
 3,4,Go,224,424,NaN
 3,5,Stop,160,NaN,844
 3,6,Go,315,396,NaN
@@ -36,7 +35,6 @@ Subject,Trial,CueText,RTForce_ms,HookTime_ms,TDiv_ms
 3,9,Go,270,436,NaN
 3,10,Go,189,392,NaN
 3,12,Go,205,464,NaN
-3,13,Stop,1,440,844
 3,14,Go,206,456,NaN
 3,15,Go,281,436,NaN
 4,1,Stop,302,320,808
@@ -50,7 +48,6 @@ Subject,Trial,CueText,RTForce_ms,HookTime_ms,TDiv_ms
 4,11,Go,203,276,NaN
 4,12,Stop,165,276,NaN
 4,13,Go,248,340,NaN
-4,14,Stop,20,328,808
 4,15,Go,256,348,NaN
 5,1,Go,302,348,NaN
 5,4,Go,231,312,NaN
@@ -66,7 +63,6 @@ Subject,Trial,CueText,RTForce_ms,HookTime_ms,TDiv_ms
 6,2,Stop,231,0,948
 6,4,Go,202,524,NaN
 6,5,Go,356,436,NaN
-6,6,Stop,140,548,936
 6,7,Go,195,472,NaN
 6,9,Stop,272,464,936
 6,10,Go,242,428,NaN
@@ -107,7 +103,6 @@ Subject,Trial,CueText,RTForce_ms,HookTime_ms,TDiv_ms
 9,2,Go,178,284,NaN
 9,3,Go,366,300,NaN
 9,5,Go,310,284,NaN
-9,6,Stop,58,300,756
 9,7,Go,206,260,NaN
 9,8,Stop,380,268,400
 9,9,Go,247,288,NaN
