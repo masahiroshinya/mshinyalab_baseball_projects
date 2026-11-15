@@ -61,6 +61,7 @@ p 値はすべて MATLAB で出した確認用の値（RM-ANOVA の GG 補正、
 | `05_hook_progress/` | フックの進み具合と、頂点の近くにいる時間 | `hook_progress_analysis.m`、`plot_hook_progress_timeline.m` |
 | `06_go_vs_stop/` | Go 試行と Stop 試行の top の速さ・X の比較と、分かれ始めた時刻（見越し反応の確認、SPM も） | `compare_go_stop.m`、`plot_gostop_bias_check.m`、`spm_go_stop.m` |
 | `07_trajectory_viewer/` | 被験者ごとに Go 試行と Stop 試行の top の軌道を比べるツール（画面で操作） | `gostop_trajectory_viewer.m` |
+| `08_stop_halfswing/` | Stop 試行を MLB のハーフスイングの基準（ノブ → 先端の線が水平面で 45° を越えたらスイング）で分け、RT・HT・LT・AT との関係を調べる（2026-11-15、未実行の案） | `stop_halfswing_analysis.m` |
 
 コードを使うときは、技術説明.md のコードを、そのフォルダに書いてある名前で保存して実行する。フォルダの深さ（`7.1_解析結果/05_…/<ツール>/xxx.m`）を変えると、Project002 のフォルダが見つからなくなる（[7.1_解析結果 の README](../README.md) の置き場所の決まり）。
 
