@@ -238,6 +238,19 @@ for iDV = 1:numel(DVNameArray)
 end
 
 % -----------------------------------------------------------------------
+% ヘッドスピードの Free 条件に対する変化率（試行単位）（2026-11-17 追加）
+%  変化率 = (その試行の PeakVelTop / その被験者の Free 条件の Go 試行の平均 − 1) × 100
+%  Free の平均は SubjectTable の PeakVelTop（free）と同じ値
+% -----------------------------------------------------------------------
+TrialTable.PeakVelTopRate_pct = NaN(height(TrialTable), 1) ;
+for iSubject = unique(TrialTable.Subject)'
+    isFree   = TrialTable.Subject == iSubject & TrialTable.Condition == "free" & TrialTable.IsGo ;
+    freeMean = mean(TrialTable.PeakVelTop(isFree), 'omitnan') ;
+    m = TrialTable.Subject == iSubject & TrialTable.IsGo ;
+    TrialTable.PeakVelTopRate_pct(m) = (TrialTable.PeakVelTop(m)/freeMean - 1)*100 ;
+end
+
+% -----------------------------------------------------------------------
 % 保存
 % -----------------------------------------------------------------------
 save('x8_StatTable/StatTable', 'TrialTable', 'SubjectTable') ;
@@ -250,6 +263,13 @@ fprintf('  被験者単位: %d 行（被験者 %d 名 × 条件）\n', ...
     height(SubjectTable), numel(unique(SubjectTable.Subject))) ;
 disp(SubjectTable)
 writetable(WideTable, 'x8_StatTable/stat_table_subject_wide.csv', 'Encoding', 'UTF-8') ;
+
+% JASP 用：反応課題 3 条件の Go 試行で、変化率がある試行だけ（1 行 1 試行）
+%  Free は基準（平均が定義から 0%）なので入れない（headspeed_normalized/技術説明.md の 9.1 節）
+isJasp = TrialTable.IsGo & ~isnan(TrialTable.PeakVelTopRate_pct) & TrialTable.Condition ~= "free" ;
+RateTable = TrialTable(isJasp, {'Subject', 'Condition', 'Trial', 'PeakVelTop', 'PeakVelTopRate_pct'}) ;
+writetable(RateTable, 'x8_StatTable/stat_table_trial_rate_jasp.csv', 'Encoding', 'UTF-8') ;
+
 
 
 % -----------------------------------------------------------------------

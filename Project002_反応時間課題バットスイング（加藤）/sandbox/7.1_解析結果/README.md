@@ -11,7 +11,7 @@
 | 　　`make_subject_mean_by_condition_n8.m` | 同じ図の 8 名版（S03・S04 を除く。図の名前の末尾に `_n8`） | 2026-10-30 |
 | 　　`make_hooktime_subject_mean_n8.m` | ① フック局面の時間（HookTime）の被験者平均の図（8 名）。2026-11-03 に、名前の末尾に `_n8` を付けた（10 名の HookTime は 10 名版のスクリプトに入れた） | 2026-10-30 |
 | 　`headspeed_normalized/` | ヘッドスピード（PeakVelTop）をフリー条件で正規化した変化率の検定（被験者単位・試行単位、対応なし／あり）。ポスター発表の後の依頼への回答。結果とコードの案は中の 技術説明.md | 2026-11-16 |
-| 　　`headspeed_rate/` | 先方に渡す図（A 被験者単位の変化率、B 試行単位の変化率、C Go/Stop − Simple の差。figure-toolkit）。A だけを 1 枚にした図（headspeed_rate_A、被験者ごとに色分け）も。S04 の再測定の後、A だけ作り直した（3 パネルの図は前の S04 のまま） | 2026-11-16 |
+| 　　`headspeed_rate/` | 先方に渡す図（A 被験者単位の変化率、B 試行単位の変化率、C Go/Stop − Simple の差。figure-toolkit）。A だけを 1 枚にした図（headspeed_rate_A、被験者ごとに色分け）も。S04 の再測定の後、A だけ作り直した（3 パネルの図は前の S04 のまま）。試行単位で反応課題の 3 条件だけの図（headspeed_rate_B3、Free を外した B）も | 2026-11-17 |
 | `02_Onset_Fx/` | スイング開始（Onset）と、検出に使う前後方向の床反力 Fx | |
 | 　`fx_onset_viewer/` | Fx で Onset を見直すツール、閾値の感度の確認 | 2026-10-29 |
 | `03_top軌道_MT局面/` | バット先端（top）の軌道と、MT の局面分け（① フック・② ループ・③ 加速） | |
